@@ -1,0 +1,54 @@
+---
+title: "Sampling oMS"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+bibliography: references.bib
+csl: styles/proceedings-of-the-royal-society-b.csl
+---
+
+```{r setup, include=FALSE}
+# Remove messages containing "Attachement du package"
+knitr::knit_hooks$set(message = function(x, options) {
+  if (grepl("Attachement du package", x)) {
+    return("")
+  }
+  return(x)
+})
+```
+
+## Project and data vizualisation
+
+Visualize the pipeline analyses:
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_visnetwork()
+```
+
+::: {.content-hidden when-format="html"}
+Visualize the tables :
+:::
+
+```{r,warning=FALSE}
+knitr::kable(head(targets::tar_read(data_id)))
+
+knitr::kable(head(targets::tar_read(data_obs)))
+```
+
+## What is the best proxy for observational mating success?
+
+We have done an experiment in which we surveyed each pollinator one by one along the visit sequences, up to the flower scale. By making assumptions about the carry-over (i.e. the number of successive flower visits during which pollen export remains effective), we are able to estimate the number of observational sexual partners, both for the female and the male function. We assume that the carry-over is about 10, based on a previous study on the sister species *Brassica napus*: for the male function, 91% of the seeds were sired in the first four flowers visited after a focal individual, and no seeds were sired after the 14th flower visited [@cresswell_method_1994].
+
+Now, we imagine a more common experiment *in natura* in which we cannot follow the pollinators one by one. We then have the following data :
++ the number of arrivals (female function) / departures (male function) per individual, which are very correlated = number of contacts (which can be independent or not) pr individual
++ the total visit number per individual
++ the number of different plants visited in the session = maximum number of sexual partners
++ the total visit duration per individual (but not useful here, as we only formulate hypotheses about visit sequences, without getting interest into the number of pollen grain exported/deposited)
+
+```{r,warning=FALSE}
+# knitr::kable(head(targets::tar_read(data_contact$dt_contact)))
+# 
+# knitr::kable(head(targets::tar_read(data_contact$dt_contact_id)))
+```
+

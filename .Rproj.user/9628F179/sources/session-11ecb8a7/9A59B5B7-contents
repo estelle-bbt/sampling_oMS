@@ -1,0 +1,21 @@
+Package: sampling_oMS
+Type: Analyses
+Title: Estimating oMS in entomophilous plants
+Version: 0.0.0.0000
+Authors@R: c(
+    person(given   = "Estelle",
+           family  = "Barbot",
+           role    = c("aut", "cre", "cph"),
+           email   = "estelle.barbot@protonmail.com",
+           comment = c(ORCID = "0000-0001-6790-2429")))
+Description: How to estimate oMS and related proxies as accurately as possible?
+License: GPL-2
+Encoding: UTF-8
+Remotes:
+Imports: 
+    here,
+    provoc,
+    dplyr,
+    tidyr,
+    tibble,
+    stringr

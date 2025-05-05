@@ -1,0 +1,9 @@
+name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
+data_obs|stem|b7d9a92c86542d5e|fe544aa5628706c8|0284b87fab98d9e8|-1580520765||t20213.4146477762s|s49381b|49381|rds|local|vector|||0.011||
+data_id|stem|713aa1594ad3a5e9|30aee8924339997b|f5b1dff0172a446d|1925937001||t20213.4149910685s|s205958b|205958|rds|local|vector|||0.128||
+data_contact|stem|ba046d348618d013|d0f65576ecc70011|3bd533bbdc82cf27|614267587||t20213.6386259232s|s18057b|18057|rds|local|vector|||0.95||
+get_data_contact|function|cc8394cd6051ebb5
+load_data_id|function|a59643284a2e7f95
+load_data_obs|function|73c393dbc8e495bb
+.Random.seed|object|3eb4d3db86a0271f
+index|stem|672e1b26f327a705|7f39cf66ca28afe8|e82107ef82e3451e|554519753|index_files*index.html*index.qmd|t20213.6401086932s|s2196305b|2196305|file|local|vector|||4.043||

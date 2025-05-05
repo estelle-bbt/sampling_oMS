@@ -1,0 +1,46 @@
+{
+    "sources": [
+        {
+            "URL": "https://fr.wikipedia.org/w/index.php?title=Al-Biruni&oldid=220857188",
+            "id": "al-birun2024",
+            "issued": {
+                "date-parts": [
+                    [
+                        2024,
+                        12,
+                        4
+                    ]
+                ]
+            },
+            "language": "fr",
+            "note": "Page Version ID: 220857188",
+            "title": "Al-Biruni",
+            "type": ""
+        },
+        {
+            "DOI": "10.1007/978-3-319-24277-4",
+            "URL": "http://link.springer.com/10.1007/978-3-319-24277-4",
+            "author": [
+                {
+                    "family": "Wickham",
+                    "given": "Hadley"
+                }
+            ],
+            "collection-title": "Use R!",
+            "id": "wickham2016",
+            "issued": {
+                "date-parts": [
+                    [
+                        2016
+                    ]
+                ]
+            },
+            "note": "DOI: 10.1007/978-3-319-24277-4",
+            "publisher": "Springer International Publishing",
+            "publisher-place": "Cham",
+            "title": "ggplot2",
+            "type": "book"
+        }
+    ],
+    "project_biblios": []
+}
