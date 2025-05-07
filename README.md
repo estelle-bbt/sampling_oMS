@@ -1,14 +1,14 @@
 # Sound project
 
-The aim of this project is to better estimate mating success and understand how
-its estimation drives the conclusion about sexual selection, using the model 
-species *Brassica rapa* and its main pollinator *Bombus terrestris*
+The aim of this project is to better estimate mating success and understand how  
+its estimation influences conclusions about sexual selection, using the model  
+species *Brassica rapa* and its main pollinator *Bombus terrestris*.
 
-We have two main objectives:
-+ explore which estimates of pollinator visits is the best predictor of observational 
-mating success
-+ compare the results about Bateman gradients and variance decomposition,
-using observational versus genetic mating success, 
+We have two main objectives:  
++ Explore which estimates of pollinator visits are the best predictors of observational  
+  mating success  
++ Compare the results of Bateman gradients and variance decomposition,  
+  using observational versus genetic mating success
 
 
 ## Content
