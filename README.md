@@ -1,4 +1,4 @@
-# Sound project
+# Mating success estimation
 
 The aim of this project is to better estimate mating success and understand how  
 its estimation influences conclusions about sexual selection, using the model  
