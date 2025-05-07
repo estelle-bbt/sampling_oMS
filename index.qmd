@@ -1,7 +1,16 @@
 ---
 title: "Sampling oMS"
-format: html
+format: 
+  html:
+    theme: cosmo
+    toc: true
+execute:
+  echo: false
+  warning: false
+  message: false
+  freeze: false
 editor: visual
+runtime: shiny
 editor_options: 
   chunk_output_type: console
 bibliography: references.bib
@@ -18,7 +27,7 @@ knitr::knit_hooks$set(message = function(x, options) {
 })
 ```
 
-## Project and data vizualisation
+# Project and data vizualisation
 
 Visualize the pipeline analyses:
 
@@ -36,19 +45,431 @@ knitr::kable(head(targets::tar_read(data_id)))
 knitr::kable(head(targets::tar_read(data_obs)))
 ```
 
-## What is the best proxy for observational mating success?
+# What is the best proxy for observational mating success?
 
-We have done an experiment in which we surveyed each pollinator one by one along the visit sequences, up to the flower scale. By making assumptions about the carry-over (i.e. the number of successive flower visits during which pollen export remains effective), we are able to estimate the number of observational sexual partners, both for the female and the male function. We assume that the carry-over is about 10, based on a previous study on the sister species *Brassica napus*: for the male function, 91% of the seeds were sired in the first four flowers visited after a focal individual, and no seeds were sired after the 14th flower visited [@cresswell_method_1994].
+We have conducted an experiment in which we surveyed each pollinator one by one along the visit sequences, up to the flower scale. By making assumptions about the carry-over (i.e., the number of successive flower visits during which pollen export remains effective), we are able to estimate the number of observational sexual partners, both for the female and the male function. We assume that the carry-over is about 10, based on a previous study on the sister species *Brassica napus*: for the male function, 91% of the seeds were sired in the first four flowers visited after a focal individual, and no seeds were sired after the 14th flower visited [@cresswell_method_1994].
 
-Now, we imagine a more common experiment *in natura* in which we cannot follow the pollinators one by one. We then have the following data :
-+ the number of arrivals (female function) / departures (male function) per individual, which are very correlated = number of contacts (which can be independent or not) pr individual
-+ the total visit number per individual
-+ the number of different plants visited in the session = maximum number of sexual partners
-+ the total visit duration per individual (but not useful here, as we only formulate hypotheses about visit sequences, without getting interest into the number of pollen grain exported/deposited)
+Now, we imagine a more common experiment *in natura* in which we cannot follow the pollinators one by one. We could rather observe plant by plant. We then have the following data :
+
+-   the number of arrivals (female function) / departures (male function) per individual, which are highly correlated = number of contacts (which may be independent or not) per individual\
+-   the total number of visits per individual\
+-   the total visit duration per individual (but not useful here, as we only formulate hypotheses about visit sequences, without getting interested in the number of pollen grains exported/deposited): we leave that aside
+
+We can imagine that each observer notes the time of the pollinator's arrival on each plant (start), to order events of contacts:
 
 ```{r,warning=FALSE}
-# knitr::kable(head(targets::tar_read(data_contact$dt_contact)))
-# 
-# knitr::kable(head(targets::tar_read(data_contact$dt_contact_id)))
+knitr::kable(head(targets::tar_read(data_contact)$dt_contact))
 ```
 
+But then, what to do with this? We don't know the identity of the pollinator,\
+so it is difficult to infer anything from the visit order...
+
+Something more realistic is to start from data at the individual level without inferring anything about the effect of visit order:
+
+```{r,warning=FALSE}
+knitr::kable(head(targets::tar_read(data_contact)$dt_contact_id))
+```
+
+To discuss: something smart to do with contact order?
+
+Then, we can summarize data at the scale of the observation session. At least useful to compare\
+populations between them? We can get the following data:
+
+-   Total number of contacts with id
+-   Total number of visits\
+-   Total number of visited individuals (maximum oMS)\
+-   Total number of pollinators (but see below)\
+-   Total visit duration (but again, we leave that aside)
+
+```{r,warning=FALSE}
+knitr::kable(head(targets::tar_read(data_session)))
+```
+
+Because, imagine that one individual had a lot of contacts with pollinators, but\
+that only a few other individuals were visited: this should weaken the link between\
+the number of contacts per id and oMS.
+
+Using the data table with contacts ordered by time, we could imagine estimating\
+the diversity of potential sexual partners according to their relative frequency\
+(e.g., using Hill/Shannon/Simpson indices).
+
+NB: In our experiment, we know for sure the number of pollinators that visited\
+plants. *In natura*, it would be much more difficult, but we could at least get an estimation\
+based on the species diversity that we observed (i.e., if we observed\
+two contacts by *Bombus* and one contact by *Apis*, there are at least two different\
+pollinators).
+
+We now investigate which proxy best correlates with the observational number of mates.\
+We estimate the latter using a carry-over of 10, as well as 5 and 20. We thus\
+have two main proxies:
+
+-   
+
+    A)  the number of contacts per individual\
+
+-   
+
+    B)  the total number of visits per individual
+
+A)  For the number of contacts per individual, we can explore its correlation with\
+    oMS using:\
+
+-   index_A1: the raw number of contacts per individual\
+-   index_A2: relativized by the total number of contacts in the session\
+-   index_A3: multiplied by the total number of potential sexual partners\
+-   index_A4: combining index_A2 and index_A3\
+-   index_A5 (optional, to discuss): index_A4 divided by the total number of pollinators
+
+B)  For the total number of visits per individual:\
+
+-   index_B1: the raw number of visits per individual\
+-   index_B2: relativized by the total number of visits in the session\
+-   index_B3: multiplied by the total number of potential sexual partners\
+-   index_B4: combining index_B2 and index_B3\
+-   index_B5 (optional, to discuss): index_B4 divided by the total number of pollinators
+
+```{r,warning=FALSE}
+knitr::kable(head(targets::tar_read(data_proxy)))
+```
+
+Okay now we proceed to ACP.
+
+## ACP
+
+### Carry-over 10
+
+::::: grid
+::: g-col-6
+#### Females
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(pcas_10)
+pcas_10$pca_fem
+```
+:::
+
+::: g-col-6
+#### Males
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+pcas_10$pca_mal
+```
+:::
+:::::
+
+### Carry-over 5
+
+::::: grid
+::: g-col-6
+#### Females
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(pcas_5)
+pcas_5$pca_fem
+```
+:::
+
+::: g-col-6
+#### Males
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+pcas_5$pca_mal
+```
+:::
+:::::
+
+### Carry-over 20
+
+::::: grid
+::: g-col-6
+#### Females
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(pcas_20)
+pcas_20$pca_fem
+```
+:::
+
+::: g-col-6
+#### Males
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+pcas_20$pca_mal
+```
+:::
+:::::
+
+The three best based on PCA : index_A3, index_B3 and index A_1. From now on we focus solely on a carry-over of 10, as it's very similar.
+
+## Correlation test
+
+::::: grid
+::: g-col-6
+#### Females
+
+**A1**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(data_proxy)
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A1,method="pearson") 
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A1,method="spearman") 
+```
+
+**A2**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A2,method="pearson") 
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A2,method="spearman") 
+```
+
+**A3**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A3,method="pearson") 
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A3,method="spearman") 
+```
+
+**A4**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A4,method="pearson")
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A4,method="spearman") 
+```
+
+**A5**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A5,method="pearson") 
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A5,method="spearman") 
+```
+
+**B1**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B1,method="pearson") 
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B1,method="spearman") 
+```
+
+**B2**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B2,method="pearson") 
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B2,method="spearman") 
+```
+
+**B3**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B3,method="pearson") 
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B3,method="spearman") 
+```
+
+**B4**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B4,method="pearson")
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B4,method="spearman") 
+```
+
+**B5**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B5,method="pearson") 
+cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B5,method="spearman") 
+```
+:::
+
+::: g-col-6
+#### Males
+
+**A1**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A1,method="pearson") 
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A1,method="spearman") 
+```
+
+**A2**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A2,method="pearson") 
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A2,method="spearman") 
+```
+
+**A3**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A3,method="pearson") 
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A3,method="spearman") 
+```
+
+**A4**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A4,method="pearson")
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A4,method="spearman") 
+```
+
+**A5**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A5,method="pearson") 
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A5,method="spearman") 
+```
+
+**B1**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B1,method="pearson") 
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B1,method="spearman") 
+```
+
+**B2**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B2,method="pearson") 
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B2,method="spearman") 
+```
+
+**B3**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B3,method="pearson") 
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B3,method="spearman") 
+```
+
+**B4**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B4,method="pearson")
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B4,method="spearman") 
+```
+
+**B5**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B5,method="pearson") 
+cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B5,method="spearman") 
+```
+:::
+:::::
+
+The best proxies : A3 \> A1 \> B3 \> B1. From now we only focus on these indexes, and we just check on females as we have the same results.
+
+## Linear models and R^2^
+
+**A3**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_A3 <- lme4::lmer(data=data_proxy,oMS_fem_co10~index_A3+(1|session))
+summary(mod_A3)
+performance::r2_nakagawa(mod_A3)
+```
+
+**A1**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_A1 <- lme4::lmer(data=data_proxy,oMS_fem_co10~index_A1+(1|session))
+summary(mod_A1)
+performance::r2_nakagawa(mod_A1)
+```
+
+**B3**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_B3 <- lme4::lmer(data=data_proxy,oMS_fem_co10~index_B3+(1|session))
+summary(mod_B3)
+performance::r2_nakagawa(mod_B3)
+```
+
+**B1**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_B1 <- lme4::lmer(data=data_proxy,oMS_fem_co10~index_B1+(1|session))
+summary(mod_B1)
+performance::r2_nakagawa(mod_B1)
+```
+
+Based on marginal, A3 is the best proxy, but based on conditionnal, A1 is better. 
+
+## AIC
+
+**A3**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+AIC(mod_A3)
+```
+
+**A1**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+AIC(mod_A1)
+```
+
+**B3**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+AIC(mod_B3)
+```
+
+**B1**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+AIC(mod_B1)
+```
+
+Best AIC is for A1.
+
+## Root Mean Squared Error
+
+**A3**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+df_mse <- data_proxy |>
+  modelr::add_predictions(mod_A1,var="pred_A1") |>
+  modelr::add_predictions(mod_A3,var="pred_A3") |>
+  modelr::add_predictions(mod_B1,var="pred_B1") |>
+  modelr::add_predictions(mod_B3,var="pred_B3") 
+  
+
+mse_A3 <- mean((data_proxy$oMS_fem_co10 - df_mse$pred_A3)^2,na.rm=T)
+rmse_A3 <- sqrt(mse_A3)
+print(paste("RMSE:", rmse_A3))
+```
+
+**A1**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mse_A1 <- mean((data_proxy$oMS_fem_co10 - df_mse$pred_A1)^2,na.rm=T)
+rmse_A1 <- sqrt(mse_A1)
+print(paste("RMSE:", rmse_A1))
+```
+
+**B3**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mse_B3 <- mean((data_proxy$oMS_fem_co10 - df_mse$pred_B3)^2,na.rm=T)
+rmse_B3 <- sqrt(mse_B3)
+print(paste("RMSE:", rmse_B3))
+```
+
+**B1**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mse_B1 <- mean((data_proxy$oMS_fem_co10 - df_mse$pred_B1)^2,na.rm=T)
+rmse_B1 <- sqrt(mse_B1)
+print(paste("RMSE:", rmse_B1))
+```
+
+Best based on RMSE is A1.
+
+To summarize, the number of contacts, and the number of contacts x max_oMS, seems to be both good predictors of observational mating success.
+
+To do : Bateman gradients with the number of contacts to see if we obtain the same results?
+
+# Comparing observational to genetic mating success
+
+## Bateman Hedge's
+
+Observational versus genetic, according to the sampling percentage of genotyped seeds
+
+## Variance decomposition
+
+Observational (with and without flower) versus genetic, according to the sampling percentage of genotyped seeds

@@ -1,9 +1,18 @@
 name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
 data_obs|stem|b7d9a92c86542d5e|fe544aa5628706c8|0284b87fab98d9e8|-1580520765||t20213.4146477762s|s49381b|49381|rds|local|vector|||0.011||
-data_id|stem|713aa1594ad3a5e9|30aee8924339997b|f5b1dff0172a446d|1925937001||t20213.4149910685s|s205958b|205958|rds|local|vector|||0.128||
-data_contact|stem|ba046d348618d013|d0f65576ecc70011|3bd533bbdc82cf27|614267587||t20213.6386259232s|s18057b|18057|rds|local|vector|||0.95||
-get_data_contact|function|cc8394cd6051ebb5
-load_data_id|function|a59643284a2e7f95
+data_contact|stem|3078a68ba7f7af88|d0f65576ecc70011|b5ed9a383eb8ffb4|614267587||t20214.5770085089s|s18013b|18013|rds|local|vector|||0.946||
+data_session|stem|5de4cb66ab49dbc9|ae39167c3b9fc7af|14aebc6ff9e582b9|-353596215||t20214.5770087403s|s558b|558|rds|local|vector|||0.015||
+data_proxy|stem|d6ebbc49be7de4cf|63a8a80ea0dabec4|c901c584296dcdbb|331951377||t20214.5888891613s|s7050b|7050|rds|local|vector|||0.037||
+data_id|stem|99cecac0e5a9249d|acbd7748ac9f24bb|99392baf5d6ffd69|1925937001||t20215.3723344781s|s1605b|1605|rds|local|vector|||0.112||
+pcas|stem|35a88f8bea253379|3cf8c53a9b860ff2|07335082315fe8a7|1713348253||t20215.3786412753s|s329898b|329898|rds|local|vector|||0.881|Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package|
+pcas_5|stem|dd26c879b8fc1ca6|969ef06901b6614f|07335082315fe8a7|-1470366427||t20215.3885043384s|s329439b|329439|rds|local|vector|||0.832|Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package|
+pcas_20|stem|1776b8d619687932|11cb2213400dd8eb|07335082315fe8a7|871977926||t20215.3885079147s|s330145b|330145|rds|local|vector|||0.265|Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package|
+pcas_10|stem|35a88f8bea253379|3cf8c53a9b860ff2|07335082315fe8a7|-204580029||t20215.3885116762s|s329898b|329898|rds|local|vector|||0.284|Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package|
+get_data_contact|function|3d61a05adabf6d2a
+load_data_id|function|066b080a8221e56b
 load_data_obs|function|73c393dbc8e495bb
-.Random.seed|object|3eb4d3db86a0271f
-index|stem|672e1b26f327a705|7f39cf66ca28afe8|e82107ef82e3451e|554519753|index_files*index.html*index.qmd|t20213.6401086932s|s2196305b|2196305|file|local|vector|||4.043||
+compute_oMS_and_proxy|function|712d273422205928
+get_data_session|function|0e374bf1685eeb18
+.Random.seed|object|f76c19b705f4a7ed
+get_pca|function|985fd4577471c98d
+index|stem|4343542774cd3ec6|b41d0fe8c356c3bf|5be957ce975e2b76|554519753|index_files*index.html*index.qmd|t20215.4642813742s|s2788487b|2788487|file|local|vector|||5.992||
