@@ -1,5 +1,5 @@
 ---
-title: "Sampling oMS"
+title: "Sampling oms"
 format: 
   html:
     theme: cosmo
@@ -25,6 +25,9 @@ knitr::knit_hooks$set(message = function(x, options) {
   }
   return(x)
 })
+
+library(ggplot2)
+library(tidyverse)
 ```
 
 # Project and data vizualisation
@@ -46,6 +49,8 @@ knitr::kable(head(targets::tar_read(data_obs)))
 ```
 
 # What is the best proxy for observational mating success?
+
+## Visit sequences
 
 We have conducted an experiment in which we surveyed each pollinator one by one along the visit sequences, up to the flower scale. By making assumptions about the carry-over (i.e., the number of successive flower visits during which pollen export remains effective), we are able to estimate the number of observational sexual partners, both for the female and the male function. We assume that the carry-over is about 10, based on a previous study on the sister species *Brassica napus*: for the male function, 91% of the seeds were sired in the first four flowers visited after a focal individual, and no seeds were sired after the 14th flower visited [@cresswell_method_1994].
 
@@ -77,7 +82,7 @@ populations between them? We can get the following data:
 
 -   Total number of contacts with id
 -   Total number of visits\
--   Total number of visited individuals (maximum oMS)\
+-   Total number of visited individuals (maximum oms)\
 -   Total number of pollinators (but see below)\
 -   Total visit duration (but again, we leave that aside)
 
@@ -87,7 +92,7 @@ knitr::kable(head(targets::tar_read(data_session)))
 
 Because, imagine that one individual had a lot of contacts with pollinators, but\
 that only a few other individuals were visited: this should weaken the link between\
-the number of contacts per id and oMS.
+the number of contacts per id and oms.
 
 Using the data table with contacts ordered by time, we could imagine estimating\
 the diversity of potential sexual partners according to their relative frequency\
@@ -112,7 +117,7 @@ have two main proxies:
     B)  the total number of visits per individual
 
 A)  For the number of contacts per individual, we can explore its correlation with\
-    oMS using:\
+    oms using:\
 
 -   index_A1: the raw number of contacts per individual\
 -   index_A2: relativized by the total number of contacts in the session\
@@ -134,55 +139,25 @@ knitr::kable(head(targets::tar_read(data_proxy)))
 
 Okay now we proceed to ACP.
 
-## ACP
-
-### Carry-over 10
+### ACP
 
 ::::: grid
 ::: g-col-6
 #### Females
 
+**Carry-over 10**
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(pcas_10)
 pcas_10$pca_fem
 ```
-:::
 
-::: g-col-6
-#### Males
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-pcas_10$pca_mal
-```
-:::
-:::::
-
-### Carry-over 5
-
-::::: grid
-::: g-col-6
-#### Females
-
+**Carry-over 5**
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(pcas_5)
 pcas_5$pca_fem
 ```
-:::
 
-::: g-col-6
-#### Males
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-pcas_5$pca_mal
-```
-:::
-:::::
-
-### Carry-over 20
-
-::::: grid
-::: g-col-6
-#### Females
+**Carry-over 20**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(pcas_20)
@@ -192,16 +167,27 @@ pcas_20$pca_fem
 
 ::: g-col-6
 #### Males
+**Carry-over 10**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+pcas_10$pca_mal
+```
 
+
+**Carry-over 5**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+pcas_5$pca_mal
+```
+
+**Carry-over 20**
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 pcas_20$pca_mal
 ```
 :::
 :::::
 
-The three best based on PCA : index_A3, index_B3 and index A_1. From now on we focus solely on a carry-over of 10, as it's very similar.
+> **The three best based on PCA : index_A3, index_B3 and index A_1. From now on we focus solely on a carry-over of 10, as it's very similar.**
 
-## Correlation test
+### Correlation test
 
 ::::: grid
 ::: g-col-6
@@ -211,71 +197,71 @@ The three best based on PCA : index_A3, index_B3 and index A_1. From now on we f
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(data_proxy)
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A1,method="pearson") 
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A1,method="spearman") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_A1,method="pearson") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_A1,method="spearman") 
 ```
 
 **A2**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A2,method="pearson") 
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A2,method="spearman") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_A2,method="pearson") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_A2,method="spearman") 
 ```
 
 **A3**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A3,method="pearson") 
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A3,method="spearman") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_A3,method="pearson") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_A3,method="spearman") 
 ```
 
 **A4**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A4,method="pearson")
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A4,method="spearman") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_A4,method="pearson")
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_A4,method="spearman") 
 ```
 
 **A5**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A5,method="pearson") 
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_A5,method="spearman") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_A5,method="pearson") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_A5,method="spearman") 
 ```
 
 **B1**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B1,method="pearson") 
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B1,method="spearman") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_B1,method="pearson") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_B1,method="spearman") 
 ```
 
 **B2**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B2,method="pearson") 
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B2,method="spearman") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_B2,method="pearson") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_B2,method="spearman") 
 ```
 
 **B3**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B3,method="pearson") 
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B3,method="spearman") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_B3,method="pearson") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_B3,method="spearman") 
 ```
 
 **B4**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B4,method="pearson")
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B4,method="spearman") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_B4,method="pearson")
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_B4,method="spearman") 
 ```
 
 **B5**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B5,method="pearson") 
-cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B5,method="spearman") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_B5,method="pearson") 
+cor.test(data_proxy$oms_fem_co10,data_proxy$index_B5,method="spearman") 
 ```
 :::
 
@@ -285,83 +271,83 @@ cor.test(data_proxy$oMS_fem_co10,data_proxy$index_B5,method="spearman")
 **A1**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A1,method="pearson") 
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A1,method="spearman") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_A1,method="pearson") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_A1,method="spearman") 
 ```
 
 **A2**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A2,method="pearson") 
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A2,method="spearman") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_A2,method="pearson") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_A2,method="spearman") 
 ```
 
 **A3**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A3,method="pearson") 
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A3,method="spearman") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_A3,method="pearson") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_A3,method="spearman") 
 ```
 
 **A4**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A4,method="pearson")
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A4,method="spearman") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_A4,method="pearson")
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_A4,method="spearman") 
 ```
 
 **A5**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A5,method="pearson") 
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_A5,method="spearman") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_A5,method="pearson") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_A5,method="spearman") 
 ```
 
 **B1**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B1,method="pearson") 
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B1,method="spearman") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_B1,method="pearson") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_B1,method="spearman") 
 ```
 
 **B2**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B2,method="pearson") 
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B2,method="spearman") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_B2,method="pearson") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_B2,method="spearman") 
 ```
 
 **B3**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B3,method="pearson") 
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B3,method="spearman") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_B3,method="pearson") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_B3,method="spearman") 
 ```
 
 **B4**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B4,method="pearson")
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B4,method="spearman") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_B4,method="pearson")
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_B4,method="spearman") 
 ```
 
 **B5**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B5,method="pearson") 
-cor.test(data_proxy$oMS_mal_co10,data_proxy$index_B5,method="spearman") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_B5,method="pearson") 
+cor.test(data_proxy$oms_mal_co10,data_proxy$index_B5,method="spearman") 
 ```
 :::
 :::::
 
-The best proxies : A3 \> A1 \> B3 \> B1. From now we only focus on these indexes, and we just check on females as we have the same results.
+> **The best proxies : A3 \> A1 \> B3 \> B1. From now we only focus on these indexes, and we just check on females as we have the same results.**
 
-## Linear models and R^2^
+### Linear models and R^2^
 
 **A3**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-mod_A3 <- lme4::lmer(data=data_proxy,oMS_fem_co10~index_A3+(1|session))
+mod_A3 <- lmerTest::lmer(data=data_proxy,oms_fem_co10~index_A3+(1|session))
 summary(mod_A3)
 performance::r2_nakagawa(mod_A3)
 ```
@@ -369,14 +355,14 @@ performance::r2_nakagawa(mod_A3)
 **A1**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-mod_A1 <- lme4::lmer(data=data_proxy,oMS_fem_co10~index_A1+(1|session))
+mod_A1 <- lmerTest::lmer(data=data_proxy,oms_fem_co10~index_A1+(1|session))
 summary(mod_A1)
 performance::r2_nakagawa(mod_A1)
 ```
 
 **B3**
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-mod_B3 <- lme4::lmer(data=data_proxy,oMS_fem_co10~index_B3+(1|session))
+mod_B3 <- lmerTest::lmer(data=data_proxy,oms_fem_co10~index_B3+(1|session))
 summary(mod_B3)
 performance::r2_nakagawa(mod_B3)
 ```
@@ -384,14 +370,14 @@ performance::r2_nakagawa(mod_B3)
 **B1**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-mod_B1 <- lme4::lmer(data=data_proxy,oMS_fem_co10~index_B1+(1|session))
+mod_B1 <- lmerTest::lmer(data=data_proxy,oms_fem_co10~index_B1+(1|session))
 summary(mod_B1)
 performance::r2_nakagawa(mod_B1)
 ```
 
-Based on marginal, A3 is the best proxy, but based on conditionnal, A1 is better. 
+> **Based on marginal, A3 is the best proxy, but based on conditionnal, A1 is better.**
 
-## AIC
+### AIC
 
 **A3**
 
@@ -416,9 +402,9 @@ AIC(mod_B3)
 AIC(mod_B1)
 ```
 
-Best AIC is for A1.
+> **Best AIC is for A1.**
 
-## Root Mean Squared Error
+### Root Mean Squared Error
 
 **A3**
 
@@ -430,7 +416,7 @@ df_mse <- data_proxy |>
   modelr::add_predictions(mod_B3,var="pred_B3") 
   
 
-mse_A3 <- mean((data_proxy$oMS_fem_co10 - df_mse$pred_A3)^2,na.rm=T)
+mse_A3 <- mean((data_proxy$oms_fem_co10 - df_mse$pred_A3)^2,na.rm=T)
 rmse_A3 <- sqrt(mse_A3)
 print(paste("RMSE:", rmse_A3))
 ```
@@ -438,14 +424,14 @@ print(paste("RMSE:", rmse_A3))
 **A1**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-mse_A1 <- mean((data_proxy$oMS_fem_co10 - df_mse$pred_A1)^2,na.rm=T)
+mse_A1 <- mean((data_proxy$oms_fem_co10 - df_mse$pred_A1)^2,na.rm=T)
 rmse_A1 <- sqrt(mse_A1)
 print(paste("RMSE:", rmse_A1))
 ```
 
 **B3**
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-mse_B3 <- mean((data_proxy$oMS_fem_co10 - df_mse$pred_B3)^2,na.rm=T)
+mse_B3 <- mean((data_proxy$oms_fem_co10 - df_mse$pred_B3)^2,na.rm=T)
 rmse_B3 <- sqrt(mse_B3)
 print(paste("RMSE:", rmse_B3))
 ```
@@ -453,22 +439,230 @@ print(paste("RMSE:", rmse_B3))
 **B1**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-mse_B1 <- mean((data_proxy$oMS_fem_co10 - df_mse$pred_B1)^2,na.rm=T)
+mse_B1 <- mean((data_proxy$oms_fem_co10 - df_mse$pred_B1)^2,na.rm=T)
 rmse_B1 <- sqrt(mse_B1)
 print(paste("RMSE:", rmse_B1))
 ```
 
-Best based on RMSE is A1.
+> **Best based on RMSE is A1.**
 
-To summarize, the number of contacts, and the number of contacts x max_oMS, seems to be both good predictors of observational mating success.
+### Conclusions
 
-To do : Bateman gradients with the number of contacts to see if we obtain the same results?
+> To summarize, the number of contacts, and the number of contacts x max_oms, seems to be both good predictors of observational mating success.
+> To do : Bateman gradients with the number of contacts to see if we obtain the same results? Necessary?
+
+## Which traits are good predictor of mate access?
+
+We measured: 
+
+- **nb_flo:** the number of opened flowers
+- **nb_flo_open:** the number of opened flowers (including very new ones)
+- **nb_flo_all:** the total number of flowers (including very new and old ones)
+- **height_max:** the height of the highest flower
+- **height_mean:** the mean height of the highest flowers on each stem
+
+We analyse the correlation between these traits and the number of contacts, 
+which had in turn an effect on oms as we saw above.
+
+### Simple linear models
+
+#### Number of contacts 
+
+Simple linear models, regression of number of contacts on each trait.
+
+**nb_flo**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_contact_nb_flo <- lmerTest::lmer(data=data_proxy,index_A1~nb_flo+(1|session))
+summary(mod_contact_nb_flo)
+performance::r2_nakagawa(mod_contact_nb_flo)
+```
+
+**nb_flo_open**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_contact_nb_flo_open <- lmerTest::lmer(data=data_proxy,index_A1~nb_flo_open+(1|session))
+summary(mod_contact_nb_flo_open)
+performance::r2_nakagawa(mod_contact_nb_flo_open)
+```
+
+**nb_flo_all**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_contact_nb_flo_all <- lmerTest::lmer(data=data_proxy,index_A1~nb_flo_all+(1|session))
+summary(mod_contact_nb_flo_all)
+performance::r2_nakagawa(mod_contact_nb_flo_all)
+```
+
+**height_max**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_contact_height_max <- lmerTest::lmer(data=data_proxy,index_A1~height_max+(1|session))
+summary(mod_contact_height_max)
+performance::r2_nakagawa(mod_contact_height_max)
+```
+
+**height_mean**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_contact_height_mean <- lmerTest::lmer(data=data_proxy,index_A1~height_mean+(1|session))
+summary(mod_contact_height_mean)
+performance::r2_nakagawa(mod_contact_height_mean)
+```
+
+**all traits together**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_contact_all <- lmerTest::lmer(data=data_proxy,index_A1~nb_flo+nb_flo_open+nb_flo_all+height_max+height_mean+(1|session))
+summary(mod_contact_all)
+performance::r2_nakagawa(mod_contact_all)
+```
+
+> **For simple linear models, only flower number have an effect on the number of contacts, and the strongest effect seems for the number of opened flowers (without very new or old ones). When working with all traits together, on the contrary, only height have an effect (negative for maximum, positive for mean)...**
+
+#### Observational mating success
+
+Simple linear models, regression of observational mating success on each trait.
+
+**nb_flo**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_oms_nb_flo <- lmerTest::lmer(data=data_proxy,oms_fem_co10~nb_flo+(1|session))
+summary(mod_oms_nb_flo)
+performance::r2_nakagawa(mod_oms_nb_flo)
+```
+
+**nb_flo_open**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_oms_nb_flo_open <- lmerTest::lmer(data=data_proxy,oms_fem_co10~nb_flo_open+(1|session))
+summary(mod_oms_nb_flo_open)
+performance::r2_nakagawa(mod_oms_nb_flo_open)
+```
+
+**nb_flo_all**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_oms_nb_flo_all <- lmerTest::lmer(data=data_proxy,oms_fem_co10~nb_flo_all+(1|session))
+summary(mod_oms_nb_flo_all)
+performance::r2_nakagawa(mod_oms_nb_flo_all)
+```
+
+**height_max**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_oms_height_max <- lmerTest::lmer(data=data_proxy,oms_fem_co10~height_max+(1|session))
+summary(mod_oms_height_max)
+performance::r2_nakagawa(mod_oms_height_max)
+```
+
+**height_mean**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_oms_height_mean <- lmerTest::lmer(data=data_proxy,oms_fem_co10~height_mean+(1|session))
+summary(mod_oms_height_mean)
+performance::r2_nakagawa(mod_oms_height_mean)
+```
+
+**all traits together**
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+mod_oms_all <- lmerTest::lmer(data=data_proxy,oms_fem_co10~nb_flo+nb_flo_open+nb_flo_all+height_max+height_mean+(1|session))
+summary(mod_oms_all)
+performance::r2_nakagawa(mod_oms_all)
+```
+
+> **Concerning the regression of the observational mating success on phenotypic trait, we do not detected any effect (both for simple linear models or when working with all traits together).**
+
+### SEM 
+
+Best way to do this analysis: SEM?
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_proxy,index_A1~nb_flo+nb_flo_open+nb_flo_all+height_max+height_mean+(1|session)),
+                     lme4::lmer(data=data_proxy,oms_fem_co10~index_A1+nb_flo+nb_flo_open+nb_flo_all+height_max+height_mean+(1|session)))
+plot(psem_proxy, 
+     node_attrs = data.frame(fillcolor = "orange4", 
+                                         x = c(2.5,2.5,1:5), y=c(2,3,1,1,1,1,1),
+                                         fontsize=6),
+     edge_attrs = data.frame(fontsize=6))
+summary(psem_proxy)
+```
+
+> **Strongest effect for the height, with a negative effect of maximum height and a positive effect for mean height on the number of contacts, and the opposite effects for the observational mating success**.
 
 # Comparing observational to genetic mating success
 
+## True Bateman's gradient on all data based on observations
+
+We stay consistent with the manuscript and work with outcrossed reproductive success,
+estimated on all genotypes, and the ratio is then multiplied by the number of total seeds produced per female,
+both for the female and the male function (i.e. paternity share).
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(data_true_bateman)
+
+# 1. Récupérer les min/max de r_oms pour chaque session × sex
+ranges <- data_true_bateman$dt_merged %>%
+  filter(!is.na(r_sr)) %>%
+  group_by(session, sex) %>%
+  summarise(
+    x_min = min(r_oms, na.rm = TRUE),
+    x_max = max(r_oms, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# 2. Fusionner avec les pentes (est_bat_oms) et les p-values
+regression_lines <- data_true_bateman$dt_true_bateman %>%
+  filter(sex != "inter") %>%
+  left_join(ranges, by = c("session", "sex")) %>%
+  mutate(
+    y_min = est_bat_oms * (x_min - 1) + 1, # slope centered on (1,1)
+    y_max = est_bat_oms * (x_max - 1) + 1,
+    label_text = paste0(round(est_bat_oms,2)," +/- ", round(se_bat_oms,2)," , ", round(pval_bat_oms,2)),
+    y_text = ifelse(sex == "mal", 3, 4)
+  ) 
+
+# 3. Graphique
+ggplot(data = data_true_bateman$dt_merged, aes(x = r_oms, y = r_sr, colour = sex)) +
+  geom_point() +
+  facet_grid(. ~ session) +
+  # 4. Ajouter les segments de régression
+  geom_segment(
+    data = regression_lines,
+    aes(
+      x = x_min,
+      xend = x_max,
+      y = y_min,
+      yend = y_max,
+      colour = sex
+    ),
+    linewidth = 1
+  ) +
+  geom_text(
+    data = regression_lines,
+    aes(x = 1,
+        y = y_text,
+        colour = sex,
+        label = label_text),
+    size = 3
+  ) +
+  theme_classic() +
+  theme(legend.position = "none")
+
+
+
+```
+
 ## Bateman Hedge's
 
-Observational versus genetic, according to the sampling percentage of genotyped seeds
+Difference between Bateman's estimates with genetic sampling versus true Bateman with observational data (sampling gms - true oms). An Hedges' g > 0 mean that the Bateman gradient estimated with sampling gms is greater than the real ones with true oms. 
+
+Observational versus genetic, according to the sampling percentage of genotyped seeds.
+
+### Per session:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(data_hedges_true)
+
+data_hedges_true$plot_hedges
+```
+
+### Overall: 
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(data_hedges_false)
+
+data_hedges_false$plot_hedges
+```
 
 ## Variance decomposition
 

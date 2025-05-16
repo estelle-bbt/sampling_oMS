@@ -8,7 +8,7 @@ library(tarchetypes)
 library(ggplot2)
 
 tar_option_set(
-  packages = c("dplyr","tidyr")  # load dplyr in each environement
+  packages = c("dplyr","tidyr","ggplot2")  # load dplyr in each environement
 )
 
 tar_source()
@@ -31,13 +31,33 @@ list(
   
   tar_target(data_session,get_data_session(data_contact)),
   
-  tar_target(data_proxy,compute_oMS_and_proxy(data_id,data_contact,data_session)),
+  tar_target(data_proxy,compute_oms_and_proxy(data_id,data_contact,data_session)),
   
   tar_target(pcas_10,get_pca(data_proxy, cols = "co10")),
   
   tar_target(pcas_5,get_pca(data_proxy, cols = "co5")),
   
   tar_target(pcas_20,get_pca(data_proxy, cols = "co20")),
+  
+  tar_target(data_genotypes,load_data("data/all_paternities_ABPOLL.txt")),
+  
+  tar_target(data_true_rs_ms,get_true_rs_ms(data_genotypes,data_id)),
+  
+  tar_target(data_true_bateman,get_true_bateman(data_true_rs_ms, data_proxy, cols = "co10")),
+  
+  # tar_target(sum_genotypes,sum_data_genotypes(data_genotypes)),
+  
+  tar_target(data_sampling,load_data("data/simul_table_fixed_strategy.txt")),
+  
+  # tar_target(data_ampling_rs_ms,get_sampling_rs_ms(data_sampling,sum_genotypes,data_id)),
+  
+  tar_target(data_sampling_rs_ms,load_data("data/sampling_rs_ms_table_fixed_strategy.txt")),
+  
+  tar_target(data_sampling_bateman,get_sampling_bateman(data_sampling_rs_ms)),
+  
+  tar_target(data_hedges_true,get_hedges(data_sampling_bateman$dt_sampling_bateman, data_true_bateman, per_session = TRUE)),
+  
+  tar_target(data_hedges_false,get_hedges(data_sampling_bateman$dt_sampling_bateman, data_true_bateman, per_session = FALSE)),
 
   ## Quarto ----
   

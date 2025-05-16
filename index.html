@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Sampling oMS</title>
+<title>Sampling oms</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -57,6 +57,9 @@ div.csl-indent {
 <link href="index_files/libs/vis-9.1.0/vis-network.min.css" rel="stylesheet">
 <script src="index_files/libs/vis-9.1.0/vis-network.min.js"></script>
 <script src="index_files/libs/visNetwork-binding-2.1.2/visNetwork.js"></script>
+<script src="index_files/libs/viz-1.8.2/viz.js"></script>
+<link href="index_files/libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet">
+<script src="index_files/libs/grViz-binding-1.0.11/grViz.js"></script>
 
 
 </head>
@@ -72,16 +75,30 @@ div.csl-indent {
   <li><a href="#project-and-data-vizualisation" id="toc-project-and-data-vizualisation" class="nav-link active" data-scroll-target="#project-and-data-vizualisation">Project and data vizualisation</a></li>
   <li><a href="#what-is-the-best-proxy-for-observational-mating-success" id="toc-what-is-the-best-proxy-for-observational-mating-success" class="nav-link" data-scroll-target="#what-is-the-best-proxy-for-observational-mating-success">What is the best proxy for observational mating success?</a>
   <ul class="collapse">
-  <li><a href="#acp" id="toc-acp" class="nav-link" data-scroll-target="#acp">ACP</a>
+  <li><a href="#visit-sequences" id="toc-visit-sequences" class="nav-link" data-scroll-target="#visit-sequences">Visit sequences</a>
   <ul class="collapse">
-  <li><a href="#carry-over-10" id="toc-carry-over-10" class="nav-link" data-scroll-target="#carry-over-10">Carry-over 10</a></li>
-  <li><a href="#carry-over-5" id="toc-carry-over-5" class="nav-link" data-scroll-target="#carry-over-5">Carry-over 5</a></li>
-  <li><a href="#carry-over-20" id="toc-carry-over-20" class="nav-link" data-scroll-target="#carry-over-20">Carry-over 20</a></li>
-  </ul></li>
+  <li><a href="#acp" id="toc-acp" class="nav-link" data-scroll-target="#acp">ACP</a></li>
   <li><a href="#correlation-test" id="toc-correlation-test" class="nav-link" data-scroll-target="#correlation-test">Correlation test</a></li>
   <li><a href="#linear-models-and-r2" id="toc-linear-models-and-r2" class="nav-link" data-scroll-target="#linear-models-and-r2">Linear models and R<sup>2</sup></a></li>
   <li><a href="#aic" id="toc-aic" class="nav-link" data-scroll-target="#aic">AIC</a></li>
   <li><a href="#root-mean-squared-error" id="toc-root-mean-squared-error" class="nav-link" data-scroll-target="#root-mean-squared-error">Root Mean Squared Error</a></li>
+  <li><a href="#conclusions" id="toc-conclusions" class="nav-link" data-scroll-target="#conclusions">Conclusions</a></li>
+  </ul></li>
+  <li><a href="#which-traits-are-good-predictor-of-mate-access" id="toc-which-traits-are-good-predictor-of-mate-access" class="nav-link" data-scroll-target="#which-traits-are-good-predictor-of-mate-access">Which traits are good predictor of mate access?</a>
+  <ul class="collapse">
+  <li><a href="#simple-linear-models" id="toc-simple-linear-models" class="nav-link" data-scroll-target="#simple-linear-models">Simple linear models</a></li>
+  <li><a href="#sem" id="toc-sem" class="nav-link" data-scroll-target="#sem">SEM</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#comparing-observational-to-genetic-mating-success" id="toc-comparing-observational-to-genetic-mating-success" class="nav-link" data-scroll-target="#comparing-observational-to-genetic-mating-success">Comparing observational to genetic mating success</a>
+  <ul class="collapse">
+  <li><a href="#true-batemans-gradient-on-all-data-based-on-observations" id="toc-true-batemans-gradient-on-all-data-based-on-observations" class="nav-link" data-scroll-target="#true-batemans-gradient-on-all-data-based-on-observations">True Bateman’s gradient on all data based on observations</a></li>
+  <li><a href="#bateman-hedges" id="toc-bateman-hedges" class="nav-link" data-scroll-target="#bateman-hedges">Bateman Hedge’s</a>
+  <ul class="collapse">
+  <li><a href="#per-session" id="toc-per-session" class="nav-link" data-scroll-target="#per-session">Per session:</a></li>
+  <li><a href="#overall" id="toc-overall" class="nav-link" data-scroll-target="#overall">Overall:</a></li>
+  </ul></li>
+  <li><a href="#variance-decomposition" id="toc-variance-decomposition" class="nav-link" data-scroll-target="#variance-decomposition">Variance decomposition</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -90,7 +107,7 @@ div.csl-indent {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Sampling oMS</h1>
+<h1 class="title">Sampling oms</h1>
 </div>
 
 
@@ -112,44 +129,59 @@ div.csl-indent {
 <p>Visualize the pipeline analyses:</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="visNetwork html-widget html-fill-item" id="htmlwidget-d2f771db2441e37e5b5c" style="width:100%;height:464px;"></div>
-<script type="application/json" data-for="htmlwidget-d2f771db2441e37e5b5c">{"x":{"nodes":{"name":["data_contact","data_id","data_obs","data_proxy","data_session","index","pcas_10","pcas_20","pcas_5","get_data_contact","load_data_id","load_data_obs","compute_oMS_and_proxy","get_data_session","get_pca"],"type":["stem","stem","stem","stem","stem","stem","stem","stem","stem","function","function","function","function","function","function"],"description":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"status":["uptodate","uptodate","uptodate","uptodate","uptodate","dispatched","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate"],"seconds":[0.946,0.112,0.011,0.037,0.015,4.915,0.284,0.265,0.832,null,null,null,null,null,null],"bytes":[18013,1605,49381,7050,558,2788423,329898,330145,329439,null,null,null,null,null,null],"branches":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"label":["data_contact","data_id","data_obs","data_proxy","data_session","index","pcas_10","pcas_20","pcas_5","get_data_contact","load_data_id","load_data_obs","compute_oMS_and_proxy","get_data_session","get_pca"],"color":["#354823","#354823","#354823","#354823","#354823","#DC863B","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823"],"id":["data_contact","data_id","data_obs","data_proxy","data_session","index","pcas_10","pcas_20","pcas_5","get_data_contact","load_data_id","load_data_obs","compute_oMS_and_proxy","get_data_session","get_pca"],"level":[3,2,2,5,4,7,6,6,6,1,1,1,1,1,1],"shape":["dot","dot","dot","dot","dot","dot","dot","dot","dot","triangle","triangle","triangle","triangle","triangle","triangle"]},"edges":{"from":["data_proxy","get_pca","data_proxy","get_pca","data_contact","get_data_session","load_data_obs","data_proxy","get_pca","data_obs","get_data_contact","data_contact","data_id","data_obs","data_proxy","data_session","pcas_10","pcas_20","pcas_5","load_data_id","compute_oMS_and_proxy","data_contact","data_id","data_session"],"to":["pcas_5","pcas_5","pcas_20","pcas_20","data_session","data_session","data_obs","pcas_10","pcas_10","data_contact","data_contact","index","index","index","index","index","index","index","index","data_id","data_proxy","data_proxy","data_proxy","data_proxy"],"arrows":["to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot","physics":false},"manipulation":{"enabled":false},"edges":{"smooth":{"type":"cubicBezier","forceDirection":"horizontal"}},"physics":{"stabilization":false},"interaction":{"zoomSpeed":1},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false,"style":"width: 150px; height: 26px","useLabels":true,"main":"Select by id"},"byselection":{"enabled":false,"style":"width: 150px; height: 26px","multiple":false,"hideColor":"rgba(200,200,200,0.5)","highlight":false},"main":{"text":"","style":"font-family:Georgia, Times New Roman, Times, serif;font-weight:bold;font-size:20px;text-align:center;"},"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","highlight":{"enabled":true,"hoverNearest":false,"degree":{"from":1,"to":1},"algorithm":"hierarchical","hideColor":"rgba(200,200,200,0.5)","labelOnly":true},"collapse":{"enabled":true,"fit":false,"resetHighlight":true,"clusterOptions":null,"keepCoord":true,"labelSuffix":"(cluster)"},"legend":{"width":0.2,"useGroups":false,"position":"right","ncol":1,"stepX":100,"stepY":100,"zoom":true,"nodes":{"label":["Up to date","Dispatched","Stem","Function"],"color":["#354823","#DC863B","#899DA4","#899DA4"],"shape":["dot","dot","dot","triangle"]},"nodesToDataframe":true},"tooltipStay":300,"tooltipStyle":"position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);"},"evals":[],"jsHooks":[]}</script>
+<div class="visNetwork html-widget html-fill-item" id="htmlwidget-b8f16dc07f3dd3d59cc7" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-b8f16dc07f3dd3d59cc7">{"x":{"nodes":{"name":["data_contact","data_genotypes","data_hedges_false","data_hedges_true","data_id","data_obs","data_proxy","data_sampling","data_sampling_bateman","data_sampling_rs_ms","data_session","data_true_bateman","data_true_rs_ms","index","pcas_10","pcas_20","pcas_5","get_data_contact","load_data_id","get_sampling_bateman","load_data_obs","get_data_session","get_sampling_rs_ms","get_true_rs_ms","load_data","get_hedges","get_pca","compute_oms_and_proxy","get_true_bateman"],"type":["stem","stem","stem","stem","stem","stem","stem","stem","stem","stem","stem","stem","stem","stem","stem","stem","stem","function","function","function","function","function","function","function","function","function","function","function","function"],"description":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"status":["uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","dispatched","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate","uptodate"],"seconds":[0.946,0.003,0.029,0.11,0.059,0.011,0.039,11.549,687.8630000000001,2.421,0.037,1.712,0.106,7.967,0.259,0.266,0.902,null,null,null,null,null,null,null,null,null,null,null,null],"bytes":[18013,13324,531220,573957,3250,49381,8661,63177025,7627687,9587597,558,2605,2195,5115909,334680,334947,334278,null,null,null,null,null,null,null,null,null,null,null,null],"branches":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"label":["data_contact","data_genotypes","data_hedges_false","data_hedges_true","data_id","data_obs","data_proxy","data_sampling","data_sampling_bateman","data_sampling_rs_ms","data_session","data_true_bateman","data_true_rs_ms","index","pcas_10","pcas_20","pcas_5","get_data_contact","load_data_id","get_sampling_bateman","load_data_obs","get_data_session","get_sampling_rs_ms","get_true_rs_ms","load_data","get_hedges","get_pca","compute_oms_and_proxy","get_true_bateman"],"color":["#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#DC863B","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823","#354823"],"id":["data_contact","data_genotypes","data_hedges_false","data_hedges_true","data_id","data_obs","data_proxy","data_sampling","data_sampling_bateman","data_sampling_rs_ms","data_session","data_true_bateman","data_true_rs_ms","index","pcas_10","pcas_20","pcas_5","get_data_contact","load_data_id","get_sampling_bateman","load_data_obs","get_data_session","get_sampling_rs_ms","get_true_rs_ms","load_data","get_hedges","get_pca","compute_oms_and_proxy","get_true_bateman"],"level":[3,2,7,7,2,2,5,2,3,2,4,6,3,8,6,6,6,1,1,1,1,1,0,1,1,1,1,1,1],"shape":["dot","dot","dot","dot","dot","dot","dot","dot","dot","dot","dot","dot","dot","dot","dot","dot","dot","triangle","triangle","triangle","triangle","triangle","triangle","triangle","triangle","triangle","triangle","triangle","triangle"]},"edges":{"from":["data_proxy","get_pca","data_sampling_bateman","data_true_bateman","get_hedges","data_proxy","get_pca","data_contact","get_data_session","load_data","load_data_obs","data_sampling_bateman","data_true_bateman","get_hedges","data_sampling_rs_ms","get_sampling_bateman","load_data","data_proxy","data_true_rs_ms","get_true_bateman","load_data","data_genotypes","data_id","get_true_rs_ms","data_proxy","get_pca","data_obs","get_data_contact","data_contact","data_hedges_false","data_hedges_true","data_id","data_obs","data_proxy","data_session","data_true_bateman","pcas_10","pcas_20","pcas_5","load_data_id","compute_oms_and_proxy","data_contact","data_id","data_session"],"to":["pcas_5","pcas_5","data_hedges_true","data_hedges_true","data_hedges_true","pcas_20","pcas_20","data_session","data_session","data_sampling","data_obs","data_hedges_false","data_hedges_false","data_hedges_false","data_sampling_bateman","data_sampling_bateman","data_sampling_rs_ms","data_true_bateman","data_true_bateman","data_true_bateman","data_genotypes","data_true_rs_ms","data_true_rs_ms","data_true_rs_ms","pcas_10","pcas_10","data_contact","data_contact","index","index","index","index","index","index","index","index","index","index","index","data_id","data_proxy","data_proxy","data_proxy","data_proxy"],"arrows":["to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot","physics":false},"manipulation":{"enabled":false},"edges":{"smooth":{"type":"cubicBezier","forceDirection":"horizontal"}},"physics":{"stabilization":false},"interaction":{"zoomSpeed":1},"layout":{"hierarchical":{"enabled":true,"direction":"LR"}}},"groups":null,"width":null,"height":null,"idselection":{"enabled":false,"style":"width: 150px; height: 26px","useLabels":true,"main":"Select by id"},"byselection":{"enabled":false,"style":"width: 150px; height: 26px","multiple":false,"hideColor":"rgba(200,200,200,0.5)","highlight":false},"main":{"text":"","style":"font-family:Georgia, Times New Roman, Times, serif;font-weight:bold;font-size:20px;text-align:center;"},"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","highlight":{"enabled":true,"hoverNearest":false,"degree":{"from":1,"to":1},"algorithm":"hierarchical","hideColor":"rgba(200,200,200,0.5)","labelOnly":true},"collapse":{"enabled":true,"fit":false,"resetHighlight":true,"clusterOptions":null,"keepCoord":true,"labelSuffix":"(cluster)"},"legend":{"width":0.2,"useGroups":false,"position":"right","ncol":1,"stepX":100,"stepY":100,"zoom":true,"nodes":{"label":["Up to date","Dispatched","Stem","Function"],"color":["#354823","#DC863B","#899DA4","#899DA4"],"shape":["dot","dot","dot","triangle"]},"nodesToDataframe":true},"tooltipStay":300,"tooltipStyle":"position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <colgroup>
+<col style="width: 4%">
+<col style="width: 5%">
+<col style="width: 7%">
+<col style="width: 4%">
+<col style="width: 6%">
+<col style="width: 6%">
+<col style="width: 6%">
+<col style="width: 6%">
+<col style="width: 8%">
 <col style="width: 6%">
 <col style="width: 7%">
-<col style="width: 10%">
-<col style="width: 11%">
-<col style="width: 10%">
-<col style="width: 10%">
-<col style="width: 10%">
-<col style="width: 10%">
-<col style="width: 10%">
-<col style="width: 10%">
+<col style="width: 7%">
+<col style="width: 6%">
+<col style="width: 7%">
+<col style="width: 7%">
 </colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">session</th>
 <th style="text-align: left;">id</th>
+<th style="text-align: right;">sr_fem_total</th>
+<th style="text-align: right;">nb_flo</th>
 <th style="text-align: right;">nb_flo_open</th>
+<th style="text-align: right;">nb_flo_all</th>
+<th style="text-align: right;">height_max</th>
+<th style="text-align: right;">height_mean</th>
 <th style="text-align: right;">nb_poll_focal</th>
-<th style="text-align: right;">oMS_fem_co5</th>
-<th style="text-align: right;">oMS_fem_co10</th>
-<th style="text-align: right;">oMS_fem_co20</th>
-<th style="text-align: right;">oMS_mal_co5</th>
-<th style="text-align: right;">oMS_mal_co10</th>
-<th style="text-align: right;">oMS_mal_co20</th>
+<th style="text-align: right;">oms_fem_co5</th>
+<th style="text-align: right;">oms_fem_co10</th>
+<th style="text-align: right;">oms_fem_co20</th>
+<th style="text-align: right;">oms_mal_co5</th>
+<th style="text-align: right;">oms_mal_co10</th>
+<th style="text-align: right;">oms_mal_co20</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">1.FA1</td>
 <td style="text-align: left;">1.FA1.01</td>
+<td style="text-align: right;">56</td>
+<td style="text-align: right;">14</td>
 <td style="text-align: right;">20</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">40.4</td>
+<td style="text-align: right;">36.73333</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">9</td>
 <td style="text-align: right;">9</td>
@@ -161,7 +193,12 @@ div.csl-indent {
 <tr class="even">
 <td style="text-align: left;">1.FA1</td>
 <td style="text-align: left;">1.FA1.02</td>
+<td style="text-align: right;">119</td>
+<td style="text-align: right;">19</td>
 <td style="text-align: right;">21</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">31.5</td>
+<td style="text-align: right;">24.40000</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">6</td>
 <td style="text-align: right;">8</td>
@@ -173,7 +210,12 @@ div.csl-indent {
 <tr class="odd">
 <td style="text-align: left;">1.FA1</td>
 <td style="text-align: left;">1.FA1.03</td>
+<td style="text-align: right;">38</td>
+<td style="text-align: right;">11</td>
 <td style="text-align: right;">13</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">37.4</td>
+<td style="text-align: right;">35.45000</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">8</td>
 <td style="text-align: right;">8</td>
@@ -185,7 +227,12 @@ div.csl-indent {
 <tr class="even">
 <td style="text-align: left;">1.FA1</td>
 <td style="text-align: left;">1.FA1.04</td>
+<td style="text-align: right;">169</td>
+<td style="text-align: right;">19</td>
 <td style="text-align: right;">23</td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">36.4</td>
+<td style="text-align: right;">33.33333</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">8</td>
 <td style="text-align: right;">9</td>
@@ -197,7 +244,12 @@ div.csl-indent {
 <tr class="odd">
 <td style="text-align: left;">1.FA1</td>
 <td style="text-align: left;">1.FA1.05</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">12</td>
 <td style="text-align: right;">14</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">36.5</td>
+<td style="text-align: right;">31.63333</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">8</td>
 <td style="text-align: right;">9</td>
@@ -209,7 +261,12 @@ div.csl-indent {
 <tr class="even">
 <td style="text-align: left;">1.FA1</td>
 <td style="text-align: left;">1.FA1.06</td>
+<td style="text-align: right;">130</td>
+<td style="text-align: right;">15</td>
 <td style="text-align: right;">22</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">40.3</td>
+<td style="text-align: right;">34.35000</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">6</td>
 <td style="text-align: right;">9</td>
@@ -337,6 +394,8 @@ div.csl-indent {
 </section>
 <section id="what-is-the-best-proxy-for-observational-mating-success" class="level1">
 <h1>What is the best proxy for observational mating success?</h1>
+<section id="visit-sequences" class="level2">
+<h2 class="anchored" data-anchor-id="visit-sequences">Visit sequences</h2>
 <p>We have conducted an experiment in which we surveyed each pollinator one by one along the visit sequences, up to the flower scale. By making assumptions about the carry-over (i.e., the number of successive flower visits during which pollen export remains effective), we are able to estimate the number of observational sexual partners, both for the female and the male function. We assume that the carry-over is about 10, based on a previous study on the sister species <em>Brassica napus</em>: for the male function, 91% of the seeds were sired in the first four flowers visited after a focal individual, and no seeds were sired after the 14th flower visited <span class="citation" data-cites="cresswell_method_1994">[<a href="#ref-cresswell_method_1994" role="doc-biblioref">1</a>]</span>.</p>
 <p>Now, we imagine a more common experiment <em>in natura</em> in which we cannot follow the pollinators one by one. We could rather observe plant by plant. We then have the following data :</p>
 <ul>
@@ -506,7 +565,7 @@ populations between them? We can get the following data:</p>
 <li>Total number of contacts with id</li>
 <li>Total number of visits<br>
 </li>
-<li>Total number of visited individuals (maximum oMS)<br>
+<li>Total number of visited individuals (maximum oms)<br>
 </li>
 <li>Total number of pollinators (but see below)<br>
 </li>
@@ -526,7 +585,7 @@ populations between them? We can get the following data:</p>
 <thead>
 <tr class="header">
 <th style="text-align: left;">session</th>
-<th style="text-align: right;">max_oMS</th>
+<th style="text-align: right;">max_oms</th>
 <th style="text-align: right;">total_nb_contact</th>
 <th style="text-align: right;">total_nb_visit</th>
 <th style="text-align: right;">total_duration</th>
@@ -588,7 +647,7 @@ populations between them? We can get the following data:</p>
 </div>
 <p>Because, imagine that one individual had a lot of contacts with pollinators, but<br>
 that only a few other individuals were visited: this should weaken the link between<br>
-the number of contacts per id and oMS.</p>
+the number of contacts per id and oms.</p>
 <p>Using the data table with contacts ordered by time, we could imagine estimating<br>
 the diversity of potential sexual partners according to their relative frequency<br>
 (e.g., using Hill/Shannon/Simpson indices).</p>
@@ -611,7 +670,7 @@ have two main proxies:</p>
 </ul>
 <ol type="A">
 <li>For the number of contacts per individual, we can explore its correlation with<br>
-oMS using:<br>
+oms using:<br>
 </li>
 </ol>
 <ul>
@@ -647,48 +706,58 @@ oMS using:<br>
 <col style="width: 2%">
 <col style="width: 2%">
 <col style="width: 3%">
-<col style="width: 4%">
+<col style="width: 1%">
 <col style="width: 3%">
-<col style="width: 4%">
-<col style="width: 4%">
+<col style="width: 2%">
+<col style="width: 2%">
 <col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 4%">
 <col style="width: 4%">
 <col style="width: 4%">
 <col style="width: 3%">
 <col style="width: 2%">
-<col style="width: 3%">
 <col style="width: 2%">
-<col style="width: 5%">
-<col style="width: 4%">
-<col style="width: 4%">
-<col style="width: 4%">
 <col style="width: 2%">
-<col style="width: 3%">
 <col style="width: 2%">
-<col style="width: 3%">
-<col style="width: 3%">
 <col style="width: 2%">
-<col style="width: 3%">
 <col style="width: 2%">
-<col style="width: 3%">
-<col style="width: 3%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 2%">
 </colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">session</th>
 <th style="text-align: left;">id</th>
+<th style="text-align: right;">sr_fem_total</th>
+<th style="text-align: right;">nb_flo</th>
 <th style="text-align: right;">nb_flo_open</th>
+<th style="text-align: right;">nb_flo_all</th>
+<th style="text-align: right;">height_max</th>
+<th style="text-align: right;">height_mean</th>
 <th style="text-align: right;">nb_poll_focal</th>
-<th style="text-align: right;">oMS_fem_co5</th>
-<th style="text-align: right;">oMS_fem_co10</th>
-<th style="text-align: right;">oMS_fem_co20</th>
-<th style="text-align: right;">oMS_mal_co5</th>
-<th style="text-align: right;">oMS_mal_co10</th>
-<th style="text-align: right;">oMS_mal_co20</th>
+<th style="text-align: right;">oms_fem_co5</th>
+<th style="text-align: right;">oms_fem_co10</th>
+<th style="text-align: right;">oms_fem_co20</th>
+<th style="text-align: right;">oms_mal_co5</th>
+<th style="text-align: right;">oms_mal_co10</th>
+<th style="text-align: right;">oms_mal_co20</th>
 <th style="text-align: right;">nb_contact</th>
 <th style="text-align: right;">nb_visit</th>
 <th style="text-align: right;">dur_visit</th>
-<th style="text-align: right;">max_oMS</th>
+<th style="text-align: right;">max_oms</th>
 <th style="text-align: right;">total_nb_contact</th>
 <th style="text-align: right;">total_nb_visit</th>
 <th style="text-align: right;">total_duration</th>
@@ -709,7 +778,12 @@ oMS using:<br>
 <tr class="odd">
 <td style="text-align: left;">1.FA1</td>
 <td style="text-align: left;">1.FA1.01</td>
+<td style="text-align: right;">56</td>
+<td style="text-align: right;">14</td>
 <td style="text-align: right;">20</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">40.4</td>
+<td style="text-align: right;">36.73333</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">9</td>
 <td style="text-align: right;">9</td>
@@ -739,7 +813,12 @@ oMS using:<br>
 <tr class="even">
 <td style="text-align: left;">1.FA1</td>
 <td style="text-align: left;">1.FA1.02</td>
+<td style="text-align: right;">119</td>
+<td style="text-align: right;">19</td>
 <td style="text-align: right;">21</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">31.5</td>
+<td style="text-align: right;">24.40000</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">6</td>
 <td style="text-align: right;">8</td>
@@ -769,7 +848,12 @@ oMS using:<br>
 <tr class="odd">
 <td style="text-align: left;">1.FA1</td>
 <td style="text-align: left;">1.FA1.03</td>
+<td style="text-align: right;">38</td>
+<td style="text-align: right;">11</td>
 <td style="text-align: right;">13</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">37.4</td>
+<td style="text-align: right;">35.45000</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">8</td>
 <td style="text-align: right;">8</td>
@@ -799,7 +883,12 @@ oMS using:<br>
 <tr class="even">
 <td style="text-align: left;">1.FA1</td>
 <td style="text-align: left;">1.FA1.04</td>
+<td style="text-align: right;">169</td>
+<td style="text-align: right;">19</td>
 <td style="text-align: right;">23</td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">36.4</td>
+<td style="text-align: right;">33.33333</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">8</td>
 <td style="text-align: right;">9</td>
@@ -829,7 +918,12 @@ oMS using:<br>
 <tr class="odd">
 <td style="text-align: left;">1.FA1</td>
 <td style="text-align: left;">1.FA1.05</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">12</td>
 <td style="text-align: right;">14</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">36.5</td>
+<td style="text-align: right;">31.63333</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">8</td>
 <td style="text-align: right;">9</td>
@@ -859,7 +953,12 @@ oMS using:<br>
 <tr class="even">
 <td style="text-align: left;">1.FA1</td>
 <td style="text-align: left;">1.FA1.06</td>
+<td style="text-align: right;">130</td>
+<td style="text-align: right;">15</td>
 <td style="text-align: right;">22</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">40.3</td>
+<td style="text-align: right;">34.35000</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">6</td>
 <td style="text-align: right;">9</td>
@@ -891,13 +990,12 @@ oMS using:<br>
 </div>
 </div>
 <p>Okay now we proceed to ACP.</p>
-<section id="acp" class="level2">
-<h2 class="anchored" data-anchor-id="acp">ACP</h2>
-<section id="carry-over-10" class="level3">
-<h3 class="anchored" data-anchor-id="carry-over-10">Carry-over 10</h3>
+<section id="acp" class="level3">
+<h3 class="anchored" data-anchor-id="acp">ACP</h3>
 <div class="grid">
 <section id="females" class="level4 g-col-6">
 <h4 class="anchored" data-anchor-id="females">Females</h4>
+<p><strong>Carry-over 10</strong></p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -907,9 +1005,7 @@ oMS using:<br>
 </div>
 </div>
 </div>
-</section>
-<section id="males" class="level4 g-col-6">
-<h4 class="anchored" data-anchor-id="males">Males</h4>
+<p><strong>Carry-over 5</strong></p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -919,14 +1015,7 @@ oMS using:<br>
 </div>
 </div>
 </div>
-</section>
-</div>
-</section>
-<section id="carry-over-5" class="level3">
-<h3 class="anchored" data-anchor-id="carry-over-5">Carry-over 5</h3>
-<div class="grid">
-<section id="females-1" class="level4 g-col-6">
-<h4 class="anchored" data-anchor-id="females-1">Females</h4>
+<p><strong>Carry-over 20</strong></p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -937,8 +1026,9 @@ oMS using:<br>
 </div>
 </div>
 </section>
-<section id="males-1" class="level4 g-col-6">
-<h4 class="anchored" data-anchor-id="males-1">Males</h4>
+<section id="males" class="level4 g-col-6">
+<h4 class="anchored" data-anchor-id="males">Males</h4>
+<p><strong>Carry-over 10</strong></p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -948,14 +1038,7 @@ oMS using:<br>
 </div>
 </div>
 </div>
-</section>
-</div>
-</section>
-<section id="carry-over-20" class="level3">
-<h3 class="anchored" data-anchor-id="carry-over-20">Carry-over 20</h3>
-<div class="grid">
-<section id="females-2" class="level4 g-col-6">
-<h4 class="anchored" data-anchor-id="females-2">Females</h4>
+<p><strong>Carry-over 5</strong></p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -965,9 +1048,7 @@ oMS using:<br>
 </div>
 </div>
 </div>
-</section>
-<section id="males-2" class="level4 g-col-6">
-<h4 class="anchored" data-anchor-id="males-2">Males</h4>
+<p><strong>Carry-over 20</strong></p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -979,21 +1060,22 @@ oMS using:<br>
 </div>
 </section>
 </div>
-<p>The three best based on PCA : index_A3, index_B3 and index A_1. From now on we focus solely on a carry-over of 10, as it’s very similar.</p>
+<blockquote class="blockquote">
+<p><strong>The three best based on PCA : index_A3, index_B3 and index A_1. From now on we focus solely on a carry-over of 10, as it’s very similar.</strong></p>
+</blockquote>
 </section>
-</section>
-<section id="correlation-test" class="level2">
-<h2 class="anchored" data-anchor-id="correlation-test">Correlation test</h2>
+<section id="correlation-test" class="level3">
+<h3 class="anchored" data-anchor-id="correlation-test">Correlation test</h3>
 <div class="grid">
-<section id="females-3" class="level4 g-col-6">
-<h4 class="anchored" data-anchor-id="females-3">Females</h4>
+<section id="females-1" class="level4 g-col-6">
+<h4 class="anchored" data-anchor-id="females-1">Females</h4>
 <p><strong>A1</strong></p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_A1
+data:  data_proxy$oms_fem_co10 and data_proxy$index_A1
 t = 11.381, df = 136, p-value &lt; 2.2e-16
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1006,7 +1088,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_A1
+data:  data_proxy$oms_fem_co10 and data_proxy$index_A1
 S = 109846, p-value &lt; 2.2e-16
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1020,7 +1102,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_A2
+data:  data_proxy$oms_fem_co10 and data_proxy$index_A2
 t = -0.52347, df = 136, p-value = 0.6015
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1033,7 +1115,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_A2
+data:  data_proxy$oms_fem_co10 and data_proxy$index_A2
 S = 395711, p-value = 0.2601
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1047,7 +1129,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_A3
+data:  data_proxy$oms_fem_co10 and data_proxy$index_A3
 t = 13.653, df = 136, p-value &lt; 2.2e-16
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1060,7 +1142,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_A3
+data:  data_proxy$oms_fem_co10 and data_proxy$index_A3
 S = 84479, p-value &lt; 2.2e-16
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1074,7 +1156,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_A4
+data:  data_proxy$oms_fem_co10 and data_proxy$index_A4
 t = 3.2682, df = 136, p-value = 0.00137
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1087,7 +1169,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_A4
+data:  data_proxy$oms_fem_co10 and data_proxy$index_A4
 S = 288311, p-value = 4.092e-05
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1101,7 +1183,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_A5
+data:  data_proxy$oms_fem_co10 and data_proxy$index_A5
 t = -1.9169, df = 136, p-value = 0.05734
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1114,7 +1196,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_A5
+data:  data_proxy$oms_fem_co10 and data_proxy$index_A5
 S = 463225, p-value = 0.5021
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1128,7 +1210,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_B1
+data:  data_proxy$oms_fem_co10 and data_proxy$index_B1
 t = 6.6539, df = 136, p-value = 6.414e-10
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1141,7 +1223,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_B1
+data:  data_proxy$oms_fem_co10 and data_proxy$index_B1
 S = 194058, p-value = 1.306e-12
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1155,7 +1237,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_B2
+data:  data_proxy$oms_fem_co10 and data_proxy$index_B2
 t = -0.25705, df = 136, p-value = 0.7975
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1168,7 +1250,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_B2
+data:  data_proxy$oms_fem_co10 and data_proxy$index_B2
 S = 374554, p-value = 0.0901
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1182,7 +1264,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_B3
+data:  data_proxy$oms_fem_co10 and data_proxy$index_B3
 t = 7.394, df = 136, p-value = 1.317e-11
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1195,7 +1277,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_B3
+data:  data_proxy$oms_fem_co10 and data_proxy$index_B3
 S = 160442, p-value &lt; 2.2e-16
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1209,7 +1291,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_B4
+data:  data_proxy$oms_fem_co10 and data_proxy$index_B4
 t = 2.2365, df = 136, p-value = 0.02695
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1222,7 +1304,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_B4
+data:  data_proxy$oms_fem_co10 and data_proxy$index_B4
 S = 309817, p-value = 0.0004958
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1236,7 +1318,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_B5
+data:  data_proxy$oms_fem_co10 and data_proxy$index_B5
 t = -1.9169, df = 136, p-value = 0.05734
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1249,7 +1331,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_fem_co10 and data_proxy$index_B5
+data:  data_proxy$oms_fem_co10 and data_proxy$index_B5
 S = 463225, p-value = 0.5021
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1258,15 +1340,15 @@ sample estimates:
 </div>
 </div>
 </section>
-<section id="males-3" class="level4 g-col-6">
-<h4 class="anchored" data-anchor-id="males-3">Males</h4>
+<section id="males-1" class="level4 g-col-6">
+<h4 class="anchored" data-anchor-id="males-1">Males</h4>
 <p><strong>A1</strong></p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_A1
+data:  data_proxy$oms_mal_co10 and data_proxy$index_A1
 t = 12.122, df = 136, p-value &lt; 2.2e-16
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1279,7 +1361,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_A1
+data:  data_proxy$oms_mal_co10 and data_proxy$index_A1
 S = 104123, p-value &lt; 2.2e-16
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1293,7 +1375,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_A2
+data:  data_proxy$oms_mal_co10 and data_proxy$index_A2
 t = -0.16192, df = 136, p-value = 0.8716
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1306,7 +1388,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_A2
+data:  data_proxy$oms_mal_co10 and data_proxy$index_A2
 S = 398429, p-value = 0.2921
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1320,7 +1402,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_A3
+data:  data_proxy$oms_mal_co10 and data_proxy$index_A3
 t = 14.541, df = 136, p-value &lt; 2.2e-16
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1333,7 +1415,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_A3
+data:  data_proxy$oms_mal_co10 and data_proxy$index_A3
 S = 77512, p-value &lt; 2.2e-16
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1347,7 +1429,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_A4
+data:  data_proxy$oms_mal_co10 and data_proxy$index_A4
 t = 3.6489, df = 136, p-value = 0.0003743
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1360,7 +1442,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_A4
+data:  data_proxy$oms_mal_co10 and data_proxy$index_A4
 S = 283390, p-value = 2.173e-05
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1374,7 +1456,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_A5
+data:  data_proxy$oms_mal_co10 and data_proxy$index_A5
 t = -1.8643, df = 136, p-value = 0.06444
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1387,7 +1469,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_A5
+data:  data_proxy$oms_mal_co10 and data_proxy$index_A5
 S = 470381, p-value = 0.3886
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1401,7 +1483,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_B1
+data:  data_proxy$oms_mal_co10 and data_proxy$index_B1
 t = 6.6886, df = 136, p-value = 5.368e-10
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1414,7 +1496,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_B1
+data:  data_proxy$oms_mal_co10 and data_proxy$index_B1
 S = 195666, p-value = 1.963e-12
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1428,7 +1510,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_B2
+data:  data_proxy$oms_mal_co10 and data_proxy$index_B2
 t = -0.35112, df = 136, p-value = 0.726
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1441,7 +1523,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_B2
+data:  data_proxy$oms_mal_co10 and data_proxy$index_B2
 S = 386699, p-value = 0.1714
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1455,7 +1537,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_B3
+data:  data_proxy$oms_mal_co10 and data_proxy$index_B3
 t = 7.4052, df = 136, p-value = 1.239e-11
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1468,7 +1550,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_B3
+data:  data_proxy$oms_mal_co10 and data_proxy$index_B3
 S = 160222, p-value &lt; 2.2e-16
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1482,7 +1564,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_B4
+data:  data_proxy$oms_mal_co10 and data_proxy$index_B4
 t = 2.1615, df = 136, p-value = 0.03241
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1495,7 +1577,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_B4
+data:  data_proxy$oms_mal_co10 and data_proxy$index_B4
 S = 319974, p-value = 0.001394
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1509,7 +1591,7 @@ sample estimates:
 <pre><code>
     Pearson's product-moment correlation
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_B5
+data:  data_proxy$oms_mal_co10 and data_proxy$index_B5
 t = -1.8643, df = 136, p-value = 0.06444
 alternative hypothesis: true correlation is not equal to 0
 95 percent confidence interval:
@@ -1522,7 +1604,7 @@ sample estimates:
 <pre><code>
     Spearman's rank correlation rho
 
-data:  data_proxy$oMS_mal_co10 and data_proxy$index_B5
+data:  data_proxy$oms_mal_co10 and data_proxy$index_B5
 S = 470381, p-value = 0.3886
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
@@ -1532,15 +1614,18 @@ sample estimates:
 </div>
 </section>
 </div>
-<p>The best proxies : A3 &gt; A1 &gt; B3 &gt; B1. From now we only focus on these indexes, and we just check on females as we have the same results.</p>
+<blockquote class="blockquote">
+<p><strong>The best proxies : A3 &gt; A1 &gt; B3 &gt; B1. From now we only focus on these indexes, and we just check on females as we have the same results.</strong></p>
+</blockquote>
 </section>
-<section id="linear-models-and-r2" class="level2">
-<h2 class="anchored" data-anchor-id="linear-models-and-r2">Linear models and R<sup>2</sup></h2>
+<section id="linear-models-and-r2" class="level3">
+<h3 class="anchored" data-anchor-id="linear-models-and-r2">Linear models and R<sup>2</sup></h3>
 <p><strong>A3</strong></p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>Linear mixed model fit by REML ['lmerMod']
-Formula: oMS_fem_co10 ~ index_A3 + (1 | session)
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: oms_fem_co10 ~ index_A3 + (1 | session)
    Data: data_proxy
 
 REML criterion at convergence: 479
@@ -1556,9 +1641,11 @@ Random effects:
 Number of obs: 138, groups:  session, 16
 
 Fixed effects:
-            Estimate Std. Error t value
-(Intercept) 4.078995   0.440473   9.260
-index_A3    0.038894   0.004743   8.201
+             Estimate Std. Error        df t value Pr(&gt;|t|)    
+(Intercept) 4.079e+00  4.405e-01 2.033e+01   9.260 9.79e-09 ***
+index_A3    3.889e-02  4.743e-03 1.325e+02   8.201 1.82e-13 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Correlation of Fixed Effects:
          (Intr)
@@ -1574,8 +1661,9 @@ index_A3 -0.441</code></pre>
 <p><strong>A1</strong></p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>Linear mixed model fit by REML ['lmerMod']
-Formula: oMS_fem_co10 ~ index_A1 + (1 | session)
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: oms_fem_co10 ~ index_A1 + (1 | session)
    Data: data_proxy
 
 REML criterion at convergence: 476.1
@@ -1591,9 +1679,11 @@ Random effects:
 Number of obs: 138, groups:  session, 16
 
 Fixed effects:
-            Estimate Std. Error t value
-(Intercept)  4.10334    0.48329    8.49
-index_A1     0.35020    0.04405    7.95
+             Estimate Std. Error        df t value Pr(&gt;|t|)    
+(Intercept)   4.10334    0.48329  20.19537    8.49 4.26e-08 ***
+index_A1      0.35020    0.04405 127.90824    7.95 8.48e-13 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Correlation of Fixed Effects:
          (Intr)
@@ -1609,8 +1699,9 @@ index_A1 -0.407</code></pre>
 <p><strong>B3</strong></p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>Linear mixed model fit by REML ['lmerMod']
-Formula: oMS_fem_co10 ~ index_B3 + (1 | session)
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: oms_fem_co10 ~ index_B3 + (1 | session)
    Data: data_proxy
 
 REML criterion at convergence: 517.2
@@ -1626,9 +1717,11 @@ Random effects:
 Number of obs: 138, groups:  session, 16
 
 Fixed effects:
-             Estimate Std. Error t value
-(Intercept) 5.0383082  0.5275995   9.549
-index_B3    0.0030535  0.0006697   4.560
+             Estimate Std. Error        df t value Pr(&gt;|t|)    
+(Intercept) 5.038e+00  5.276e-01 1.664e+01   9.549 3.67e-08 ***
+index_B3    3.053e-03  6.697e-04 1.270e+02   4.560 1.19e-05 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Correlation of Fixed Effects:
          (Intr)
@@ -1644,8 +1737,9 @@ index_B3 -0.261</code></pre>
 <p><strong>B1</strong></p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>Linear mixed model fit by REML ['lmerMod']
-Formula: oMS_fem_co10 ~ index_B1 + (1 | session)
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: oms_fem_co10 ~ index_B1 + (1 | session)
    Data: data_proxy
 
 REML criterion at convergence: 512.2
@@ -1661,9 +1755,11 @@ Random effects:
 Number of obs: 138, groups:  session, 16
 
 Fixed effects:
-            Estimate Std. Error t value
-(Intercept) 5.005645   0.539892   9.272
-index_B1    0.029895   0.006508   4.594
+             Estimate Std. Error        df t value Pr(&gt;|t|)    
+(Intercept) 5.006e+00  5.399e-01 1.690e+01   9.272 4.88e-08 ***
+index_B1    2.990e-02  6.508e-03 1.257e+02   4.594 1.04e-05 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Correlation of Fixed Effects:
          (Intr)
@@ -1676,10 +1772,12 @@ index_B1 -0.266</code></pre>
      Marginal R2: 0.059</code></pre>
 </div>
 </div>
-<p>Based on marginal, A3 is the best proxy, but based on conditionnal, A1 is better.</p>
+<blockquote class="blockquote">
+<p><strong>Based on marginal, A3 is the best proxy, but based on conditionnal, A1 is better.</strong></p>
+</blockquote>
 </section>
-<section id="aic" class="level2">
-<h2 class="anchored" data-anchor-id="aic">AIC</h2>
+<section id="aic" class="level3">
+<h3 class="anchored" data-anchor-id="aic">AIC</h3>
 <p><strong>A3</strong></p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
@@ -1704,10 +1802,12 @@ index_B1 -0.266</code></pre>
 <pre><code>[1] 520.238</code></pre>
 </div>
 </div>
-<p>Best AIC is for A1.</p>
+<blockquote class="blockquote">
+<p><strong>Best AIC is for A1.</strong></p>
+</blockquote>
 </section>
-<section id="root-mean-squared-error" class="level2">
-<h2 class="anchored" data-anchor-id="root-mean-squared-error">Root Mean Squared Error</h2>
+<section id="root-mean-squared-error" class="level3">
+<h3 class="anchored" data-anchor-id="root-mean-squared-error">Root Mean Squared Error</h3>
 <p><strong>A3</strong></p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
@@ -1732,6 +1832,641 @@ index_B1 -0.266</code></pre>
 <pre><code>[1] "RMSE: 1.18765895202105"</code></pre>
 </div>
 </div>
+<blockquote class="blockquote">
+<p><strong>Best based on RMSE is A1.</strong></p>
+</blockquote>
+</section>
+<section id="conclusions" class="level3">
+<h3 class="anchored" data-anchor-id="conclusions">Conclusions</h3>
+<blockquote class="blockquote">
+<p>To summarize, the number of contacts, and the number of contacts x max_oms, seems to be both good predictors of observational mating success. To do : Bateman gradients with the number of contacts to see if we obtain the same results? Necessary?</p>
+</blockquote>
+</section>
+</section>
+<section id="which-traits-are-good-predictor-of-mate-access" class="level2">
+<h2 class="anchored" data-anchor-id="which-traits-are-good-predictor-of-mate-access">Which traits are good predictor of mate access?</h2>
+<p>We measured:</p>
+<ul>
+<li><strong>nb_flo:</strong> the number of opened flowers</li>
+<li><strong>nb_flo_open:</strong> the number of opened flowers (including very new ones)</li>
+<li><strong>nb_flo_all:</strong> the total number of flowers (including very new and old ones)</li>
+<li><strong>height_max:</strong> the height of the highest flower</li>
+<li><strong>height_mean:</strong> the mean height of the highest flowers on each stem</li>
+</ul>
+<p>We analyse the correlation between these traits and the number of contacts, which had in turn an effect on oms as we saw above.</p>
+<section id="simple-linear-models" class="level3">
+<h3 class="anchored" data-anchor-id="simple-linear-models">Simple linear models</h3>
+<section id="number-of-contacts" class="level4">
+<h4 class="anchored" data-anchor-id="number-of-contacts">Number of contacts</h4>
+<p>Simple linear models, regression of number of contacts on each trait.</p>
+<p><strong>nb_flo</strong></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: index_A1 ~ nb_flo + (1 | session)
+   Data: data_proxy
+
+REML criterion at convergence: 646.5
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-2.1467 -0.5929 -0.0645  0.5791  4.2087 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ session  (Intercept) 3.221    1.795   
+ Residual             5.035    2.244   
+Number of obs: 138, groups:  session, 16
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(&gt;|t|)    
+(Intercept)   3.38887    0.72084  47.97546   4.701 2.21e-05 ***
+nb_flo        0.09234    0.04392 135.66896   2.103   0.0373 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+       (Intr)
+nb_flo -0.735</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># R2 for Mixed Models
+
+  Conditional R2: 0.409
+     Marginal R2: 0.031</code></pre>
+</div>
+</div>
+<p><strong>nb_flo_open</strong></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: index_A1 ~ nb_flo_open + (1 | session)
+   Data: data_proxy
+
+REML criterion at convergence: 647.2
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-2.1711 -0.6088 -0.0663  0.6163  4.1507 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ session  (Intercept) 3.198    1.788   
+ Residual             5.053    2.248   
+Number of obs: 138, groups:  session, 16
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(&gt;|t|)    
+(Intercept)   3.45356    0.71310  48.31683   4.843 1.36e-05 ***
+nb_flo_open   0.07182    0.03561 135.99881   2.017   0.0457 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr)
+nb_flo_open -0.730</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># R2 for Mixed Models
+
+  Conditional R2: 0.404
+     Marginal R2: 0.028</code></pre>
+</div>
+</div>
+<p><strong>nb_flo_all</strong></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: index_A1 ~ nb_flo_all + (1 | session)
+   Data: data_proxy
+
+REML criterion at convergence: 648.1
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-2.0755 -0.6367 -0.1438  0.5921  4.0907 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ session  (Intercept) 3.272    1.809   
+ Residual             5.045    2.246   
+Number of obs: 138, groups:  session, 16
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(&gt;|t|)    
+(Intercept)   3.28498    0.78258  53.10105   4.198 0.000103 ***
+nb_flo_all    0.04793    0.02396 132.55053   2.000 0.047513 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+           (Intr)
+nb_flo_all -0.777</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># R2 for Mixed Models
+
+  Conditional R2: 0.412
+     Marginal R2: 0.031</code></pre>
+</div>
+</div>
+<p><strong>height_max</strong></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: index_A1 ~ height_max + (1 | session)
+   Data: data_proxy
+
+REML criterion at convergence: 658
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-2.2822 -0.6331 -0.1178  0.6489  4.2839 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ session  (Intercept) 2.843    1.686   
+ Residual             5.219    2.285   
+Number of obs: 138, groups:  session, 16
+
+Fixed effects:
+              Estimate Std. Error         df t value Pr(&gt;|t|)    
+(Intercept)  4.560e+00  4.677e-01  1.476e+01   9.751 8.05e-08 ***
+height_max  -7.015e-04  5.975e-04  1.295e+02  -1.174    0.243    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+           (Intr)
+height_max -0.093</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># R2 for Mixed Models
+
+  Conditional R2: 0.357
+     Marginal R2: 0.007</code></pre>
+</div>
+</div>
+<p><strong>height_mean</strong></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: index_A1 ~ height_mean + (1 | session)
+   Data: data_proxy
+
+REML criterion at convergence: 655.3
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-2.2787 -0.6326 -0.1188  0.6486  4.2767 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ session  (Intercept) 2.849    1.688   
+ Residual             5.225    2.286   
+Number of obs: 138, groups:  session, 16
+
+Fixed effects:
+              Estimate Std. Error         df t value Pr(&gt;|t|)    
+(Intercept)   4.610338   0.475040  15.583025   9.705 5.27e-08 ***
+height_mean  -0.002655   0.002404 129.745261  -1.104    0.272    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr)
+height_mean -0.193</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># R2 for Mixed Models
+
+  Conditional R2: 0.357
+     Marginal R2: 0.007</code></pre>
+</div>
+</div>
+<p><strong>all traits together</strong></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: 
+index_A1 ~ nb_flo + nb_flo_open + nb_flo_all + height_max + height_mean +  
+    (1 | session)
+   Data: data_proxy
+
+REML criterion at convergence: 665.3
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-2.2031 -0.6192 -0.0785  0.5417  4.3237 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ session  (Intercept) 3.490    1.868   
+ Residual             4.934    2.221   
+Number of obs: 138, groups:  session, 16
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(&gt;|t|)  
+(Intercept)   1.04554    1.41110  94.66569   0.741   0.4606  
+nb_flo        0.05477    0.12989 120.23844   0.422   0.6741  
+nb_flo_open   0.01732    0.10584 120.37414   0.164   0.8703  
+nb_flo_all    0.02136    0.03852 131.87672   0.555   0.5802  
+height_max   -0.02627    0.01402 131.41703  -1.874   0.0631 .
+height_mean   0.10256    0.05641 131.36911   1.818   0.0713 .
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr) nb_flo nb_fl_p nb_fl_l hght_mx
+nb_flo       0.023                               
+nb_flo_open -0.111 -0.847                        
+nb_flo_all  -0.164 -0.207 -0.226                 
+height_max   0.826  0.070 -0.134   0.061         
+height_mean -0.827 -0.073  0.137  -0.063  -0.999 </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># R2 for Mixed Models
+
+  Conditional R2: 0.460
+     Marginal R2: 0.079</code></pre>
+</div>
+</div>
+<blockquote class="blockquote">
+<p><strong>For simple linear models, only flower number have an effect on the number of contacts, and the strongest effect seems for the number of opened flowers (without very new or old ones). When working with all traits together, on the contrary, only height have an effect (negative for maximum, positive for mean)…</strong></p>
+</blockquote>
+</section>
+<section id="observational-mating-success" class="level4">
+<h4 class="anchored" data-anchor-id="observational-mating-success">Observational mating success</h4>
+<p>Simple linear models, regression of observational mating success on each trait.</p>
+<p><strong>nb_flo</strong></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: oms_fem_co10 ~ nb_flo + (1 | session)
+   Data: data_proxy
+
+REML criterion at convergence: 681.4
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.3061 -0.6045  0.1055  0.6192  1.9412 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ session  (Intercept) 7.329    2.707   
+ Residual             2.955    1.719   
+Number of obs: 160, groups:  session, 16
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(&gt;|t|)    
+(Intercept)   4.78290    0.78828  24.71397   6.068 2.55e-06 ***
+nb_flo        0.03364    0.03116 151.93297   1.080    0.282    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+       (Intr)
+nb_flo -0.483</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># R2 for Mixed Models
+
+  Conditional R2: 0.714
+     Marginal R2: 0.004</code></pre>
+</div>
+</div>
+<p><strong>nb_flo_open</strong></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: oms_fem_co10 ~ nb_flo_open + (1 | session)
+   Data: data_proxy
+
+REML criterion at convergence: 681.6
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.2961 -0.6044  0.1310  0.6117  1.9786 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ session  (Intercept) 7.342    2.710   
+ Residual             2.948    1.717   
+Number of obs: 160, groups:  session, 16
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(&gt;|t|)    
+(Intercept)   4.75019    0.77947  23.70982   6.094 2.85e-06 ***
+nb_flo_open   0.02997    0.02439 150.78777   1.229    0.221    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr)
+nb_flo_open -0.463</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># R2 for Mixed Models
+
+  Conditional R2: 0.715
+     Marginal R2: 0.005</code></pre>
+</div>
+</div>
+<p><strong>nb_flo_all</strong></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: oms_fem_co10 ~ nb_flo_all + (1 | session)
+   Data: data_proxy
+
+REML criterion at convergence: 683.6
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.3397 -0.6240  0.0752  0.6436  1.9536 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ session  (Intercept) 7.318    2.705   
+ Residual             2.976    1.725   
+Number of obs: 160, groups:  session, 16
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(&gt;|t|)    
+(Intercept)   5.00080    0.82895  29.36752   6.033 1.38e-06 ***
+nb_flo_all    0.00745    0.01774 154.26072   0.420    0.675    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+           (Intr)
+nb_flo_all -0.554</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># R2 for Mixed Models
+
+  Conditional R2: 0.711
+     Marginal R2: 0.001</code></pre>
+</div>
+</div>
+<p><strong>height_max</strong></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: oms_fem_co10 ~ height_max + (1 | session)
+   Data: data_proxy
+
+REML criterion at convergence: 691.1
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.3447 -0.6319  0.1082  0.6507  1.9324 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ session  (Intercept) 7.259    2.694   
+ Residual             2.982    1.727   
+Number of obs: 160, groups:  session, 16
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(&gt;|t|)    
+(Intercept) 5.192e+00  6.877e-01 1.503e+01   7.549 1.72e-06 ***
+height_max  2.936e-05  4.432e-04 1.442e+02   0.066    0.947    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+           (Intr)
+height_max -0.037</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># R2 for Mixed Models
+
+  Conditional R2: 0.709
+     Marginal R2: 0.000</code></pre>
+</div>
+</div>
+<p><strong>height_mean</strong></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: oms_fem_co10 ~ height_mean + (1 | session)
+   Data: data_proxy
+
+REML criterion at convergence: 688.3
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.3448 -0.6319  0.1079  0.6506  1.9323 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ session  (Intercept) 7.261    2.695   
+ Residual             2.982    1.727   
+Number of obs: 160, groups:  session, 16
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(&gt;|t|)    
+(Intercept) 5.188e+00  6.901e-01 1.523e+01   7.518 1.67e-06 ***
+height_mean 1.799e-04  1.781e-03 1.443e+02   0.101     0.92    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr)
+height_mean -0.088</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># R2 for Mixed Models
+
+  Conditional R2: 0.709
+     Marginal R2: 0.000</code></pre>
+</div>
+</div>
+<p><strong>all traits together</strong></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: oms_fem_co10 ~ nb_flo + nb_flo_open + nb_flo_all + height_max +  
+    height_mean + (1 | session)
+   Data: data_proxy
+
+REML criterion at convergence: 705.7
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.2218 -0.6044  0.1581  0.5915  1.8942 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ session  (Intercept) 7.178    2.679   
+ Residual             2.993    1.730   
+Number of obs: 160, groups:  session, 16
+
+Fixed effects:
+              Estimate Std. Error         df t value Pr(&gt;|t|)   
+(Intercept)  3.810e+00  1.248e+00  8.899e+01   3.052  0.00299 **
+nb_flo      -5.824e-04  9.234e-02  1.408e+02  -0.006  0.99498   
+nb_flo_open  6.443e-02  7.044e-02  1.398e+02   0.915  0.36195   
+nb_flo_all  -2.439e-02  2.896e-02  1.481e+02  -0.842  0.40103   
+height_max  -1.333e-02  1.080e-02  1.498e+02  -1.234  0.21901   
+height_mean  5.385e-02  4.343e-02  1.498e+02   1.240  0.21696   
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr) nb_flo nb_fl_p nb_fl_l hght_mx
+nb_flo       0.011                               
+nb_flo_open -0.112 -0.832                        
+nb_flo_all  -0.165 -0.304 -0.146                 
+height_max   0.749  0.046 -0.164   0.057         
+height_mean -0.750 -0.050  0.168  -0.057  -0.999 </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># R2 for Mixed Models
+
+  Conditional R2: 0.710
+     Marginal R2: 0.016</code></pre>
+</div>
+</div>
+<blockquote class="blockquote">
+<p><strong>Concerning the regression of the observational mating success on phenotypic trait, we do not detected any effect (both for simple linear models or when working with all traits together).</strong></p>
+</blockquote>
+</section>
+</section>
+<section id="sem" class="level3">
+<h3 class="anchored" data-anchor-id="sem">SEM</h3>
+<p>Best way to do this analysis: SEM?</p>
+<div class="cell">
+<div class="cell-output-display">
+<div class="grViz html-widget html-fill-item" id="htmlwidget-058458f65cdbb4d74ae0" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-058458f65cdbb4d74ae0">{"x":{"diagram":"digraph {\n\ngraph [layout = \"neato\",\n       outputorder = \"edgesfirst\",\n       bgcolor = \"white\"]\n\nnode [fontname = \"Helvetica\",\n      fontsize = \"10\",\n      shape = \"circle\",\n      fixedsize = \"true\",\n      width = \"0.5\",\n      style = \"filled\",\n      fillcolor = \"aliceblue\",\n      color = \"gray70\",\n      fontcolor = \"gray50\"]\n\nedge [fontname = \"Helvetica\",\n     fontsize = \"8\",\n     len = \"1.5\",\n     color = \"gray80\",\n     arrowsize = \"0.5\"]\n\n  \"1\" [label = \"index_A1\", fillcolor = \"#8B5A00\", fontsize = \"6\", fontcolor = \"#FFFFFF\", pos = \"2.5,2!\"] \n  \"2\" [label = \"oms_fem_co10\", fillcolor = \"#8B5A00\", fontsize = \"6\", fontcolor = \"#FFFFFF\", pos = \"2.5,3!\"] \n  \"3\" [label = \"nb_flo\", fillcolor = \"#8B5A00\", fontsize = \"6\", fontcolor = \"#FFFFFF\", pos = \"1,1!\"] \n  \"4\" [label = \"nb_flo_open\", fillcolor = \"#8B5A00\", fontsize = \"6\", fontcolor = \"#FFFFFF\", pos = \"2,1!\"] \n  \"5\" [label = \"nb_flo_all\", fillcolor = \"#8B5A00\", fontsize = \"6\", fontcolor = \"#FFFFFF\", pos = \"3,1!\"] \n  \"6\" [label = \"height_max\", fillcolor = \"#8B5A00\", fontsize = \"6\", fontcolor = \"#FFFFFF\", pos = \"4,1!\"] \n  \"7\" [label = \"height_mean\", fillcolor = \"#8B5A00\", fontsize = \"6\", fontcolor = \"#FFFFFF\", pos = \"5,1!\"] \n\"3\"->\"1\" [fontsize = \"6\", style = \"dashed\", label = \" 0.118 \"] \n\"4\"->\"1\" [fontsize = \"6\", style = \"dashed\", label = \" 0.046 \"] \n\"5\"->\"1\" [fontsize = \"6\", style = \"dashed\", label = \" 0.088 \"] \n\"6\"->\"1\" [fontsize = \"6\", style = \"dashed\", label = \" -3.058 \"] \n\"7\"->\"1\" [fontsize = \"6\", style = \"dashed\", label = \" 2.978 \"] \n\"1\"->\"2\" [fontsize = \"6\", fontsize = \"6\", label = \" 0.315 \"] \n\"3\"->\"2\" [fontsize = \"6\", style = \"dashed\", label = \" -0.071 \"] \n\"4\"->\"2\" [fontsize = \"6\", style = \"dashed\", label = \" 0.135 \"] \n\"5\"->\"2\" [fontsize = \"6\", style = \"dashed\", label = \" -0.036 \"] \n\"6\"->\"2\" [fontsize = \"6\", style = \"dashed\", label = \" 1.546 \"] \n\"7\"->\"2\" [fontsize = \"6\", style = \"dashed\", label = \" -1.562 \"] \n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Structural Equation Model of psem_proxy 
+
+Call:
+  index_A1 ~ nb_flo + nb_flo_open + nb_flo_all + height_max + height_mean
+  oms_fem_co10 ~ index_A1 + nb_flo + nb_flo_open + nb_flo_all + height_max + height_mean
+
+    AIC
+ 1203.577
+
+---
+Tests of directed separation:
+
+ tableau de données (data frame) avec 0 colonnes et 0 ligne
+
+--
+Global goodness-of-fit:
+
+Chi-Squared = 0 with P-value = 1 and on 0 degrees of freedom
+Fisher's C = NA with P-value = NA and on 0 degrees of freedom
+
+---
+Coefficients:
+
+      Response   Predictor Estimate Std.Error       DF Crit.Value P.Value
+      index_A1      nb_flo   0.0548    0.1299 120.4409     0.1771  0.6747
+      index_A1 nb_flo_open   0.0173    0.1058 120.5745     0.0267  0.8706
+      index_A1  nb_flo_all   0.0214    0.0385 131.8790     0.2977  0.5863
+      index_A1  height_max  -0.0263    0.0140 131.4280     3.4056  0.0672
+      index_A1 height_mean   0.1026    0.0564 131.3810     3.2052  0.0757
+  oms_fem_co10    index_A1   0.3541    0.0456 124.2425    59.6741  0.0000
+  oms_fem_co10      nb_flo  -0.0369    0.0658 117.3790     0.3143  0.5761
+  oms_fem_co10 nb_flo_open   0.0570    0.0535 117.2525     1.1334  0.2892
+  oms_fem_co10  nb_flo_all  -0.0098    0.0203 124.7255     0.2303  0.6321
+  oms_fem_co10  height_max   0.0149    0.0075 127.0914     3.8426  0.0522
+  oms_fem_co10 height_mean  -0.0604    0.0303 127.1391     3.8980  0.0505
+  Std.Estimate    
+        0.1183    
+        0.0460    
+        0.0877    
+       -3.0578    
+        2.9776    
+        0.3154 ***
+       -0.0710    
+        0.1351    
+       -0.0358    
+        1.5455    
+       -1.5616    
+
+  Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05
+
+---
+Individual R-squared:
+
+      Response method Marginal Conditional
+      index_A1   none     0.08        0.46
+  oms_fem_co10   none     0.19        0.77</code></pre>
+</div>
+</div>
+<blockquote class="blockquote">
+<p><strong>Strongest effect for the height, with a negative effect of maximum height and a positive effect for mean height on the number of contacts, and the opposite effects for the observational mating success</strong>.</p>
+</blockquote>
+</section>
+</section>
+</section>
+<section id="comparing-observational-to-genetic-mating-success" class="level1">
+<h1>Comparing observational to genetic mating success</h1>
+<section id="true-batemans-gradient-on-all-data-based-on-observations" class="level2">
+<h2 class="anchored" data-anchor-id="true-batemans-gradient-on-all-data-based-on-observations">True Bateman’s gradient on all data based on observations</h2>
+<p>We stay consistent with the manuscript and work with outcrossed reproductive success, estimated on all genotypes, and the ratio is then multiplied by the number of total seeds produced per female, both for the female and the male function (i.e.&nbsp;paternity share).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-58-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="bateman-hedges" class="level2">
+<h2 class="anchored" data-anchor-id="bateman-hedges">Bateman Hedge’s</h2>
+<p>Difference between Bateman’s estimates with genetic sampling versus true Bateman with observational data (sampling gms - true oms). An Hedges’ g &gt; 0 mean that the Bateman gradient estimated with sampling gms is greater than the real ones with true oms.</p>
+<p>Observational versus genetic, according to the sampling percentage of genotyped seeds.</p>
+<section id="per-session" class="level3">
+<h3 class="anchored" data-anchor-id="per-session">Per session:</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-59-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="overall" class="level3">
+<h3 class="anchored" data-anchor-id="overall">Overall:</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-60-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="variance-decomposition" class="level2">
+<h2 class="anchored" data-anchor-id="variance-decomposition">Variance decomposition</h2>
+<p>Observational (with and without flower) versus genetic, according to the sampling percentage of genotyped seeds</p>
 
 </section>
 </section>
