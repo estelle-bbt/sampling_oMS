@@ -47,11 +47,11 @@ list(
   
   # tar_target(sum_genotypes,sum_data_genotypes(data_genotypes)),
   
-  tar_target(data_sampling,load_data("data/simul_table_fixed_strategy.txt")),
+  tar_target(data_sampling,load_data("data/data_created/simul_table_fixed_strategy.txt")),
   
   # tar_target(data_ampling_rs_ms,get_sampling_rs_ms(data_sampling,sum_genotypes,data_id)),
   
-  tar_target(data_sampling_rs_ms,load_data("data/sampling_rs_ms_table_fixed_strategy.txt")),
+  tar_target(data_sampling_rs_ms,load_data("data/data_created/sampling_rs_ms_table_fixed_strategy.txt")),
   
   tar_target(data_sampling_bateman,get_sampling_bateman(data_sampling_rs_ms)),
   
