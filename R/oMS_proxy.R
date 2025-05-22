@@ -145,7 +145,7 @@ get_data_session <- function(data_contact){
 #' 
 #' @export
 
-compute_oms_and_proxy <- function(data_id,data_contact,data_session){
+compute_oms_and_proxy <- function(data_id,data_contact,data_session, cols = c("co5", "co10", "co20")){
   
   dt_proxy <- data_id |>
     left_join(data_contact$dt_contact_id) |>
@@ -160,11 +160,42 @@ compute_oms_and_proxy <- function(data_id,data_contact,data_session){
       index_B2 = nb_visit/total_nb_visit,
       index_B3 = nb_visit*max_oms,
       index_B4 = (nb_visit*max_oms)/total_nb_visit,
-      index_B5 = index_A4/total_nb_poll
+      index_B5 = index_B4/total_nb_poll,
+      index_C1 = dur_visit,
+      index_C2 = dur_visit/total_duration,
+      index_C3 = dur_visit*max_oms,
+      index_C4 = (dur_visit*max_oms)/total_duration,
+      index_C5 = index_C4/total_nb_poll
       )
   
-  return(dt_proxy)
+  cols_name <- paste(cols, collapse = "|")
+  
+  dt_proxy_longer <- dt_proxy |>
+    pivot_longer(
+      cols = starts_with("oms"),
+      names_to = c("sex", "co"),
+      names_pattern = paste0("oms_(fem|mal)_(", cols_name, ")"),
+      values_to = "value"
+    ) |>
+    pivot_wider(
+      names_from = "co",
+      values_from = "value"
+    )  |>
+    rename_with(
+      ~ paste0("oms_", .),
+      .cols = all_of(cols)  # seulement les colonnes de ton vecteur `cols`
+    ) |>
+    mutate(
+      ttt = case_when(substr(session,3,4) == "FA" ~ "low",
+                      substr(session,3,4) == "MO" ~ "medium",
+                      TRUE ~ "high")
+    ) 
+    
+  
+  return(list(dt_proxy = dt_proxy,
+              dt_proxy_longer = dt_proxy_longer))
 }
+
 
 #' PCA
 #'
@@ -183,22 +214,40 @@ compute_oms_and_proxy <- function(data_id,data_contact,data_session){
 get_pca <- function(dt_proxy, cols = "co10"){
   
   fem_proxy <- dt_proxy |>
-    select(!!sym(paste0("oms_fem_",cols)),
+    dplyr::select(!!sym(paste0("oms_fem_",cols)),
            index_A1,index_A2,index_A3,index_A4,index_A5,
-           index_B1,index_B2,index_B3,index_B4,index_B5)
+           index_B1,index_B2,index_B3,index_B4,index_B5,
+           index_C1,index_C2,index_C3,index_C4,index_C5)
   
   pca_fem <- FactoMineR::PCA(fem_proxy)
   
   
   mal_proxy <- dt_proxy |>
-    select(!!sym(paste0("oms_mal_",cols)),
+    dplyr::select(!!sym(paste0("oms_mal_",cols)),
            index_A1,index_A2,index_A3,index_A4,index_A5,
-           index_B1,index_B2,index_B3,index_B4,index_B5)
+           index_B1,index_B2,index_B3,index_B4,index_B5,
+           index_C1,index_C2,index_C3,index_C4,index_C5)
   
   pca_mal <- FactoMineR::PCA(mal_proxy)
   
+  sex_proxy <- dt_proxy |>
+    dplyr::select(!!sym(paste0("oms_fem_",cols)), !!sym(paste0("oms_mal_",cols)),
+           index_A1,index_A2,index_A3,index_A4,index_A5,
+           index_B1,index_B2,index_B3,index_B4,index_B5,
+           index_C1,index_C2,index_C3,index_C4,index_C5
+           ) |>
+    pivot_longer(
+      cols = starts_with("oms"),
+      names_to = "sex",
+      values_to = paste0("oms_",cols),
+      names_pattern = "oms_(fem|mal)_.*"
+    )
+  
+  pca_sex <- FactoMineR::PCA(sex_proxy %>% select(-sex))
+  
   return(list(pca_fem = plot(pca_fem, choix="var"),
-              pca_mal = plot(pca_mal, choix="var")))
+              pca_mal = plot(pca_mal, choix="var"),
+              pca_sex = plot(pca_sex, choix="var")))
 }
 
 #' Generic function to just read dataset in .txt form
@@ -741,4 +790,779 @@ get_hedges <- function(dt_sampling_bateman, dt_true_bateman_raw, per_session = T
   
   return(list(dt_hedges = dt_hedges,
               plot_hedges = plot_hedges))
+}
+
+
+#' Bootstrap function to estimate mean and 95% CI
+#'
+#' @description 
+#' Needed for variance partition
+#'
+#' @param data with any values
+#'
+#' @return mean and 95% CI
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+bootstrap_mean_ci <- function(values, n_bootstrap = 100000, conf_level = 0.95) {
+  boot_func <- function(data, indices) mean(data[indices])
+  boot_results <- boot(data = values, statistic = boot_func, R = n_bootstrap)
+  
+  ci <- boot.ci(boot_results, type = "norm", conf = conf_level)$normal[2:3]
+  
+  # get mean and ci
+  c(mean = mean(boot_results$t), lower_ci = ci[1], upper_ci = ci[2])
+}
+
+#' Variance partition with gms 
+#'
+#' @description 
+#'  Variance partition with gms 
+#'
+#' @param data table with sampling genotypes and data on id
+#'
+#' @return variance partition values 
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+get_var_gms <- function(dt_sampling,dt_id) {
+  
+  # add individual that did not reproduced
+  put_0 <- TRUE
+  
+  # table with results for males
+  var_dec_gms_mal_final <- tibble()
+  
+  # table with results for females
+  var_dec_gms_fem_final <- tibble()
+ 
+  # for(sim in unique(dt_merged$no_sim)){
+  for(sim in c(1:10)){
+    for(per in unique(dt_sampling$percent)){
+      for(met_nb in unique(dt_sampling$method_number)){
+        for(met_frt in unique(dt_sampling$method_fruit)){
+          for(s in unique(dt_sampling$session)){
+            
+            dt_id_foc <- dt_id |>
+              filter(session == s)
+            
+            dt_foc <- dt_sampling |>
+              filter(no_sim == sim, percent == per, method_number == met_nb, method_fruit == met_frt, session==s) 
+            
+            dt_foc_out <- dt_foc |>
+              filter(known_id != candidate_id) # on outcrossed rs only
+            
+            # MALES 
+            
+            rs_gms_mal <- dt_foc_out %>%
+              group_by(candidate_id,known_id) %>%
+              summarise(seed_couple=n()) %>%
+              left_join(dt_foc %>% # all genotypes per mother
+                          group_by(known_id) %>%
+                          summarise(n_genot=n())) %>%
+              left_join(dt_id_foc %>%
+                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
+              mutate(rs_couple=(seed_couple/n_genot)*sr_fem_total) %>%
+              group_by(candidate_id) %>%
+              summarise(rs=sum(rs_couple,na.rm=T))
+            
+            gms_gms_mal <- dt_foc_out %>%
+              group_by(candidate_id) %>%
+              summarise(gms=n_distinct(known_id))
+            
+            fec_gms_mal <- dt_foc_out %>%
+              group_by(candidate_id,known_id) %>%
+              summarise(seed_couple=n()) %>%
+              left_join(dt_id_foc %>%
+                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
+              summarise(fec=mean(sr_fem_total,na.rm=T))
+            
+            ps_gms_mal <- dt_foc_out %>%
+              group_by(candidate_id,known_id) %>%
+              summarise(seed_couple=n()) %>%
+              left_join(dt_foc %>% # all genotypes per mother
+                          group_by(known_id) %>%
+                          summarise(n_genot=n())) %>%
+              left_join(dt_id_foc %>%
+                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
+              mutate(rs_couple=(seed_couple/n_genot)*sr_fem_total) %>%
+              group_by(candidate_id) %>%
+              summarise(ps=sum(rs_couple,na.rm=T)/sum(sr_fem_total,na.rm=T))
+            
+            # merged table and verification
+            var_dec_gms_mal <- rs_gms_mal %>%
+              left_join(gms_gms_mal) %>%
+              left_join(fec_gms_mal) %>%
+              left_join(ps_gms_mal) %>%
+              replace(is.na(.),0) %>%
+              mutate(mult=gms*ps*fec,
+                     verif=ifelse(rs==mult,1,0))  # ok
+            
+            # including 0
+            if(put_0==TRUE){
+              var_dec_gms_mal <- var_dec_gms_mal %>%
+                bind_rows(dt_id_foc %>%
+                            filter(!id %in% var_dec_gms_mal$candidate_id) %>%
+                            select(id) %>%
+                            rename(candidate_id=id) %>%
+                            mutate(rs=0,gms=0))
+            }
+            
+            # relativization
+            var_dec_gms_mal <- var_dec_gms_mal %>%
+              mutate(r_rs=rs/mean(rs,na.rm=T),
+                     r_gms=gms/mean(gms,na.rm=T),
+                     r_fec=fec/mean(fec,na.rm=T),
+                     r_ps=ps/mean(ps,na.rm=T))
+            
+            # final table for males
+            var_dec_gms_mal_anal <- var_dec_gms_mal %>%
+              summarise(rs = var(r_rs,na.rm=T),
+                        gms = var(r_gms,na.rm=T),
+                        fec = var(r_fec,na.rm=T),
+                        ps = var(r_ps,na.rm=T),
+                        cov_gms_fecC = 2*cov(r_gms,r_fec,use="complete"),
+                        cov_gms_ps = 2*cov(r_gms,r_ps,use="complete"),
+                        cov_fec_ps = 2*cov(r_fec,r_ps,use="complete")) |>
+              mutate(no_sim = sim, percent = per, method_number = met_nb, 
+                     method_fruit = met_frt, session = s,.before=1)
+            
+            var_dec_gms_mal_final <- var_dec_gms_mal_final |>
+              bind_rows(var_dec_gms_mal_anal)
+            
+            # FEMALES
+            
+            rs_gms_fem <- dt_foc %>%
+              group_by(known_id) %>%
+              summarise(seed_self=sum(known_id==candidate_id),
+                        seed_out=sum(known_id!=candidate_id)) %>%
+              left_join(dt_id_foc %>%
+                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
+              mutate(rs=(seed_out/(seed_self+seed_out))*sr_fem_total) %>%
+              filter(rs!=0) # remove female that only selfed
+            
+            gms_gms_fem <- dt_foc_out %>%
+              group_by(known_id) %>%
+              summarise(gms=n_distinct(candidate_id))
+            
+            fec_gms_fem <- dt_foc_out %>%
+              group_by(known_id,candidate_id) %>%
+              summarise(seed_couple=n()) %>%
+              left_join(rs_gms_fem) %>%
+              mutate(rs_couple=(seed_couple/(seed_self+seed_out))*sr_fem_total) %>%
+              group_by(known_id) %>%
+              summarise(fec=mean(rs_couple))
+            
+            # merge tables and verification
+            var_dec_gms_fem <- rs_gms_fem %>%
+              left_join(gms_gms_fem) %>%
+              left_join(fec_gms_fem) %>%
+              replace(is.na(.),0) %>%
+              mutate(mult=gms*fec,
+                     verif=ifelse(rs==mult,1,0)) # ok
+            
+            # including 0
+            if(put_0==TRUE){
+              var_dec_gms_fem <- var_dec_gms_fem %>%
+                bind_rows(dt_id_foc %>%
+                            filter(!id %in% var_dec_gms_fem$known_id) %>%
+                            select(id) %>%
+                            rename(known_id=id) %>%
+                            mutate(rs=0,gms=0))
+            }
+            
+            # relativization
+            var_dec_gms_fem <- var_dec_gms_fem %>%
+              mutate(r_rs=rs/mean(rs,na.rm=T),
+                     r_gms=gms/mean(gms,na.rm=T),
+                     r_fec=fec/mean(fec,na.rm=T))
+            
+            # final table for females
+            var_dec_gms_fem_anal <- var_dec_gms_fem %>%
+              summarise(rs = var(r_rs,na.rm=T),
+                        gms = var(r_gms,na.rm=T),
+                        fec = var(r_fec,na.rm=T),
+                        cov_gms_fec = 2*cov(r_gms,r_fec,use="complete")) |>
+              mutate(no_sim = sim, percent = per, method_number = met_nb, 
+                     method_fruit = met_frt, session = s,.before=1)
+            
+            var_dec_gms_fem_final <- var_dec_gms_fem_final |>
+              bind_rows(var_dec_gms_fem_anal)
+            
+          }
+        }
+      }
+    }
+  }
+  return(list(var_dec_gms_mal = var_dec_gms_mal_final,
+         var_dec_gms_fem = var_dec_gms_fem_final))
+}
+
+#' Variance partition with gms 
+#'
+#' @description 
+#'  Variance partition with gms 
+#'
+#' @param data table with sampling genotypes and data on id
+#'
+#' @return variance partition values 
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+get_plot_gms <- function(dt_sampling,dt_id) {
+  
+  # add individual that did not reproduced
+  put_0 <- TRUE
+  
+  # table with results for males
+  var_dec_gms_mal_final <- tibble()
+  
+  # table with results for females
+  var_dec_gms_fem_final <- tibble()
+  
+  # for(sim in unique(dt_merged$no_sim)){
+  for(sim in c(1:10)){
+    for(per in unique(dt_sampling$percent)){
+      for(met_nb in unique(dt_sampling$method_number)){
+        for(met_frt in unique(dt_sampling$method_fruit)){
+          for(s in unique(dt_sampling$session)){
+            
+            dt_id_foc <- dt_id |>
+              filter(session == s)
+            
+            dt_foc <- dt_sampling |>
+              filter(no_sim == sim, percent == per, method_number == met_nb, method_fruit == met_frt, session==s) 
+            
+            dt_foc_out <- dt_foc |>
+              filter(known_id != candidate_id) # on outcrossed rs only
+            
+            # MALES 
+            
+            rs_gms_mal <- dt_foc_out %>%
+              group_by(candidate_id,known_id) %>%
+              summarise(seed_couple=n()) %>%
+              left_join(dt_foc %>% # all genotypes per mother
+                          group_by(known_id) %>%
+                          summarise(n_genot=n())) %>%
+              left_join(dt_id_foc %>%
+                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
+              mutate(rs_couple=(seed_couple/n_genot)*sr_fem_total) %>%
+              group_by(candidate_id) %>%
+              summarise(rs=sum(rs_couple,na.rm=T))
+            
+            gms_gms_mal <- dt_foc_out %>%
+              group_by(candidate_id) %>%
+              summarise(gms=n_distinct(known_id))
+            
+            fec_gms_mal <- dt_foc_out %>%
+              group_by(candidate_id,known_id) %>%
+              summarise(seed_couple=n()) %>%
+              left_join(dt_id_foc %>%
+                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
+              summarise(fec=mean(sr_fem_total,na.rm=T))
+            
+            ps_gms_mal <- dt_foc_out %>%
+              group_by(candidate_id,known_id) %>%
+              summarise(seed_couple=n()) %>%
+              left_join(dt_foc %>% # all genotypes per mother
+                          group_by(known_id) %>%
+                          summarise(n_genot=n())) %>%
+              left_join(dt_id_foc %>%
+                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
+              mutate(rs_couple=(seed_couple/n_genot)*sr_fem_total) %>%
+              group_by(candidate_id) %>%
+              summarise(ps=sum(rs_couple,na.rm=T)/sum(sr_fem_total,na.rm=T))
+            
+            # merged table and verification
+            var_dec_gms_mal <- rs_gms_mal %>%
+              left_join(gms_gms_mal) %>%
+              left_join(fec_gms_mal) %>%
+              left_join(ps_gms_mal) %>%
+              replace(is.na(.),0) %>%
+              mutate(mult=gms*ps*fec,
+                     verif=ifelse(rs==mult,1,0))  # ok
+            
+            # including 0
+            if(put_0==TRUE){
+              var_dec_gms_mal <- var_dec_gms_mal %>%
+                bind_rows(dt_id_foc %>%
+                            filter(!id %in% var_dec_gms_mal$candidate_id) %>%
+                            select(id) %>%
+                            rename(candidate_id=id) %>%
+                            mutate(rs=0,gms=0))
+            }
+            
+            # relativization
+            var_dec_gms_mal <- var_dec_gms_mal %>%
+              mutate(r_rs=rs/mean(rs,na.rm=T),
+                     r_gms=gms/mean(gms,na.rm=T),
+                     r_fec=fec/mean(fec,na.rm=T),
+                     r_ps=ps/mean(ps,na.rm=T))
+            
+            # final table for males
+            var_dec_gms_mal_anal <- var_dec_gms_mal %>%
+              summarise(rs = var(r_rs,na.rm=T),
+                        gms = var(r_gms,na.rm=T),
+                        fec = var(r_fec,na.rm=T),
+                        ps = var(r_ps,na.rm=T),
+                        cov_gms_fecC = 2*cov(r_gms,r_fec,use="complete"),
+                        cov_gms_ps = 2*cov(r_gms,r_ps,use="complete"),
+                        cov_fec_ps = 2*cov(r_fec,r_ps,use="complete")) |>
+              mutate(no_sim = sim, percent = per, method_number = met_nb, 
+                     method_fruit = met_frt, session = s,.before=1)
+            
+            var_dec_gms_mal_final <- var_dec_gms_mal_final |>
+              bind_rows(var_dec_gms_mal_anal)
+            
+            # FEMALES
+            
+            rs_gms_fem <- dt_foc %>%
+              group_by(known_id) %>%
+              summarise(seed_self=sum(known_id==candidate_id),
+                        seed_out=sum(known_id!=candidate_id)) %>%
+              left_join(dt_id_foc %>%
+                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
+              mutate(rs=(seed_out/(seed_self+seed_out))*sr_fem_total) %>%
+              filter(rs!=0) # remove female that only selfed
+            
+            gms_gms_fem <- dt_foc_out %>%
+              group_by(known_id) %>%
+              summarise(gms=n_distinct(candidate_id))
+            
+            fec_gms_fem <- dt_foc_out %>%
+              group_by(known_id,candidate_id) %>%
+              summarise(seed_couple=n()) %>%
+              left_join(rs_gms_fem) %>%
+              mutate(rs_couple=(seed_couple/(seed_self+seed_out))*sr_fem_total) %>%
+              group_by(known_id) %>%
+              summarise(fec=mean(rs_couple))
+            
+            # merge tables and verification
+            var_dec_gms_fem <- rs_gms_fem %>%
+              left_join(gms_gms_fem) %>%
+              left_join(fec_gms_fem) %>%
+              replace(is.na(.),0) %>%
+              mutate(mult=gms*fec,
+                     verif=ifelse(rs==mult,1,0)) # ok
+            
+            # including 0
+            if(put_0==TRUE){
+              var_dec_gms_fem <- var_dec_gms_fem %>%
+                bind_rows(dt_id_foc %>%
+                            filter(!id %in% var_dec_gms_fem$known_id) %>%
+                            select(id) %>%
+                            rename(known_id=id) %>%
+                            mutate(rs=0,gms=0))
+            }
+            
+            # relativization
+            var_dec_gms_fem <- var_dec_gms_fem %>%
+              mutate(r_rs=rs/mean(rs,na.rm=T),
+                     r_gms=gms/mean(gms,na.rm=T),
+                     r_fec=fec/mean(fec,na.rm=T))
+            
+            # final table for females
+            var_dec_gms_fem_anal <- var_dec_gms_fem %>%
+              summarise(rs = var(r_rs,na.rm=T),
+                        gms = var(r_gms,na.rm=T),
+                        fec = var(r_fec,na.rm=T),
+                        cov_gms_fec = 2*cov(r_gms,r_fec,use="complete")) |>
+              mutate(no_sim = sim, percent = per, method_number = met_nb, 
+                     method_fruit = met_frt, session = s,.before=1)
+            
+            var_dec_gms_fem_final <- var_dec_gms_fem_final |>
+              bind_rows(var_dec_gms_fem_anal)
+            
+          }
+        }
+      }
+    }
+  }
+  return(list(var_dec_gms_mal = var_dec_gms_mal_final,
+         var_dec_gms_fem = var_dec_gms_fem_final))
+}
+
+#' Get data for sem analyses - sessions with all genotypes
+#'
+#' @description Function to gett data for sem analyses
+#'
+#' @param data table with true rs ms and data on id
+#'
+#' @return table data for sem analyses
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+get_data_sem_complete_sessions <- function(dt_true_rs_ms, dt_proxy, cols="co10") {
+  
+  dt_sem <- dt_true_rs_ms |>
+    select(session, id, sr_fem_out_share_seed, sr_mal_out_share_seed) |>
+    left_join(
+      dt_proxy |>
+        select(id,
+               nb_flo_open,height_max,
+               !!sym(paste0("oms_fem_", cols)),
+               !!sym(paste0("oms_mal_", cols)))
+    ) |>
+    group_by(session) |>
+    mutate(across(where(is.numeric), ~ . / mean(., na.rm = TRUE), .names = "r_{.col}")) |>
+    ungroup() |>
+    select(session, id, starts_with("r_")) |>
+    pivot_longer(
+      cols = starts_with(c("r_sr","r_oms")),
+      names_to = c(".value", "sex"),
+      names_pattern = "r_(sr|oms)_(fem|mal)_.*"
+    ) |>
+    rename(r_sr=sr,
+           r_oms=oms) |>
+    mutate(
+      ttt = case_when(substr(session,3,4) == "FA" ~ "low",
+                      substr(session,3,4) == "MO" ~ "medium",
+                      TRUE ~ "high")
+    ) 
+  
+  return(dt_sem)
+}
+
+#' Get data for sem analyses - all sessions with sampled genotypes
+#'
+#' @description Function to gett data for sem analyses
+#'
+#' @param data table with true rs ms and data on id
+#'
+#' @return table data for sem analyses
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+get_data_sem_sampled_sessions <- function(dt_id_sampled_sessions, dt_proxy, cols="co10") {
+  
+  dt_sem <- dt_id_sampled_sessions |>
+    select(session, ID_full, type, r_SR_out, poll_treat_factor) |>
+    rename(id = ID_full,
+           sex = type,
+           r_sr = r_SR_out,
+           ttt = poll_treat_factor) |>
+    left_join(
+      dt_proxy |>
+        select(id, session,
+               nb_flo_open,height_max,
+               !!sym(paste0("oms_fem_", cols)),
+               !!sym(paste0("oms_mal_", cols))) |>
+        group_by(session) |>
+        mutate(across(where(is.numeric), ~ . / mean(., na.rm = TRUE), .names = "r_{.col}")) |>
+        ungroup() |>
+        select(session, id, starts_with("r_")) |>
+        pivot_longer(
+          cols = starts_with(c("r_oms")),
+          names_to = "sex",
+          names_pattern = "r_oms_(fem|mal)_.*",
+          values_to = "r_oms"
+        ) 
+    ) 
+  
+  return(dt_sem)
+}
+
+#' Get data for sem analyses - sessions with all genotypes
+#'
+#' @description Function to gett data for sem analyses
+#'
+#' @param data table with true rs ms and data on id
+#'
+#' @return table data for sem analyses
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+get_data_sem_complete_sessions <- function(dt_true_rs_ms, dt_proxy, cols="co10") {
+  
+  dt_sem <- dt_true_rs_ms |>
+    select(session, id, sr_fem_out_share_seed, sr_mal_out_share_seed) |>
+    left_join(
+      dt_proxy |>
+        select(id,
+               nb_flo_open,height_max,
+               !!sym(paste0("oms_fem_", cols)),
+               !!sym(paste0("oms_mal_", cols)))
+    ) |>
+    group_by(session) |>
+    mutate(across(where(is.numeric), ~ . / mean(., na.rm = TRUE), .names = "r_{.col}")) |>
+    ungroup() |>
+    select(session, id, starts_with("r_")) |>
+    pivot_longer(
+      cols = starts_with(c("r_sr","r_oms")),
+      names_to = c(".value", "sex"),
+      names_pattern = "r_(sr|oms)_(fem|mal)_.*"
+    ) |>
+    rename(r_sr=sr,
+           r_oms=oms) |>
+    mutate(
+      ttt = case_when(substr(session,3,4) == "FA" ~ "low",
+                      substr(session,3,4) == "MO" ~ "medium",
+                      TRUE ~ "high")
+    ) 
+  
+  return(dt_sem)
+}
+
+#' Get linear models for correlation oms vs proxy
+#'
+#' @description ...
+#'
+#' @param data ...
+#'
+#' @return ...
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+get_linear_models_oms_proxy <- function(dt_proxy_longer) {
+  
+  mod_A3 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_A3*sex+(1|session)+(1|session:id))
+  mod_A3_null_1 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_A3+sex+(1|session)+(1|session:id))
+  mod_A3_null_2 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_A3+(1|session)+(1|session:id))
+  
+  mod_A1 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_A1*sex+(1|session)+(1|session:id))
+  mod_A1_null_1 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_A1+sex+(1|session)+(1|session:id))
+  mod_A1_null_2 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_A1+(1|session)+(1|session:id))
+  
+  mod_B3 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_B3*sex+(1|session)+(1|session:id))
+  mod_B3_null_1 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_B3+sex+(1|session)+(1|session:id))
+  mod_B3_null_2 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_B3+(1|session)+(1|session:id))
+  
+  mod_B1 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_B1*sex+(1|session)+(1|session:id))
+  mod_B1_null_1 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_B1+sex+(1|session)+(1|session:id))
+  mod_B1_null_2 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_B1+(1|session)+(1|session:id))
+  
+  mod_C3 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_C3*sex+(1|session)+(1|session:id))
+  mod_C3_null_1 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_C3+sex+(1|session)+(1|session:id))
+  mod_C3_null_2 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_C3+(1|session)+(1|session:id))
+  
+  mod_C1 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_C1*sex+(1|session)+(1|session:id))
+  mod_C1_null_1 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_C1+sex+(1|session)+(1|session:id))
+  mod_C1_null_2 <- lmerTest::lmer(data=dt_proxy_longer,oms_co10~index_C1+(1|session)+(1|session:id))
+  
+  return(list(mod_A3 = mod_A3,
+         mod_A3_null_1 = mod_A3_null_1,
+         mod_A3_null_2 = mod_A3_null_2,
+         mod_A1 = mod_A1,
+         mod_A1_null_1 = mod_A1_null_1,
+         mod_A1_null_2 = mod_A1_null_2,
+         mod_B3 = mod_B3,
+         mod_B3_null_1 = mod_B3_null_1,
+         mod_B3_null_2 = mod_B3_null_2,
+         mod_B1 = mod_B1,
+         mod_B1_null_1 = mod_B1_null_1,
+         mod_B1_null_2 = mod_B1_null_2,
+         mod_C3 = mod_C3,
+         mod_C3_null_1 = mod_C3_null_1,
+         mod_C3_null_2 = mod_C3_null_2,
+         mod_C1 = mod_C1,
+         mod_C1_null_1 = mod_C1_null_1,
+         mod_C1_null_2 = mod_C1_null_2))
+}
+
+
+#' Get linear models for correlation oms vs proxy
+#'
+#' @description ...
+#'
+#' @param data ...
+#'
+#' @return ...
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+compute_predictions_oms_proxy <- function(linear_models_oms_proxy,dt_proxy_longer) {
+  
+  
+  # A1
+  x_seq <- seq(
+    min(dt_proxy_longer[["index_A1"]], na.rm = TRUE),
+    max(dt_proxy_longer[["index_A1"]], na.rm = TRUE),
+    length.out = 100
+  )
+  
+  # add dummy random variables
+  newdata <- data.frame(
+    session = rep(dt_proxy_longer$session[1], length(x_seq)),
+    id = rep(dt_proxy_longer$id[1], length(x_seq))
+  )
+  newdata[["index_A1"]] <- x_seq
+  
+  # predictions (without random effect)
+  ci_A1 <- merTools::predictInterval(
+    linear_models_oms_proxy$mod_A1_null_2,
+    newdata = newdata,
+    level = 0.95,
+    n.sims = 1000,
+    stat = "mean",
+    type = "linear.prediction",
+    include.resid.var = FALSE
+  ) %>%
+    cbind(x_seq) %>%
+    mutate(var = "raw",
+           cat = "id level")
+  
+  # A3
+  x_seq <- seq(
+    min(dt_proxy_longer[["index_A3"]], na.rm = TRUE),
+    max(dt_proxy_longer[["index_A3"]], na.rm = TRUE),
+    length.out = 100
+  )
+  
+  # add dummy random variables
+  newdata <- data.frame(
+    session = rep(dt_proxy_longer$session[1], length(x_seq)),
+    id = rep(dt_proxy_longer$id[1], length(x_seq))
+  )
+  newdata[["index_A3"]] <- x_seq
+  
+  # predictions (without random effect)
+  ci_A3 <- merTools::predictInterval(
+    linear_models_oms_proxy$mod_A3_null_2,
+    newdata = newdata,
+    level = 0.95,
+    n.sims = 1000,
+    stat = "mean",
+    type = "linear.prediction",
+    include.resid.var = FALSE
+  ) %>%
+    cbind(x_seq) %>%
+    mutate(var = "raw * oms",
+           cat = "id level")
+  
+  # B1
+  x_seq <- seq(
+    min(dt_proxy_longer[["index_B1"]], na.rm = TRUE),
+    max(dt_proxy_longer[["index_B1"]], na.rm = TRUE),
+    length.out = 100
+  )
+  
+  # add dummy random variables
+  newdata <- data.frame(
+    session = rep(dt_proxy_longer$session[1], length(x_seq)),
+    id = rep(dt_proxy_longer$id[1], length(x_seq))
+  )
+  newdata[["index_B1"]] <- x_seq
+  
+  # predictions (without random effect)
+  ci_B1 <- merTools::predictInterval(
+    linear_models_oms_proxy$mod_B1_null_2,
+    newdata = newdata,
+    level = 0.95,
+    n.sims = 1000,
+    stat = "mean",
+    type = "linear.prediction",
+    include.resid.var = FALSE
+  ) %>%
+    cbind(x_seq) %>%
+    mutate(var = "raw",
+           cat = "flower level")
+  
+  # B3
+  x_seq <- seq(
+    min(dt_proxy_longer[["index_B3"]], na.rm = TRUE),
+    max(dt_proxy_longer[["index_B3"]], na.rm = TRUE),
+    length.out = 100
+  )
+  
+  # add dummy random variables
+  newdata <- data.frame(
+    session = rep(dt_proxy_longer$session[1], length(x_seq)),
+    id = rep(dt_proxy_longer$id[1], length(x_seq))
+  )
+  newdata[["index_B3"]] <- x_seq
+  
+  # predictions (without random effect)
+  ci_B3 <- merTools::predictInterval(
+    linear_models_oms_proxy$mod_B3_null_2,
+    newdata = newdata,
+    level = 0.95,
+    n.sims = 1000,
+    stat = "mean",
+    type = "linear.prediction",
+    include.resid.var = FALSE
+  ) %>%
+    cbind(x_seq) %>%
+    mutate(var = "raw * oms",
+           cat = "flower level")
+  
+  # C1
+  x_seq <- seq(
+    min(dt_proxy_longer[["index_C1"]], na.rm = TRUE),
+    max(dt_proxy_longer[["index_C1"]], na.rm = TRUE),
+    length.out = 100
+  )
+  
+  # add dummy random variables
+  newdata <- data.frame(
+    session = rep(dt_proxy_longer$session[1], length(x_seq)),
+    id = rep(dt_proxy_longer$id[1], length(x_seq))
+  )
+  newdata[["index_C1"]] <- x_seq
+  
+  # predictions (without random effect)
+  ci_C1 <- merTools::predictInterval(
+    linear_models_oms_proxy$mod_C1_null_2,
+    newdata = newdata,
+    level = 0.95,
+    n.sims = 1000,
+    stat = "mean",
+    type = "linear.prediction",
+    include.resid.var = FALSE
+  ) %>%
+    cbind(x_seq) %>%
+    mutate(var = "raw",
+           cat = "duration")
+  
+  # C3
+  x_seq <- seq(
+    min(dt_proxy_longer[["index_C3"]], na.rm = TRUE),
+    max(dt_proxy_longer[["index_C3"]], na.rm = TRUE),
+    length.out = 100
+  )
+  
+  # add dummy random variables
+  newdata <- data.frame(
+    session = rep(dt_proxy_longer$session[1], length(x_seq)),
+    id = rep(dt_proxy_longer$id[1], length(x_seq))
+  )
+  newdata[["index_C3"]] <- x_seq
+  
+  # predictions (without random effect)
+  ci_C3 <- merTools::predictInterval(
+    linear_models_oms_proxy$mod_C3_null_2,
+    newdata = newdata,
+    level = 0.95,
+    n.sims = 1000,
+    stat = "mean",
+    type = "linear.prediction",
+    include.resid.var = FALSE
+  ) %>%
+    cbind(x_seq) %>%
+    mutate(var = "raw * oms",
+           cat = "duration")
+  
+  pred_df <- ci_A1 %>%
+    bind_rows(ci_A3) %>%
+    bind_rows(ci_B1) %>%
+    bind_rows(ci_B3) %>%
+    bind_rows(ci_C1) %>%
+    bind_rows(ci_C3)
+  
+  return(pred_df)
 }
