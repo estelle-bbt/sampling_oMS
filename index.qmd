@@ -1,5 +1,5 @@
 ---
-title: "Sampling oms"
+title: "Mating success"
 format: 
   html:
     theme: cosmo
@@ -30,7 +30,7 @@ library(ggplot2)
 library(tidyverse)
 ```
 
-# Project and data vizualisation
+# Article #1: oms estimation
 
 Visualize the pipeline analyses:
 
@@ -50,8 +50,6 @@ knitr::kable(head(targets::tar_read(data_obs)))
 
 # What is the best proxy for observational mating success?
 
-## Visit sequences
-
 We have conducted an experiment in which we surveyed each pollinator one by one along the visit sequences, up to the flower scale. By making assumptions about the carry-over (i.e., the number of successive flower visits during which pollen export remains effective), we are able to estimate the number of observational sexual partners, both for the female and the male function. We assume that the carry-over is about 10, based on a previous study on the sister species *Brassica napus*: for the male function, 91% of the seeds were sired in the first four flowers visited after a focal individual, and no seeds were sired after the 14th flower visited [@cresswell_method_1994].
 
 Now, we imagine a more common experiment *in natura* in which we cannot follow the pollinators one by one. We could rather observe plant by plant. We then have the following data :
@@ -63,7 +61,7 @@ Now, we imagine a more common experiment *in natura* in which we cannot follow t
 We can imagine that each observer notes the time of the pollinator's arrival on each plant (start), to order events of contacts:
 
 ```{r,warning=FALSE}
-knitr::kable(head(targets::tar_read(data_contact)$dt_contact))
+knitr::kable(head(targets::tar_read(data_contact)$data_contact))
 ```
 
 But then, what to do with this? We don't know the identity of the pollinator,\
@@ -72,7 +70,7 @@ so it is difficult to infer anything from the visit order...
 Something more realistic is to start from data at the individual level without inferring anything about the effect of visit order:
 
 ```{r,warning=FALSE}
-knitr::kable(head(targets::tar_read(data_contact)$dt_contact_id))
+knitr::kable(head(targets::tar_read(data_contact)$data_contact_id))
 ```
 
 To discuss: something smart to do with contact order?
@@ -141,334 +139,12 @@ C)  For the total visit duration per individual:\
 -   index_C4: combining index_C2 and index_C3\
 
 ```{r,warning=FALSE}
-knitr::kable(head(targets::tar_read(data_proxy)$dt_proxy))
+knitr::kable(head(targets::tar_read(data_proxy)$data_proxy))
 ```
 
-Okay now we proceed to ACP.
+Okay now we proceed to the analyses.
 
-### ACP
-
-::::: grid
-::: g-col-6
-#### Females
-
-**Carry-over 10**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(pcas_10)
-pcas_10$pca_fem
-```
-
-**Carry-over 5**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(pcas_5)
-pcas_5$pca_fem
-```
-
-**Carry-over 20**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(pcas_20)
-pcas_20$pca_fem
-```
-:::
-
-::: g-col-6
-#### Males
-
-**Carry-over 10**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-pcas_10$pca_mal
-```
-
-**Carry-over 5**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-pcas_5$pca_mal
-```
-
-**Carry-over 20**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-pcas_20$pca_mal
-```
-:::
-:::::
-
-#### Both sexes
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-pcas_10$pca_sex
-```
-
-> **The three best based on PCA : index_A3, index_B3 and index A_1. From now on we focus solely on a carry-over of 10, as it's very similar.**
-
-### Correlation test
-
-::::: grid
-::: g-col-6
-#### Females
-
-**A1**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(data_proxy)
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_A1,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_A1,method="spearman") 
-```
-
-**A2**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_A2,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_A2,method="spearman") 
-```
-
-**A3**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_A3,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_A3,method="spearman") 
-```
-
-**A4**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_A4,method="pearson")
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_A4,method="spearman") 
-```
-
-**A5**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_A5,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_A5,method="spearman") 
-```
-
-**B1**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_B1,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_B1,method="spearman") 
-```
-
-**B2**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_B2,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_B2,method="spearman") 
-```
-
-**B3**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_B3,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_B3,method="spearman") 
-```
-
-**B4**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_B4,method="pearson")
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_B4,method="spearman") 
-```
-
-**B5**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_B5,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_fem_co10,data_proxy$dt_proxy$index_B5,method="spearman") 
-```
-:::
-
-::: g-col-6
-#### Males
-
-**A1**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_A1,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_A1,method="spearman") 
-```
-
-**A2**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_A2,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_A2,method="spearman") 
-```
-
-**A3**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_A3,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_A3,method="spearman") 
-```
-
-**A4**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_A4,method="pearson")
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_A4,method="spearman") 
-```
-
-**A5**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_A5,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_A5,method="spearman") 
-```
-
-**B1**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_B1,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_B1,method="spearman") 
-```
-
-**B2**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_B2,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_B2,method="spearman") 
-```
-
-**B3**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_B3,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_B3,method="spearman") 
-```
-
-**B4**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_B4,method="pearson")
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_B4,method="spearman") 
-```
-
-**B5**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_B5,method="pearson") 
-cor.test(data_proxy$dt_proxy$oms_mal_co10,data_proxy$dt_proxy$index_B5,method="spearman") 
-```
-:::
-:::::
-
-#### Both sexes
-
-**A1**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(pcas_10)
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_A1,method="pearson") 
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_A1,method="spearman") 
-```
-
-**A2**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_A2,method="pearson") 
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_A2,method="spearman") 
-```
-
-**A3**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_A3,method="pearson") 
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_A3,method="spearman") 
-```
-
-**A4**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_A4,method="pearson")
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_A4,method="spearman") 
-```
-
-**A5**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_A5,method="pearson") 
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_A5,method="spearman") 
-```
-
-**B1**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_B1,method="pearson") 
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_B1,method="spearman") 
-```
-
-**B2**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_B2,method="pearson") 
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_B2,method="spearman") 
-```
-
-**B3**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_B3,method="pearson") 
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_B3,method="spearman") 
-```
-
-**B4**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_B4,method="pearson")
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_B4,method="spearman") 
-```
-
-**B5**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_B5,method="pearson") 
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_B5,method="spearman") 
-```
-
-**C1**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_C1,method="pearson") 
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_C1,method="spearman") 
-```
-
-**C2**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_C2,method="pearson") 
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_C2,method="spearman") 
-```
-
-**C3**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_C3,method="pearson") 
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_C3,method="spearman") 
-```
-
-**C4**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_C4,method="pearson")
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_C4,method="spearman") 
-```
-
-**C5**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_C5,method="pearson") 
-cor.test(data_proxy$dt_proxy_longer$oms_co10,data_proxy$dt_proxy_longer$index_C5,method="spearman") 
-```
-
-> **The best proxies : A3 \> A1 \> B3 \> B1. From now we only focus on these indexes, and we just check on females as we have the same results.**
-
-### Linear models and R^2^
+## Linear models and R^2^
 
 **A3**
 
@@ -544,8 +220,9 @@ Marginal R2 (fixed effects only) :
 - C1 : `r as.data.frame(performance::r2_nakagawa(linear_models_oms_proxy$mod_C1_null_2))[1,"R2_marginal"]`\ 
 
 > **Based on marginal, A3 is the best proxy, but based on conditionnal, C1 is better.**
+> Ask François why
 
-### AIC
+## AIC
 
 **A3**
 
@@ -585,111 +262,11 @@ AIC(linear_models_oms_proxy$mod_B1)
 
 > **Best AIC is for A1.**
 
-### Root Mean Squared Error
-
-**A3**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-data_proxy$dt_proxy_longer$pred_A3 <- predict(linear_models_oms_proxy$mod_A3_null_2,
-                                              newdata = data_proxy$dt_proxy_longer,
-                                              allow.new.levels = TRUE)
-
-mse_A3 <- mean((data_proxy$dt_proxy_longer$oms_co10 - data_proxy$dt_proxy_longer$pred_A3)^2,na.rm=T)
-
-rmse_A3 <- sqrt(mse_A3)
-
-print(paste("RMSE:", rmse_A3))
-
-```
-
-**A1**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-data_proxy$dt_proxy_longer$pred_A1 <- predict(linear_models_oms_proxy$mod_A1_null_2,
-                                              newdata = data_proxy$dt_proxy_longer,
-                                              allow.new.levels = TRUE)
-
-mse_A1 <- mean((data_proxy$dt_proxy_longer$oms_co10 - data_proxy$dt_proxy_longer$pred_A1)^2,na.rm=T)
-
-rmse_A1 <- sqrt(mse_A1)
-
-print(paste("RMSE:", rmse_A1))
-
-```
-
-**B3**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-data_proxy$dt_proxy_longer$pred_B3 <- predict(linear_models_oms_proxy$mod_B3_null_2,
-                                              newdata = data_proxy$dt_proxy_longer,
-                                              allow.new.levels = TRUE)
-
-mse_B3 <- mean((data_proxy$dt_proxy_longer$oms_co10 - data_proxy$dt_proxy_longer$pred_B3)^2,na.rm=T)
-
-rmse_B3 <- sqrt(mse_B3)
-
-print(paste("RMSE:", rmse_B3))
-
-```
-
-**B1**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-data_proxy$dt_proxy_longer$pred_B1 <- predict(linear_models_oms_proxy$mod_B1_null_2,
-                                              newdata = data_proxy$dt_proxy_longer,
-                                              allow.new.levels = TRUE)
-
-mse_B1 <- mean((data_proxy$dt_proxy_longer$oms_co10 - data_proxy$dt_proxy_longer$pred_B1)^2,na.rm=T)
-
-rmse_B1 <- sqrt(mse_B1)
-
-print(paste("RMSE:", rmse_B1))
-
-```
-
-**C3**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-data_proxy$dt_proxy_longer$pred_C3 <- predict(linear_models_oms_proxy$mod_C3_null_2,
-                                              newdata = data_proxy$dt_proxy_longer,
-                                              allow.new.levels = TRUE)
-
-mse_C3 <- mean((data_proxy$dt_proxy_longer$oms_co10 - data_proxy$dt_proxy_longer$pred_C3)^2,na.rm=T)
-
-rmse_C3 <- sqrt(mse_C3)
-
-print(paste("RMSE:", rmse_C3))
-
-```
-
-**C1**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-data_proxy$dt_proxy_longer$pred_C1 <- predict(linear_models_oms_proxy$mod_C1_null_2,
-                                              newdata = data_proxy$dt_proxy_longer,
-                                              allow.new.levels = TRUE)
-
-mse_C1 <- mean((data_proxy$dt_proxy_longer$oms_co10 - data_proxy$dt_proxy_longer$pred_C1)^2,na.rm=T)
-
-rmse_C1 <- sqrt(mse_C1)
-
-print(paste("RMSE:", rmse_C1))
-
-```
-
-> **Best based on RMSE is C3.**
-
-### Conclusions
+## Conclusions
 
 > To summarize, the number of contacts, and the number of contacts x max_oms, seems to be both good predictors of observational mating success. To do : Bateman gradients with the number of contacts to see if we obtain the same results? Necessary?
 
-### Plots
+## Plots
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(predictions_oms_proxy)
 
@@ -702,7 +279,7 @@ ggplot(predictions_oms_proxy, aes(x = x_seq, y = fit)) +
 
 ```
 
-### Do we recover the same results than when using oms?
+## Do we recover the same results than when using oms?
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 
@@ -711,11 +288,11 @@ ggplot(predictions_oms_proxy, aes(x = x_seq, y = fit)) +
 
 ```
 
-## Which traits are good predictor of mate access?
+# Which traits are good predictor of mate access?
 
 We measured:
 
-- **nb_flo:** the number of opened flowers
+- **nb_flo:** the number of "receptive" flowers
 
 - **nb_flo_open:** the number of opened flowers (including very new ones)
 
@@ -725,392 +302,18 @@ We measured:
 
 - **height_mean:** the mean height of the highest flowers on each stem
 
-We analyse the correlation between these traits and the number of contacts,
+- **nb_stem:** the number of stems
 
-which had in turn an effect on oms as we saw above.
+Best way to do this analysis: SEM for the direct and indirect effect on oms and rs?
 
-### Simple linear models
+We proceed per sex and per treatment, as we saw that (i) there is an effect of ttt
+at least on oms and (ii) rs is different (contrary to oms) between sexual function,
+and there are biological hypotheses on a different effect of floral traits between sexual
+function.
 
-#### Number of contacts
-
-Simple linear models, regression of number of contacts on each trait.
-
-**nb_flo**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-mod_contact_nb_flo <- lmerTest::lmer(data=data_proxy$dt_proxy,index_A1~nb_flo+(1|session))
-
-summary(mod_contact_nb_flo)
-
-performance::r2_nakagawa(mod_contact_nb_flo)
-
-```
-
-**nb_flo_open**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-mod_contact_nb_flo_open <- lmerTest::lmer(data=data_proxy$dt_proxy,index_A1~nb_flo_open+(1|session))
-
-summary(mod_contact_nb_flo_open)
-
-performance::r2_nakagawa(mod_contact_nb_flo_open)
-
-```
-
-**nb_flo_all**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-mod_contact_nb_flo_all <- lmerTest::lmer(data=data_proxy$dt_proxy,index_A1~nb_flo_all+(1|session))
-
-summary(mod_contact_nb_flo_all)
-
-performance::r2_nakagawa(mod_contact_nb_flo_all)
-
-```
-
-**height_max**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-mod_contact_height_max <- lmerTest::lmer(data=data_proxy$dt_proxy,index_A1~height_max+(1|session))
-
-summary(mod_contact_height_max)
-
-performance::r2_nakagawa(mod_contact_height_max)
-
-```
-
-**height_mean**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-mod_contact_height_mean <- lmerTest::lmer(data=data_proxy$dt_proxy,index_A1~height_mean+(1|session))
-
-summary(mod_contact_height_mean)
-
-performance::r2_nakagawa(mod_contact_height_mean)
-
-```
-
-**all traits together**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-mod_contact_all <- lmerTest::lmer(data=data_proxy$dt_proxy,index_A1~nb_flo_open+height_max+(1|session))
-
-summary(mod_contact_all)
-
-performance::r2_nakagawa(mod_contact_all)
-
-```
-
-> **For simple linear models, only flower number have an effect on the number of contacts, and the strongest effect seems for the number of opened flowers (without very new or old ones). When working with all traits together, only flower number has an effect.**
-
-#### Observational mating success
-
-Simple linear models, regression of observational mating success on each trait.
-
-**nb_flo**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-mod_oms_nb_flo <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo*sex*ttt+(1|session)+(1|session:id))
-mod_oms_nb_flo_null_0 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo*sex+ sex*ttt+nb_flo*ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo,mod_oms_nb_flo_null_0)
-mod_oms_nb_flo_null_1 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo+sex+ sex*ttt+nb_flo*ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_null_0,mod_oms_nb_flo_null_1)
-mod_oms_nb_flo_null_2 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo+sex+ sex+ttt+nb_flo*ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_null_1,mod_oms_nb_flo_null_2)
-mod_oms_nb_flo_null_3 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo+sex+ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_null_2,mod_oms_nb_flo_null_3)
-mod_oms_nb_flo_null_4 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo+sex+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_null_3,mod_oms_nb_flo_null_4)
-mod_oms_nb_flo_null_5 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo+ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_null_3,mod_oms_nb_flo_null_5)
-mod_oms_nb_flo_null_6 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_null_5,mod_oms_nb_flo_null_6)
-mod_oms_nb_flo_null_7 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_null_5,mod_oms_nb_flo_null_7)
-
-summary(mod_oms_nb_flo_null_6)
-
-performance::r2_nakagawa(mod_oms_nb_flo_null_6)
-
-```
-
-> **Only an effect of treatment.**
-
-**nb_flo_open**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-mod_oms_nb_flo_open <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_open*sex*ttt+(1|session)+(1|session:id))
-mod_oms_nb_flo_open_null_0 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_open*sex+ sex*ttt+nb_flo_open*ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_open,mod_oms_nb_flo_open_null_0)
-mod_oms_nb_flo_open_null_1 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_open+sex+ sex*ttt+nb_flo_open*ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_open_null_0,mod_oms_nb_flo_open_null_1)
-mod_oms_nb_flo_open_null_2 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_open+sex+ sex+ttt+nb_flo_open*ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_open_null_1,mod_oms_nb_flo_open_null_2)
-mod_oms_nb_flo_open_null_3 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_open+sex+ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_open_null_2,mod_oms_nb_flo_open_null_3)
-mod_oms_nb_flo_open_null_4 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_open+sex+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_open_null_3,mod_oms_nb_flo_open_null_4)
-mod_oms_nb_flo_open_null_5 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_open+ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_open_null_3,mod_oms_nb_flo_open_null_5)
-mod_oms_nb_flo_open_null_6 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_open_null_5,mod_oms_nb_flo_open_null_6)
-mod_oms_nb_flo_open_null_7 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_open+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_open_null_5,mod_oms_nb_flo_open_null_7)
-
-summary(mod_oms_nb_flo_open_null_6)
-
-performance::r2_nakagawa(mod_oms_nb_flo_open_null_6)
-
-```
-
-> **Only an effect of treatment.**
-
-**nb_flo_all**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-mod_oms_nb_flo_all <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_all*sex*ttt+(1|session)+(1|session:id))
-mod_oms_nb_flo_all_null_0 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_all*sex+ sex*ttt+nb_flo_all*ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_all,mod_oms_nb_flo_all_null_0)
-mod_oms_nb_flo_all_null_1 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_all+sex+ sex*ttt+nb_flo_all*ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_all_null_0,mod_oms_nb_flo_all_null_1)
-mod_oms_nb_flo_all_null_2 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_all+sex+ sex+ttt+nb_flo_all*ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_all_null_1,mod_oms_nb_flo_all_null_2)
-mod_oms_nb_flo_all_null_3 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~sex+nb_flo_all*ttt+(1|session)+(1|session:id))
-mod_oms_nb_flo_all_null_4 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_all*ttt+(1|session)+(1|session:id))
-anova(mod_oms_nb_flo_all_null_3,mod_oms_nb_flo_all_null_4)
-
-summary(mod_oms_nb_flo_all_null_4)
-
-performance::r2_nakagawa(mod_oms_nb_flo_all_null_4)
-
-```
-
-> **An effect of treatment and of the interaction with flowers.**
-
-**height_max**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-mod_oms_height_max <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_max*sex*ttt+(1|session)+(1|session:id))
-mod_oms_height_max_null_0 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_max*sex+ sex*ttt+height_max*ttt+(1|session)+(1|session:id))
-anova(mod_oms_height_max,mod_oms_height_max_null_0)
-mod_oms_height_max_null_1 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_max+sex+ sex*ttt+height_max*ttt+(1|session)+(1|session:id))
-anova(mod_oms_height_max_null_0,mod_oms_height_max_null_1)
-mod_oms_height_max_null_2 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_max+sex+ sex+ttt+height_max*ttt+(1|session)+(1|session:id))
-anova(mod_oms_height_max_null_1,mod_oms_height_max_null_2)
-mod_oms_height_max_null_3 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_max+sex+ttt+(1|session)+(1|session:id))
-anova(mod_oms_height_max_null_2,mod_oms_height_max_null_3)
-mod_oms_height_max_null_4 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_max+sex+(1|session)+(1|session:id))
-anova(mod_oms_height_max_null_3,mod_oms_height_max_null_4)
-mod_oms_height_max_null_5 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_max+ttt+(1|session)+(1|session:id))
-anova(mod_oms_height_max_null_3,mod_oms_height_max_null_5)
-mod_oms_height_max_null_6 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~ttt+(1|session)+(1|session:id))
-anova(mod_oms_height_max_null_5,mod_oms_height_max_null_6)
-mod_oms_height_max_null_7 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_max+(1|session)+(1|session:id))
-anova(mod_oms_height_max_null_5,mod_oms_height_max_null_7)
-
-summary(mod_oms_height_max_null_5)
-
-performance::r2_nakagawa(mod_oms_height_max_null_5)
-
-```
-
-> **Only an effect of treatment.**
-
-**height_mean**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-mod_oms_height_mean <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_mean*sex*ttt+(1|session)+(1|session:id))
-mod_oms_height_mean_null_0 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_mean*sex+ sex*ttt+height_mean*ttt+(1|session)+(1|session:id))
-anova(mod_oms_height_mean,mod_oms_height_mean_null_0)
-mod_oms_height_mean_null_1 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_mean+sex+ sex*ttt+height_mean*ttt+(1|session)+(1|session:id))
-anova(mod_oms_height_mean_null_0,mod_oms_height_mean_null_1)
-mod_oms_height_mean_null_2 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_mean+sex+ sex+ttt+height_mean*ttt+(1|session)+(1|session:id))
-anova(mod_oms_height_mean_null_1,mod_oms_height_mean_null_2)
-mod_oms_height_mean_null_3 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_mean+sex+ttt+(1|session)+(1|session:id))
-anova(mod_oms_height_mean_null_2,mod_oms_height_mean_null_3)
-mod_oms_height_mean_null_4 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_mean+sex+(1|session)+(1|session:id))
-anova(mod_oms_height_mean_null_3,mod_oms_height_mean_null_4)
-mod_oms_height_mean_null_5 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_mean+ttt+(1|session)+(1|session:id))
-anova(mod_oms_height_mean_null_3,mod_oms_height_mean_null_5)
-mod_oms_height_mean_null_6 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~ttt+(1|session)+(1|session:id))
-anova(mod_oms_height_mean_null_5,mod_oms_height_mean_null_6)
-mod_oms_height_mean_null_7 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_mean+(1|session)+(1|session:id))
-anova(mod_oms_height_mean_null_5,mod_oms_height_mean_null_7)
-
-summary(mod_oms_height_mean_null_5)
-
-performance::r2_nakagawa(mod_oms_height_mean_null_5)
-
-```
-
-> **Only an effect of treatment.**
-
-**all traits together**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-mod_oms_all <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_open*sex*ttt+height_max*sex*ttt+(1|session)+(1|session:id))
-mod_oms_all_null_0 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_open*ttt+height_max*ttt+(1|session)+(1|session:id))
-anova(mod_oms_all_null_0,mod_oms_all)
-mod_oms_all_null_1 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_open+ttt+height_max*ttt+(1|session)+(1|session:id))
-anova(mod_oms_all_null_0,mod_oms_all_null_1)
-mod_oms_all_null_2 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~nb_flo_open+ttt+height_max+ttt+(1|session)+(1|session:id))
-anova(mod_oms_all_null_1,mod_oms_all_null_2)
-mod_oms_all_null_3 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~height_max+ttt+(1|session)+(1|session:id))
-anova(mod_oms_all_null_2,mod_oms_all_null_3)
-mod_oms_all_null_4 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~ttt+(1|session)+(1|session:id))
-anova(mod_oms_all_null_4,mod_oms_all_null_3)
-mod_oms_all_null_5 <- lmerTest::lmer(data=data_proxy$dt_proxy_longer,oms_co10~1+(1|session)+(1|session:id))
-anova(mod_oms_all_null_5,mod_oms_all_null_3)
-summary(mod_oms_all_null_5)
-
-performance::r2_nakagawa(mod_oms_all_null_5)
-
-```
-
-> **Concerning the regression of the observational mating success on phenotypic traits, we do not detect any effect (both for simple linear models or when working with all traits together), we only have an effect of treatment.**
-
-### SEM
-
-Best way to do this analysis: SEM?
-
-#### Complete sessions with all genotypes
-
-For the medium treatment :
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(data_sem_complete_sessions)
-data_sem_complete_sessions_med <- data_sem_complete_sessions %>% filter(ttt == "medium")
-
-psem_proxy_med <- piecewiseSEM::psem(lme4::lmer(data=data_sem_complete_sessions_med,r_oms~r_nb_flo_open+r_height_max+(1|session)+(1|session:id)),
-
-                     lme4::lmer(data=data_sem_complete_sessions_med,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)+(1|session:id)))
-
-plot(psem_proxy_med,
-
-     node_attrs = data.frame(fillcolor = "orange1",
-
-                                         x = c(2,2,1,3), y=c(2,3,1,1),
-
-                                         fontsize=6),
-
-     edge_attrs = data.frame(fontsize=6))
-
-summary(psem_proxy_med)
-
-```
-
-For the high treatment :
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-data_sem_complete_sessions_high <- data_sem_complete_sessions %>% filter(ttt == "high")
-
-psem_proxy_high <- piecewiseSEM::psem(lme4::lmer(data=data_sem_complete_sessions_high,r_oms~r_nb_flo_open+r_height_max+(1|id)),
-
-                     lme4::lmer(data=data_sem_complete_sessions_high,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|id)))
-
-plot(psem_proxy_high,
-
-     node_attrs = data.frame(fillcolor = "orange4",
-
-                                          x = c(2,2,1,3), y=c(2,3,1,1),
-
-                                         fontsize=6),
-
-     edge_attrs = data.frame(fontsize=6))
-
-summary(psem_proxy_high)
-
-```
-
-> **Strongest effect for the height, with a negative effect of maximum height and a positive effect for mean height on the number of contacts, and the opposite effects for the observational mating success**.
-
-#### All sessions with sampled genotypes
-
-For the low treatment :
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(data_sem_sampled_sessions)
-data_sem_sampled_sessions_low <- data_sem_sampled_sessions %>% filter(ttt == "low")
-
-psem_proxy_med <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low,r_oms~r_nb_flo_open+r_height_max+(1|session)+(1|session:id)),
-
-                     lme4::lmer(data=data_sem_sampled_sessions_low,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)+(1|session:id)))
-
-plot(psem_proxy_med,
-
-     node_attrs = data.frame(fillcolor = "bisque1",
-
-                                         x = c(2,2,1,3), y=c(2,3,1,1),
-
-                                         fontsize=6),
-
-     edge_attrs = data.frame(fontsize=6))
-
-summary(psem_proxy_med)
-
-```
-
-For the medium treatment :
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-data_sem_sampled_sessions_med <- data_sem_sampled_sessions %>% filter(ttt == "medium")
-
-psem_proxy_med <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med,r_oms~r_nb_flo_open+r_height_max+(1|session)+(1|session:id)),
-
-                     lme4::lmer(data=data_sem_sampled_sessions_med,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)+(1|session:id)))
-
-plot(psem_proxy_med,
-
-     node_attrs = data.frame(fillcolor = "orange1",
-
-                                         x = c(2,2,1,3), y=c(2,3,1,1),
-
-                                         fontsize=6),
-
-     edge_attrs = data.frame(fontsize=6))
-
-summary(psem_proxy_med)
-
-```
-
-For the high treatment :
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-data_sem_sampled_sessions_high <- data_sem_sampled_sessions %>% filter(ttt == "high")
-
-psem_proxy_high <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high,r_oms~r_nb_flo_open+r_height_max+(1|id)),
-
-                     lme4::lmer(data=data_sem_sampled_sessions_high,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|id)))
-
-plot(psem_proxy_high,
-
-     node_attrs = data.frame(fillcolor = "orange4",
-
-                                          x = c(2,2,1,3), y=c(2,3,1,1),
-
-                                         fontsize=6),
-
-     edge_attrs = data.frame(fontsize=6))
-
-summary(psem_proxy_high)
-
-```
-
-> **Strongest effect for the height, with a negative effect of maximum height and a positive effect for mean height on the number of contacts, and the opposite effects for the observational mating success**.
-
-#### Per sex: all sessions with sampled genotypes
+## Separate sex : same pathways
+### Total rs
+#### With nb_flo_open, nb_stem and height_mean
 
 **For the low treatment :**
 
@@ -1119,13 +322,91 @@ summary(psem_proxy_high)
 Females:
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_low_fem_combi1)
+piecewise_low_fem_combi1$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_low_mal_combi1)
+piecewise_low_mal_combi1$plot
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_medium_fem_combi1)
+piecewise_medium_fem_combi1$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_medium_mal_combi1)
+piecewise_medium_mal_combi1$plot
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_high_fem_combi1)
+piecewise_high_fem_combi1$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_high_mal_combi1)
+piecewise_high_mal_combi1$plot
+```
+:::
+:::::
+
+> - Nothing in low treatment for both sexes
+> - Only positive bateman gradients for males in medium treatment
+> - Natural positive selection on number of opened flowers for male only in high treatment
+> - Same results with total rs
+
+#### With nb_flo_all and height_max
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(data_sem_sampled_sessions)
 data_sem_sampled_sessions_low_fem <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "fem")
 
-psem_proxy_med <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_oms~r_nb_flo_open+r_height_max+(1|session)),
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_oms~r_nb_flo_all+r_height_max+(1|session)),
 
-                     lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)))
+                     lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_sr_all~r_oms+r_nb_flo_all+r_height_max+(1|session)))
 
-plot(psem_proxy_med,
+plot(psem_proxy,
 
      node_attrs = data.frame(fillcolor = "bisque1",
 
@@ -1135,7 +416,7 @@ plot(psem_proxy_med,
 
      edge_attrs = data.frame(fontsize=6))
 
-summary(psem_proxy_med)
+summary(psem_proxy)
 
 ```
 :::
@@ -1146,11 +427,11 @@ Males:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
 
-psem_proxy_med <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),
 
-                     lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)))
+                     lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_nb_flo_all+r_height_max+(1|session)))
 
-plot(psem_proxy_med,
+plot(psem_proxy,
 
      node_attrs = data.frame(fillcolor = "bisque1",
 
@@ -1160,7 +441,7 @@ plot(psem_proxy_med,
 
      edge_attrs = data.frame(fontsize=6))
 
-summary(psem_proxy_med)
+summary(psem_proxy)
 
 ```
 :::
@@ -1175,11 +456,11 @@ Females:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 data_sem_sampled_sessions_med_fem <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "fem")
 
-psem_proxy_med <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_oms~r_nb_flo_open+r_height_max+(1|session)),
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_oms~r_nb_flo_all+r_height_max+(1|session)),
 
-                     lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)))
+                     lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_sr_all~r_oms+r_nb_flo_all+r_height_max+(1|session)))
 
-plot(psem_proxy_med,
+plot(psem_proxy,
 
      node_attrs = data.frame(fillcolor = "orange1",
 
@@ -1189,7 +470,7 @@ plot(psem_proxy_med,
 
      edge_attrs = data.frame(fontsize=6))
 
-summary(psem_proxy_med)
+summary(psem_proxy)
 
 ```
 :::
@@ -1200,11 +481,11 @@ Males:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
 
-psem_proxy_med <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),
 
-                     lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)))
+                     lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_nb_flo_all+r_height_max+(1|session)))
 
-plot(psem_proxy_med,
+plot(psem_proxy,
 
      node_attrs = data.frame(fillcolor = "orange1",
 
@@ -1214,7 +495,7 @@ plot(psem_proxy_med,
 
      edge_attrs = data.frame(fontsize=6))
 
-summary(psem_proxy_med)
+summary(psem_proxy)
 
 ```
 :::
@@ -1229,11 +510,11 @@ Females:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 data_sem_sampled_sessions_high_fem <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "fem")
 
-psem_proxy_med <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_oms~r_nb_flo_open+r_height_max+(1|session)),
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_oms~r_nb_flo_all+r_height_max+(1|session)),
 
-                     lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)))
+                     lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_sr_all~r_oms+r_nb_flo_all+r_height_max+(1|session)))
 
-plot(psem_proxy_med,
+plot(psem_proxy,
 
      node_attrs = data.frame(fillcolor = "orange4",
 
@@ -1243,7 +524,7 @@ plot(psem_proxy_med,
 
      edge_attrs = data.frame(fontsize=6))
 
-summary(psem_proxy_med)
+summary(psem_proxy)
 
 ```
 :::
@@ -1254,11 +535,11 @@ Males:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
 
-psem_proxy_med <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),
 
-                     lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)))
+                     lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_nb_flo_all+r_height_max+(1|session)))
 
-plot(psem_proxy_med,
+plot(psem_proxy,
 
      node_attrs = data.frame(fillcolor = "orange4",
 
@@ -1268,12 +549,3092 @@ plot(psem_proxy_med,
 
      edge_attrs = data.frame(fontsize=6))
 
-summary(psem_proxy_med)
+summary(psem_proxy)
 
 ```
 :::
 :::::
 
+> - In the high treatment, when using the total number of flowers, there is no longer direct natural selection on it for the male function -> selection through attractiveness? On the contrary, there is natural selection for the female function -> fertility selection?
+> - Same results with total rs
+
+#### With nb_flo_open and height_mean
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_fem <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_oms~r_nb_flo_open+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_sr_all~r_oms+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_fem <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_oms~r_nb_flo_open+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_sr_all~r_oms+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_fem <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_oms~r_nb_flo_open+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_sr_all~r_oms+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+> - In the medium treatment, sexual selection on number of opened flowers and mean height only for the male function
+> - In the high treatment, natural selection for number of opened flower number in both sexual function
+> - Same results with total rs
+
+#### With nb_flo_all and height_mean
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(data_sem_sampled_sessions)
+data_sem_sampled_sessions_low_fem <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_oms~r_nb_flo_all+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_sr_all~r_oms+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_fem <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_oms~r_nb_flo_all+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_sr_all~r_oms+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_fem <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_oms~r_nb_flo_all+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_sr_all~r_oms+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+> - Again as for nb_flo_open and height_max, only positive Bateman gradients in male for the medium treatment
+> - Positive natural selection on flower number only for the female function and no more for the male function, as for nb_flo_all and height_max
+> - Same results with total rs 
+
+#### With nb_flo_open and nb_stem
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_fem <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_sr_all~r_oms+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_fem <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_sr_all~r_oms+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_fem <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_sr_all~r_oms+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+> - Again only positive Bateman gradient for the male function in the medium treatment 
+> - Positive natural selection on stem number for the female function in the high treatment, positive natural selection on the number of opened flower in the male function
+> - Same results with total rs
+
+#### With nb_flo_all and nb_stem
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(data_sem_sampled_sessions)
+data_sem_sampled_sessions_low_fem <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_sr_all~r_oms+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_fem <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_sr_all~r_oms+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_fem <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_sr_all~r_oms+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+> - Again, positivie Bateman gradient in the male function un the medium treatment
+> - Nothing under selection in the high treatment
+> - Same results with total rs
+
+### Outcrossed rs
+#### With nb_flo_open and height_max
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(data_sem_sampled_sessions)
+data_sem_sampled_sessions_low_fem <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_oms~r_nb_flo_open+r_height_max+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_fem <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_oms~r_nb_flo_open+r_height_max+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_fem <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_oms~r_nb_flo_open+r_height_max+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr~r_oms+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+> - Nothing in low treatment for both sexes
+> - Only positive bateman gradients for males in medium treatment
+> - Natural positive selection on number of opened flowers for male only in high treatment
+
+#### With nb_flo_all and height_max
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(data_sem_sampled_sessions)
+data_sem_sampled_sessions_low_fem <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_oms~r_nb_flo_all+r_height_max+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_sr~r_oms+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr~r_oms+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_fem <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_oms~r_nb_flo_all+r_height_max+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_sr~r_oms+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr~r_oms+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_fem <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_oms~r_nb_flo_all+r_height_max+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_sr~r_oms+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr~r_oms+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+> In the high treatment, when using the total number of flowers, there is no longer direct natural selection on it for the male function -> selection through attractiveness? On the contrary, there is natural selection for the female function -> fertility selection?
+
+#### With nb_flo_open and height_mean
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_fem <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_oms~r_nb_flo_open+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_sr~r_oms+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr~r_oms+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_fem <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_oms~r_nb_flo_open+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_sr~r_oms+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr~r_oms+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_fem <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_oms~r_nb_flo_open+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_sr~r_oms+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr~r_oms+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+> - In the medium treatment, sexual selection on number of opened flowers and mean height only for the male function
+> - In the high treatment, natural selection for number of opened flower number in both sexual function
+
+#### With nb_flo_all and height_mean
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(data_sem_sampled_sessions)
+data_sem_sampled_sessions_low_fem <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_oms~r_nb_flo_all+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_sr~r_oms+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr~r_oms+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_fem <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_oms~r_nb_flo_all+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_sr~r_oms+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr~r_oms+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_fem <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_oms~r_nb_flo_all+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_sr~r_oms+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr~r_oms+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+> - Again as for nb_flo_open and height_max, only positive Bateman gradients in male for the medium treatment
+> - Positive natural selection on flower number only for the female function and no more for the male function, as for nb_floèall and height_max
+
+#### With nb_flo_open and nb_stem
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_fem <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_sr~r_oms+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr~r_oms+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_fem <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_sr~r_oms+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr~r_oms+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_fem <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_sr~r_oms+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr~r_oms+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+> - Again only positivie Nateman gradient for the male function in the medium treatment 
+> - Positive natural selection on stem number for the female function in the high treatment, positive natueal selection on the number of opened flower in the male function
+
+#### With nb_flo_all and nb_stem
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(data_sem_sampled_sessions)
+data_sem_sampled_sessions_low_fem <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_fem,r_sr~r_oms+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr~r_oms+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_fem <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_fem,r_sr~r_oms+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr~r_oms+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_fem <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "fem")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_fem,r_sr~r_oms+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),
+
+                     lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr~r_oms+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(2,2,1,3), y=c(2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+```
+:::
+:::::
+
+> - Again, positive Bateman gradient in the male function un the medium treatment
+> - Nothing under selection in the high treatment
+
+SUMMARY
+> - Same results for outcrossed or total reproductive success
+
+## Males only : with paternity share
+
+We estimate the paternity share by excluding selfing in order to be consistant
+with oms. Paternity share is the proportion of genotyped seeds sired by a focal father.
+When including selfing, we also do the analysis by integrating selfing events.
+
+### Total rs : selfing include in paternity share
+#### With nb_flo_open and height_max
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps_all~r_nb_flo_open+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps_all~r_nb_flo_open+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps_all~r_nb_flo_open+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+> - In each treatment, effect of oms and ps on rs
+> - ps > oms particularly in high treatment
+
+#### With nb_flo_all and height_max
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps_all~r_nb_flo_all+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps_all~r_nb_flo_all+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps_all~r_nb_flo_all+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+> - Same as before :
+> - In each treatment, effect of oms and ps on rs
+> - ps > oms particularly in high treatment
+
+#### With nb_flo_open and height_mean
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps_all~r_nb_flo_open+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps_all~r_nb_flo_open+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps_all~r_nb_flo_open+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+> - Same as before :
+> - In each treatment, effect of oms and ps on rs
+> - ps > oms particularly in high treatment
+> - + positive effect of floral trait on oms in the medium treatment
+> - + positive effect of flower number on ps in the high treatment
+
+
+#### With nb_flo_all and height_mean
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps_all~r_nb_flo_all+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps_all~r_nb_flo_all+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps_all~r_nb_flo_all+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+> - Same as before :
+> - In each treatment, effect of oms and ps on rs
+> - ps > oms particularly in high treatment
+
+#### With nb_flo_open and nb_stem
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps_all~r_nb_flo_open+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps_all~r_nb_flo_open+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps_all~r_nb_flo_open+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+> - Same as before :
+> - In each treatment, effect of oms and ps on rs
+> - ps > oms particularly in high treatment
+> - + positive effect of flower number on ps in the high treatment
+
+#### With nb_flo_all and nb_stem
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps_all~r_nb_flo_all+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps_all~r_nb_flo_all+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps_all~r_nb_flo_all+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_mean_ps_all+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+> - Same as before :
+> - In each treatment, effect of oms and ps on rs
+> - ps > oms particularly in high treatment
+
+### Total rs : selfing exclude in paternity share
+#### With nb_flo_open and height_max
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps~r_nb_flo_open+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps~r_nb_flo_open+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps~r_nb_flo_open+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+> - Same as before :
+> - In each treatment, effect of oms and ps on rs
+> - ps > oms particularly in high treatment
+> - + positive effect of flower number on ps in the low treatment
+
+#### With nb_flo_all and height_max
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps~r_nb_flo_all+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps~r_nb_flo_all+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps~r_nb_flo_all+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+> - Same as before :
+> - In each treatment, effect of oms and ps on rs
+> - ps > oms particularly in high treatment
+> - + positive effect of flower number on ps in the low treatment
+
+
+#### With nb_flo_open and height_mean
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps~r_nb_flo_open+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps~r_nb_flo_open+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps~r_nb_flo_open+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+> - Same as before :
+> - In each treatment, effect of oms and ps on rs
+> - ps > oms particularly in high treatment
+> - + positive effect of flower number on ps in the low treatment
+> - + positive effect of floral traits on oms in the medium treatment
+> - + positive effect of flower number on ps the the high treatment
+
+
+#### With nb_flo_all and height_mean
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps~r_nb_flo_all+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps~r_nb_flo_all+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps~r_nb_flo_all+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+> - Same as before :
+> - In each treatment, effect of oms and ps on rs
+> - ps > oms particularly in high treatment
+> - + positive effect of flower number on ps in the low treatment
+> - + positive effect of flower number on ps the the high treatment
+
+#### With nb_flo_open and nb_stem
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps~r_nb_flo_open+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps~r_nb_flo_open+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps~r_nb_flo_open+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+> - Same as before :
+> - In each treatment, effect of oms and ps on rs
+> - ps > oms particularly in high treatment
+> - + positive effect of flower number on ps the the high treatment
+
+#### With nb_flo_all and nb_stem
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps~r_nb_flo_all+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps~r_nb_flo_all+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps~r_nb_flo_all+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr_all~r_oms+r_mean_ps+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+> - Same as before :
+> - In each treatment, effect of oms and ps on rs
+> - ps > oms particularly in high treatment
+> - + positive effect of flower number on ps the the high treatment
+
+### Outcrossed rs
+#### With nb_flo_open and height_max
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps~r_nb_flo_open+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps~r_nb_flo_open+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps~r_nb_flo_open+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_open+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+#### With nb_flo_all and height_max
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps~r_nb_flo_all+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps~r_nb_flo_all+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_height_max+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps~r_nb_flo_all+r_height_max+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_all+r_height_max+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+#### With nb_flo_open and height_mean
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps~r_nb_flo_open+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps~r_nb_flo_open+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps~r_nb_flo_open+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_open+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+#### With nb_flo_all and height_mean
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps~r_nb_flo_all+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps~r_nb_flo_all+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_height_mean+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps~r_nb_flo_all+r_height_mean+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_all+r_height_mean+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+#### With nb_flo_open and nb_stem
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps~r_nb_flo_open+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps~r_nb_flo_open+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_open+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps~r_nb_flo_open+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_open+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+#### With nb_flo_all and nb_stem
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_low_mal <- data_sem_sampled_sessions %>% filter(ttt == "low"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_mean_ps~r_nb_flo_all+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_low_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "bisque1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the medium treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_med_mal <- data_sem_sampled_sessions %>% filter(ttt == "medium"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_mean_ps~r_nb_flo_all+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_med_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange1",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+
+**For the high treatment :**
+
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+data_sem_sampled_sessions_high_mal <- data_sem_sampled_sessions %>% filter(ttt == "high"& sex == "mal")
+
+psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_oms~r_nb_flo_all+r_nb_stem+(1|session)),                        lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_mean_ps~r_nb_flo_all+r_nb_stem+(1|session)),
+lme4::lmer(data=data_sem_sampled_sessions_high_mal,r_sr~r_oms+r_mean_ps+r_nb_flo_all+r_nb_stem+(1|session)))
+
+plot(psem_proxy,
+
+     node_attrs = data.frame(fillcolor = "orange4",
+
+                                         x = c(1.5,2.5,2,1,3), y=c(2,2,3,1,1),
+
+                                         fontsize=6),
+
+     edge_attrs = data.frame(fontsize=6))
+
+summary(psem_proxy)
+
+```
+
+> - Overall, same results as before
+> - In each treatment, effect of oms and ps on rs
+> - ps > oms particularly in low and high treatment
+
+## Pool everything
+
+With total rs and nb_flo_all and height_mean
+
+
+**All sex and ttt :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(brms_pooled_data)
+
+brms_pooled_data$summary
+
+```
+
+> The only thing that we can conclude is that flower number increase reproductive
+> success in the high treatment for the female function, and that this effect is
+> less strong for the male function
+
+# Article #2: gms sampling
 # Comparing observational to genetic mating success
 
 ## True Bateman's gradient on all data based on observations
@@ -1290,7 +3651,7 @@ targets::tar_load(data_true_bateman)
 
 # 1. Récupérer les min/max de r_oms pour chaque session × sex
 
-ranges <- data_true_bateman$dt_merged %>%
+ranges <- data_true_bateman$data_merged %>%
 
   filter(!is.na(r_sr)) %>%
 
@@ -1308,7 +3669,7 @@ ranges <- data_true_bateman$dt_merged %>%
 
 # 2. Fusionner avec les pentes (est_bat_oms) et les p-values
 
-regression_lines <- data_true_bateman$dt_true_bateman %>%
+regression_lines <- data_true_bateman$data_true_bateman %>%
 
   filter(sex != "inter") %>%
 
@@ -1354,7 +3715,7 @@ regression_ribbon <- regression_lines %>%
 
 # 3. Graphique
 
-ggplot(data = data_true_bateman$dt_merged, aes(x = r_oms, y = r_sr, colour = sex)) +
+ggplot(data = data_true_bateman$data_merged, aes(x = r_oms, y = r_sr, colour = sex)) +
 
   geom_point() +
 
@@ -1421,37 +3782,36 @@ ggplot(data = data_true_bateman$dt_merged, aes(x = r_oms, y = r_sr, colour = sex
   ) +
 
   theme_classic() +
-
-  theme(legend.position = "none")
-
-```
-
-## Bateman Hedge's
-
-Difference between Bateman's estimates with genetic sampling versus true Bateman with observational data (sampling gms - true oms). An Hedges' g > 0 mean that the Bateman gradient estimated with sampling gms is greater than the real ones with true oms.
-
-Observational versus genetic, according to the sampling percentage of genotyped seeds.
-
-### Per session:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-targets::tar_load(data_hedges_true)
-
-data_hedges_true$plot_hedges
+  theme(legend.position = "bottom")
 
 ```
 
-### Overall:
+<!-- ## Bateman Hedge's -->
 
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
+<!-- Difference between Bateman's estimates with genetic sampling versus true Bateman with observational data (sampling gms - true oms). An Hedges' g > 0 mean that the Bateman gradient estimated with sampling gms is greater than the real ones with true oms. -->
 
-targets::tar_load(data_hedges_false)
+<!-- Observational versus genetic, according to the sampling percentage of genotyped seeds. -->
 
-data_hedges_false$plot_hedges
+<!-- ### Per session: -->
 
-```
+<!-- ```{r,echo=FALSE,warning=FALSE,message=FALSE} -->
 
-## Variance decomposition
+<!-- targets::tar_load(data_hedges_true) -->
 
-Observational (with and without flower) versus genetic, according to the sampling percentage of genotyped seeds
+<!-- data_hedges_true$plot_hedges -->
+
+<!-- ``` -->
+
+<!-- ### Overall: -->
+
+<!-- ```{r,echo=FALSE,warning=FALSE,message=FALSE} -->
+
+<!-- targets::tar_load(data_hedges_false) -->
+
+<!-- data_hedges_false$plot_hedges -->
+
+<!-- ``` -->
+
+<!-- ## Variance decomposition -->
+
+<!-- Observational (with and without flower) versus genetic, according to the sampling percentage of genotyped seeds -->

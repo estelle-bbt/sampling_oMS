@@ -1,20 +1,14 @@
 name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
-data_obs|stem|b7d9a92c86542d5e|fe544aa5628706c8|0284b87fab98d9e8|-1580520765||t20213.4146477762s|s49381b|49381|rds|local|vector|||0.011||
-data_contact|stem|3078a68ba7f7af88|d0f65576ecc70011|b5ed9a383eb8ffb4|614267587||t20214.5770085089s|s18013b|18013|rds|local|vector|||0.946||
 pcas|stem|35a88f8bea253379|3cf8c53a9b860ff2|07335082315fe8a7|1713348253||t20215.3786412753s|s329898b|329898|rds|local|vector|||0.881|Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package|
 compute_oMS_and_proxy|function|712d273422205928|||||||||||||||
-data_id|stem|4ad57f23ad9d17ec|acbd7748ac9f24bb|85238393141a43f2|1925937001||t20221.3849038017s|s3250b|3250|rds|local|vector|||0.059||
-data_session|stem|168281a52d03ddb7|ae39167c3b9fc7af|febd0a09fe9d9512|-353596215||t20221.3849044035s|s558b|558|rds|local|vector|||0.037||
 load_data_sampling|function|c0bca729e16956a8|||||||||||||||
 load_and_sum_data_genotypes|function|fffc7132546c8d6a|||||||||||||||
 sum_genotypes|stem|e23319018862ffca|2fb0254433d816c0|6da1f1eaa4ab1db7|1817804295||t20221.3836972636s||370|rds|local|vector|||0.003||pas de méthode pour mutate applicable pour un objet de classe function
 sum_data_genotypes|function|79f13aa02460a36e|||||||||||||||
-data_genotypes|stem|419b267c4247202e|b4f42cf7e7d4de55|43b7597ee970bf7b|-335047126||t20221.6156286047s|s13324b|13324|rds|local|vector|||0.003||
 data_metrics|stem|ffc8d522fef80d11|3a7f35e663efff53|43b7597ee970bf7b|2001007995||t20221.6156634069s|s9587597b|9587597|rds|local|vector|||1.55||
 data_true_rs|stem|3d5bd369a05c1f87|363a4d13de9d6f8c|37c0d42bbe73a00e|422728476||t20221.6353316747s|s2195b|2195|rds|local|vector|||0.141||
 get_metrics|function|8fa7ce01cc6d0760|||||||||||||||
 get_true_rs|function|5c5feff0f2a09110|||||||||||||||
-data_true_rs_ms|stem|3d5bd369a05c1f87|12b1757e2432dcef|1fcb44f4b26512e6|1376724233||t20223.6007597844s|s2195b|2195|rds|local|vector|||0.106||
 data_sampling_bateman|stem|479d6aea9cc80ac2|31935d107f66b5dd|bfdd323d682bf374|320282309||t20224.5495596541s|s7627687b|7627687|rds|local|vector|||687.863|convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q. convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q|
 data_hedges|stem|a3af264db23137e9|d45a6e62336a02e6|2fba1c3c86282c24|-787276271||t20224.559137277s|s573956b|573956|rds|local|vector|||0.108|The size argument of element_rect is deprecated as of ggplot2 3.4.0.ℹ Please use the linewidth argument instead.|
 data_hedges_true|stem|525dfd65164d9a3a|d45a6e62336a02e6|e4aa4318aa5a5c0c|883995395||t20224.5610921344s|s573957b|573957|rds|local|vector|||0.11|The size argument of element_rect is deprecated as of ggplot2 3.4.0.ℹ Please use the linewidth argument instead.|
@@ -22,36 +16,53 @@ data_hedges_false|stem|4c95078ca47c4717|604677733b73182e|e4aa4318aa5a5c0c|-14952
 data_sampling|stem|18dd0cfb2e82b638|0397eb521f195363|43b7597ee970bf7b|-1676359336||t20227.3693911335s|s63177025b|63177025|rds|local|vector|||12.466||
 data_sampling_rs_ms|stem|ffc8d522fef80d11|d5e1eecf2d19b37b|43b7597ee970bf7b|822165018||t20227.3694273599s|s9587597b|9587597|rds|local|vector|||1.626||
 data_var_gms|stem|367bb054c119aa5f|6ff2698f87055afe|caaa84c1f9bc9bd7|-1823942554||t20228.4039270392s|s42879b|42879|rds|local|vector|||148.443||
-data_proxy|stem|56f2fe2fa03937c5|33b0284ac86b74e5|07e735bdc716d59e|331951377||t20229.5817746397s|s27775b|27775|rds|local|vector|||0.052||
-pcas_5|stem|72c4582cdbafff2e|ec97048ad4b2b466|e5098eeb8d53b62b|-1470366427||t20229.5817875561s|s569936b|569936|rds|local|vector|||1.055|Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package|
-data_true_bateman|stem|9132c6863036d82b|a9a0ba8ffe8fcd96|cb9652ad359eae72|-807769545||t20229.5818041067s|s2605b|2605|rds|local|vector|||1.417|convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q|
-pcas_20|stem|9e8d3c0451bf167d|f68ebdd6951c5aa3|e5098eeb8d53b62b|871977926||t20229.5818114329s|s561175b|561175|rds|local|vector|||0.581|Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package|
-pcas_10|stem|0fb6ceac5df7da26|79a6faea4aeb5552|e5098eeb8d53b62b|-204580029||t20229.5818183772s|s566852b|566852|rds|local|vector|||0.54|Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package|
 get_data_sem|function|0dde72083c222eab|||||||||||||||
-data_id_sampled_sessions|stem|74509898481f4933|c208d8db1ec6072a|43b7597ee970bf7b|-2144818458||t20230.3304135513s|s518458b|518458|rds|local|vector|||0.052||
 data_sem|stem|761a9f117495065e|0a1689fd30f4ff9c|16cced9e57117977|1326323460||t20230.330414292s|s2026b|2026|rds|local|vector|||0.055||
-data_sem_sampled_sessions|stem|97f1ded6939899b7|a9ad5a4eaebf56ff|a8ffc03d61713d6f|-965806792||t20230.3348146324s|s5309b|5309|rds|local|vector|||0.038||
-data_sem_complete_sessions|stem|761a9f117495065e|0a1689fd30f4ff9c|16cced9e57117977|-1064502158||t20230.3348149912s|s2026b|2026|rds|local|vector|||0.019||
-linear_models_oms_proxy|stem|70b03f4a7e7965f9|a18d7c057315e3af|725ffd3d70cbb949|1390618768||t20230.4526262636s|s565547b|565547|rds|local|vector|||0.928|Some predictor variables are on very different scales consider rescaling. Some predictor variables are on very different scales consider rescaling. Some predictor variables are on very different scales consider rescaling. Some predictor variables are on very different scales consider rescaling. Some predictor variables are on very different scales consider rescaling. Some predictor variables are on very different scales consider rescaling|
-predictions_oms_proxy|stem|146d03aeb08b01dc|6dbe046364d1e572|e02400c08dc74637|-2013502611||t20230.4592492538s|s16901b|16901|rds|local|vector|||0.749||
-get_data_contact|function|3d61a05adabf6d2a
-load_data_id|function|a0e3c1810005ec34
-get_sampling_bateman|function|75c0cd9085776756
-get_data_sem_sampled_sessions|function|7ff64b221370bc55
-compute_predictions_oms_proxy|function|864d3996c1f0bce9
-load_data_obs|function|73c393dbc8e495bb
-get_data_session|function|197144388f0914b3
-.Random.seed|object|8eda43f9e9fb4359
-get_sampling_rs_ms|function|91b770e016f3ee20
-get_true_rs_ms|function|52594583437225b3
-load_data|function|41d036557cc08b5d
-get_plot_gms|function|dd7489a08cac51c6
-get_linear_models_oms_proxy|function|1eddc7661b7b3514
-get_hedges|function|98e0b30027f33858
-get_pca|function|b77e9d0f89f1a966
+data_genotypes|stem|815afbe9e9d87f08|ea4f34917d87e033|b46a63703d840917|-335047126||t20242.4914066736s|s5457b|5457|rds|local|vector|||0.02||
+data_obs|stem|b7d9a92c86542d5e|fe544aa5628706c8|869f30562f53be73|-1580520765||t20242.4914069861s|s49381b|49381|rds|local|vector|||0.011||
+data_id_sampled_sessions|stem|74509898481f4933|c208d8db1ec6072a|b46a63703d840917|-2144818458||t20242.4914079352s|s518458b|518458|rds|local|vector|||0.05||
+data_id|stem|741e5663ed3bccda|acbd7748ac9f24bb|5ba4e840b85b733e|1925937001||t20242.4914084791s|s3355b|3355|rds|local|vector|||0.043||
+data_contact|stem|a5020b7794b3dc02|d0f65576ecc70011|19de3678cc2c6aec|614267587||t20242.4914204696s|s18013b|18013|rds|local|vector|||0.994||
+data_true_rs_ms|stem|5f68ee0e62fcef99|12b1757e2432dcef|ffdcd1e53b223589|1376724233||t20242.4914212798s|s1573b|1573|rds|local|vector|||0.069||
+data_session|stem|168281a52d03ddb7|ae39167c3b9fc7af|e68d2d3cf9a8bef6|-353596215||t20242.4914214303s|s558b|558|rds|local|vector|||0.01||
+data_proxy|stem|ade0e741045f1597|33b0284ac86b74e5|8e57ecf86d0637be|331951377||t20242.4914218122s|s28239b|28239|rds|local|vector|||0.03||
+pcas_5|stem|e028f22aa8563c7e|b5133b88250e1bf3|b184bf162fdf1ade|-1470366427||t20242.4914347981s|s570061b|570061|rds|local|vector|||1.07|Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package|
+pcas_20|stem|855026fb1963ef64|c4e9209f44791451|b184bf162fdf1ade|871977926||t20242.4914426336s|s561298b|561298|rds|local|vector|||0.624|Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package|
+linear_models_oms_proxy|stem|a4e5b3ed6a9aba96|c2142c8d27b021c6|acd97b743929aff7|1390618768||t20242.4914504343s|s565676b|565676|rds|local|vector|||0.553|Some predictor variables are on very different scales consider rescaling. Some predictor variables are on very different scales consider rescaling. Some predictor variables are on very different scales consider rescaling. Some predictor variables are on very different scales consider rescaling. Some predictor variables are on very different scales consider rescaling. Some predictor variables are on very different scales consider rescaling|
+data_true_bateman|stem|f3557e12b0569cf2|103c95c67ceca41c|2a3f988deab68b56|-807769545||t20242.4914648553s|s2533b|2533|rds|local|vector|||1.243|convergence code 3 from bobyqa bobyqa  a trust region step failed to reduce q|
+pcas_10|stem|23f95861f2c38203|3c3469862d6010dd|b184bf162fdf1ade|-204580029||t20242.4914716145s|s566964b|566964|rds|local|vector|||0.527|Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package. Missing values are imputed by the mean of the variable you should use the imputePCA function of the missMDA package|
+data_sem_complete_sessions|stem|9c41e94b4c19b33f|c8653fddbaebaaaf|c201f17c2417c116|-1064502158||t20242.4914719154s|s1910b|1910|rds|local|vector|||0.024||
+predictions_oms_proxy|stem|146d03aeb08b01dc|016bff308b7cc8c8|c6b7143feb7a68b4|-2013502611||t20242.4914814175s|s16901b|16901|rds|local|vector|||0.819||
+data_paternity_share|stem|a2aa2a7c9179e0b5|d074247043daf17f|087a35f63fb72a67|1572626672||t20242.5811602343s|s1234b|1234|rds|local|vector|||0.076||
+data_sem_sampled_sessions|stem|72e9ce9610ef7a47|508d9a7caf5f1493|b9146f884827e4f3|-965806792||t20242.5811609287s|s11603b|11603|rds|local|vector|||0.036||
+brms_pooled_data|stem|ac78851f88d3fc02|df078a880965d9fa|02171dc5e959d890|-1463507790||t20243.4989022732s|s77412504b|77412504|rds|local|vector|||150.148|In the future, rescor will be set to FALSE by default for all models. It is thus recommended to explicitely set rescor via set_rescor instead of using the default.. Rows containing NAs were excluded from the model.|
+piecewise_low_fem_combi1|stem|619504807e3e521d|98f84999a9812fcf|23fac9ea283ab2b7|-1236997517||t20243.5437834578s|s1644b|1644|rds|local|vector|||1.017|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+get_brms_pooled_data|function|152be36c08688b0c
+get_data_contact|function|21c3b1ac8023387b
+load_data_id|function|a28ec2303176a6a7
+get_sampling_bateman|function|07f63ac17f5160c0
+get_data_sem_sampled_sessions|function|0b4c234ae230ad1d
+compute_predictions_oms_proxy|function|f749f27d3e29c258
+load_data_obs|function|896643c2508b20cc
+get_data_session|function|e321b336a804dbab
+.Random.seed|object|877b9d24ef403756
+get_sampling_rs_ms|function|e8222dcd66c01279
+get_true_rs_ms|function|29d13c16b1136b70
+load_data|function|61dd1713ca7e555e
+get_data_paternity_share|function|04f465221a180fb3
+get_plot_gms|function|b4fe0f71fdb12be5
+get_linear_models_oms_proxy|function|df37f5916929d015
+get_hedges|function|2c183b4644605e1d
+get_pca|function|4ae9cb84af8bf306
 bootstrap_mean_ci|function|24bcb2d5741eeff5
-compute_oms_and_proxy|function|7697034134a37161
-get_var_gms|function|dd7489a08cac51c6
-get_data_sem_complete_sessions|function|0dde72083c222eab
-get_true_bateman|function|48651f86c0cf9cc4
-index|stem|d37996a60f3fac1c|fefafc941a83eb25|58b1441f6de6c816|554519753|index_files*index.html*index.qmd|t20230.4612857347s|s6820826b|6820826|file|local|vector|||14.667||
+compute_oms_and_proxy|function|7122c508ec45e096
+get_var_gms|function|b4fe0f71fdb12be5
+get_data_sem_complete_sessions|function|c473e46a0e0e1bb6
+get_true_bateman|function|c130b5c4b7a019d1
+get_piecewise_general|function|1c8b091b861f0c95
+piecewise_high_mal_combi1|stem|94c3801e01607781|f2cdbfec1f8d3b70|23fac9ea283ab2b7|-225401545||t20243.5980801236s|s1648b|1648|rds|local|vector|||1.142|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_medium_fem_combi1|stem|753420002b70362c|6bea064751b9f9fd|23fac9ea283ab2b7|-40333851||t20243.5980835842s|s1634b|1634|rds|local|vector|||0.294|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_high_fem_combi1|stem|6fae27094a84306f|ea27e0806ad034b3|23fac9ea283ab2b7|-955206071||t20243.598087091s|s1637b|1637|rds|local|vector|||0.299|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_low_mal_combi1|stem|7095174c2d3a5890|6e00703299e964ea|23fac9ea283ab2b7|984533586||t20243.5980908757s|s1636b|1636|rds|local|vector|||0.324|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_medium_mal_combi1|stem|1ea3026a24260519|65ba33c8e099c325|23fac9ea283ab2b7|1412431747||t20243.5980944867s|s1636b|1636|rds|local|vector|||0.31|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+index|stem|685a7324d42f46b7|8574137e0926822e|4e2b2502758123a3|554519753|index_files*index.html*index.qmd|t20243.598703734s|s15490775b|15490775|file|local|vector|||50.842||
