@@ -1656,4 +1656,53 @@ get_piecewise_general <- function(data_sem_sampled_sessions, target_ttt = "low",
 }
 
  
+#' SEM analyses with piecewise - males with paternity share
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_males <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                  target_sr = "r_sr_all", target_ps = "r_mean_ps",
+                                  target_traits = c("r_nb_flo_open","r_height_mean"),
+                                  x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,3,1,1), color = "bisque4") {
   
+  data_target <- data_sem_sampled_sessions %>% 
+    filter(ttt == target_ttt & sex == target_sex)
+  
+  formula1 <- reformulate(target_traits, response = "r_oms")
+  formula1 <- update(formula1, . ~ . + (1|session))
+  
+  formula2 <- reformulate(c("r_oms", target_traits), response = target_sr)
+  formula2 <- update(formula2, . ~ . + (1|session))
+  
+  formula3 <- reformulate(target_traits, response = target_ps)
+  formula3 <- update(formula3, . ~ . + (1|session))
+  
+  psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_target,formula1),
+                                   
+                                   lme4::lmer(data=data_target,formula2),
+                                   
+                                   lme4::lmer(data=data_target,formula3))
+  
+  plot <- plot(psem_proxy,
+               
+               node_attrs = data.frame(fillcolor = color,
+                                       
+                                       x = x_coord, y = y_coord,
+                                       
+                                       fontsize=6),
+               
+               edge_attrs = data.frame(fontsize=6))
+  
+  summary <- summary(psem_proxy)
+  
+  return(list(summary = summary,
+              plot = plot))
+}
