@@ -1,14 +1,10 @@
-# Mating success estimation
+# Sexual selection on floral traits
 
-The aim of this project is to better estimate mating success and understand how  
-its estimation influences conclusions about sexual selection, using the model  
+The aim of this project is to better understand how floral traits shapes
+sexual selection according to pollinator abundance with path analyses, using the model  
 species *Brassica rapa* and its main pollinator *Bombus terrestris*.
 
-We have two main objectives:  
-+ Explore which estimates of pollinator visits are the best predictors of observational  
-  mating success  
-+ Compare the results of Bateman gradients and variance decomposition,  
-  using observational versus genetic mating success
+The objectives:
 
 
 ## Content

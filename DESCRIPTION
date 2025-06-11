@@ -1,6 +1,6 @@
-Package: sampling_oMS
+Package: path_analysis
 Type: Analyses
-Title: Estimating oMS in entomophilous plants
+Title: Sexual selection on floral traits
 Version: 0.0.0.0000
 Authors@R: c(
     person(given   = "Estelle",
@@ -8,7 +8,7 @@ Authors@R: c(
            role    = c("aut", "cre", "cph"),
            email   = "estelle.barbot@protonmail.com",
            comment = c(ORCID = "0000-0001-6790-2429")))
-Description: How to estimate oMS and related proxies as accurately as possible?
+Description: Estimate sexual selection on floral traits according to pollinator abundance and using path analysis.
 License: GPL-2
 Encoding: UTF-8
 Remotes:
