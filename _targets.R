@@ -25,6 +25,8 @@ list(
   
   tar_target(data_id,load_data_id("data/data_ABPOLL_ID_resume.txt", cols = c("co5", "co10", "co20"))),
   
+  tar_target(data_id,load_data_id("data/data_ABPOLL_flower_resume.txt", cols = c("co5", "co10", "co20"))),
+  
   tar_target(data_obs,load_data_obs("data/obs_ABPOLL.txt")),
   
   tar_target(data_contact,get_data_contact(data_obs)),
@@ -65,9 +67,9 @@ list(
   
   tar_target(data_id_sampled_sessions,load_data("data/all_data_long_NA_0AllFemFALSE_raw.txt")),
   
-  tar_target(data_paternity_share,get_data_paternity_share(data_genotypes)),
+  tar_target(data_parent_share,get_data_parent_share(data_genotypes)),
   
-  tar_target(data_sem_sampled_sessions,get_data_sem_sampled_sessions(data_id_sampled_sessions, data_proxy$data_proxy, data_paternity_share, cols="co10")),
+  tar_target(data_sem_sampled_sessions,get_data_sem_sampled_sessions(data_id_sampled_sessions, data_proxy$data_proxy, data_parent_share, cols="co10")),
   
   tar_target(linear_models_oms_proxy,get_linear_models_oms_proxy(data_proxy$data_proxy_longer)),
   
@@ -75,90 +77,378 @@ list(
   
   tar_target(brms_pooled_data,get_brms_pooled_data(data_sem_sampled_sessions)),
   
-  # all piecewise general
-  ## sr_all and combi1 c("r_nb_flo_open","r_height_mean","r_nb_stem")
+  ## Piecewise general ----
+  ## sr_all
+  ## sr_all and combi1 c("r_nb_flo_open","r_height_mean")
   tar_target(piecewise_low_fem_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-                                                    target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean","r_nb_stem"),
-                                                    x_coord = c(2,2,1,2,3), y_coord = c(2,3,1,1,1), color = "bisque4")),
+                                                    target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                    x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
   
   tar_target(piecewise_medium_fem_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-                                                            target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean","r_nb_stem"),
-                                                            x_coord = c(2,2,1,2,3), y_coord = c(2,3,1,1,1), color = "orange1")),
+                                                            target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
   
   tar_target(piecewise_high_fem_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-                                                            target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean","r_nb_stem"),
-                                                            x_coord = c(2,2,1,2,3), y_coord = c(2,3,1,1,1), color = "orange4")),
+                                                            target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
   
   tar_target(piecewise_low_mal_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-                                                            target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean","r_nb_stem"),
-                                                            x_coord = c(2,2,1,2,3), y_coord = c(2,3,1,1,1), color = "bisque4")),
+                                                            target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
   
   tar_target(piecewise_medium_mal_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
-                                                               target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean","r_nb_stem"),
-                                                               x_coord = c(2,2,1,2,3), y_coord = c(2,3,1,1,1), color = "orange1")),
+                                                               target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
   
   tar_target(piecewise_high_mal_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
-                                                             target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean","r_nb_stem"),
-                                                             x_coord = c(2,2,1,2,3), y_coord = c(2,3,1,1,1), color = "orange4")),
+                                                             target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
   
-  ## sr_all and combi2 c("r_nb_flo_all","r_height_max","r_nb_stem")
+  ## sr_all and combi2 c("r_nb_flo_open","r_height_max")
   tar_target(piecewise_low_fem_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-                                                            target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_max","r_nb_stem"),
-                                                            x_coord = c(2,2,1,2,3), y_coord = c(2,3,1,1,1), color = "bisque4")),
+                                                            target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_max"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
   
   tar_target(piecewise_medium_fem_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-                                                               target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_max","r_nb_stem"),
-                                                               x_coord = c(2,2,1,2,3), y_coord = c(2,3,1,1,1), color = "orange1")),
+                                                               target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_max"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
   
   tar_target(piecewise_high_fem_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-                                                             target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_max","r_nb_stem"),
-                                                             x_coord = c(2,2,1,2,3), y_coord = c(2,3,1,1,1), color = "orange4")),
+                                                             target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_max"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
   
   tar_target(piecewise_low_mal_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-                                                            target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_max","r_nb_stem"),
-                                                            x_coord = c(2,2,1,2,3), y_coord = c(2,3,1,1,1), color = "bisque4")),
+                                                            target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_max"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
   
   tar_target(piecewise_medium_mal_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
-                                                               target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_max","r_nb_stem"),
-                                                               x_coord = c(2,2,1,2,3), y_coord = c(2,3,1,1,1), color = "orange1")),
+                                                               target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_max"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
   
   tar_target(piecewise_high_mal_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
-                                                             target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_max","r_nb_stem"),
-                                                             x_coord = c(2,2,1,2,3), y_coord = c(2,3,1,1,1), color = "orange4")),
+                                                             target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_max"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
   
+  ## sr_all and combi3 c("r_nb_flo_all","r_height_mean")
+  tar_target(piecewise_low_fem_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                                            target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_mean"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
   
-  # piecewise only for males
-  ## sr_all and combi1 c("r_nb_flo_open","r_height_mean","r_nb_stem")
+  tar_target(piecewise_medium_fem_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
+                                                               target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_mean"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_high_fem_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
+                                                             target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_mean"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  tar_target(piecewise_low_mal_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                                            target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_mean"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_medium_mal_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                                               target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_mean"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_high_mal_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                                             target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_mean"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  ## sr_all and combi4 c("r_nb_flo_all","r_height_max")
+  tar_target(piecewise_low_fem_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                                            target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_max"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_medium_fem_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
+                                                               target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_max"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_high_fem_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
+                                                             target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_max"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  tar_target(piecewise_low_mal_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                                            target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_max"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_medium_mal_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                                               target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_max"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_high_mal_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                                             target_sr = "r_sr_all", target_traits = c("r_nb_flo_all","r_height_max"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  ## sr_all and combi5 c("r_nb_stem","r_height_mean")
+  tar_target(piecewise_low_fem_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                                            target_sr = "r_sr_all", target_traits = c("r_nb_stem","r_height_mean"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_medium_fem_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
+                                                               target_sr = "r_sr_all", target_traits = c("r_nb_stem","r_height_mean"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_high_fem_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
+                                                             target_sr = "r_sr_all", target_traits = c("r_nb_stem","r_height_mean"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  tar_target(piecewise_low_mal_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                                            target_sr = "r_sr_all", target_traits = c("r_nb_stem","r_height_mean"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_medium_mal_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                                               target_sr = "r_sr_all", target_traits = c("r_nb_stem","r_height_mean"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_high_mal_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                                             target_sr = "r_sr_all", target_traits = c("r_nb_stem","r_height_mean"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  ## sr_all and combi6 c("r_nb_stem","r_height_max")
+  tar_target(piecewise_low_fem_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                                            target_sr = "r_sr_all", target_traits = c("r_nb_stem","r_height_max"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_medium_fem_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
+                                                               target_sr = "r_sr_all", target_traits = c("r_nb_stem","r_height_max"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_high_fem_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
+                                                             target_sr = "r_sr_all", target_traits = c("r_nb_stem","r_height_max"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  tar_target(piecewise_low_mal_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                                            target_sr = "r_sr_all", target_traits = c("r_nb_stem","r_height_max"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_medium_mal_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                                               target_sr = "r_sr_all", target_traits = c("r_nb_stem","r_height_max"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_high_mal_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                                             target_sr = "r_sr_all", target_traits = c("r_nb_stem","r_height_max"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  ## sr (outcross)
+  ## sr and combi1 c("r_nb_flo_open","r_height_mean")
+  tar_target(piecewise_sr_low_fem_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                                            target_sr = "r_sr", target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_sr_medium_fem_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
+                                                               target_sr = "r_sr", target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_sr_high_fem_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
+                                                             target_sr = "r_sr", target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  tar_target(piecewise_sr_low_mal_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                                            target_sr = "r_sr", target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_sr_medium_mal_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                                               target_sr = "r_sr", target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_sr_high_mal_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                                             target_sr = "r_sr", target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  ## sr and combi2 c("r_nb_flo_open","r_height_max")
+  tar_target(piecewise_sr_low_fem_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                                            target_sr = "r_sr", target_traits = c("r_nb_flo_open","r_height_max"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_sr_medium_fem_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
+                                                               target_sr = "r_sr", target_traits = c("r_nb_flo_open","r_height_max"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_sr_high_fem_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
+                                                             target_sr = "r_sr", target_traits = c("r_nb_flo_open","r_height_max"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  tar_target(piecewise_sr_low_mal_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                                            target_sr = "r_sr", target_traits = c("r_nb_flo_open","r_height_max"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_sr_medium_mal_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                                               target_sr = "r_sr", target_traits = c("r_nb_flo_open","r_height_max"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_sr_high_mal_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                                             target_sr = "r_sr", target_traits = c("r_nb_flo_open","r_height_max"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  ## sr and combi3 c("r_nb_flo_all","r_height_mean")
+  tar_target(piecewise_sr_low_fem_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                                            target_sr = "r_sr", target_traits = c("r_nb_flo_all","r_height_mean"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_sr_medium_fem_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
+                                                               target_sr = "r_sr", target_traits = c("r_nb_flo_all","r_height_mean"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_sr_high_fem_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
+                                                             target_sr = "r_sr", target_traits = c("r_nb_flo_all","r_height_mean"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  tar_target(piecewise_sr_low_mal_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                                            target_sr = "r_sr", target_traits = c("r_nb_flo_all","r_height_mean"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_sr_medium_mal_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                                               target_sr = "r_sr", target_traits = c("r_nb_flo_all","r_height_mean"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_sr_high_mal_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                                             target_sr = "r_sr", target_traits = c("r_nb_flo_all","r_height_mean"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  ## sr and combi4 c("r_nb_flo_all","r_height_max")
+  tar_target(piecewise_sr_low_fem_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                                            target_sr = "r_sr", target_traits = c("r_nb_flo_all","r_height_max"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_sr_medium_fem_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
+                                                               target_sr = "r_sr", target_traits = c("r_nb_flo_all","r_height_max"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_sr_high_fem_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
+                                                             target_sr = "r_sr", target_traits = c("r_nb_flo_all","r_height_max"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  tar_target(piecewise_sr_low_mal_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                                            target_sr = "r_sr", target_traits = c("r_nb_flo_all","r_height_max"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_sr_medium_mal_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                                               target_sr = "r_sr", target_traits = c("r_nb_flo_all","r_height_max"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_sr_high_mal_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                                             target_sr = "r_sr", target_traits = c("r_nb_flo_all","r_height_max"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  ## sr and combi5 c("r_nb_stem","r_height_mean")
+  tar_target(piecewise_sr_low_fem_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                                            target_sr = "r_sr", target_traits = c("r_nb_stem","r_height_mean"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_sr_medium_fem_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
+                                                               target_sr = "r_sr", target_traits = c("r_nb_stem","r_height_mean"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_sr_high_fem_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
+                                                             target_sr = "r_sr", target_traits = c("r_nb_stem","r_height_mean"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  tar_target(piecewise_sr_low_mal_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                                            target_sr = "r_sr", target_traits = c("r_nb_stem","r_height_mean"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_sr_medium_mal_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                                               target_sr = "r_sr", target_traits = c("r_nb_stem","r_height_mean"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_sr_high_mal_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                                             target_sr = "r_sr", target_traits = c("r_nb_stem","r_height_mean"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  ## sr and combi6 c("r_nb_stem","r_height_max")
+  tar_target(piecewise_sr_low_fem_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                                            target_sr = "r_sr", target_traits = c("r_nb_stem","r_height_max"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_sr_medium_fem_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
+                                                               target_sr = "r_sr", target_traits = c("r_nb_stem","r_height_max"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_sr_high_fem_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
+                                                             target_sr = "r_sr", target_traits = c("r_nb_stem","r_height_max"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  tar_target(piecewise_sr_low_mal_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                                            target_sr = "r_sr", target_traits = c("r_nb_stem","r_height_max"),
+                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4")),
+  
+  tar_target(piecewise_sr_medium_mal_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                                               target_sr = "r_sr", target_traits = c("r_nb_stem","r_height_max"),
+                                                               x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange1")),
+  
+  tar_target(piecewise_sr_high_mal_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                                             target_sr = "r_sr", target_traits = c("r_nb_stem","r_height_max"),
+                                                             x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "orange4")),
+  
+  ## Piecewise males ----
+  
+  ## sr_all and combi1 c("r_nb_flo_open","r_height_mean")
   tar_target(piecewisemales_low_combi1,get_piecewise_males(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
                                                             target_sr = "r_sr_all", target_ps = "r_mean_ps",
-                                                            target_traits = c("r_nb_flo_open","r_height_mean","r_nb_stem"),
-                                                            x_coord = c(1.5,2,2.5,1,2,3), y_coord = c(2,3,2,1,1,1), color = "bisque4")),
+                                                            target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                            x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1), color = "bisque4")),
   
   tar_target(piecewisemales_medium_combi1,get_piecewise_males(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
                                                            target_sr = "r_sr_all", target_ps = "r_mean_ps",
-                                                           target_traits = c("r_nb_flo_open","r_height_mean","r_nb_stem"),
-                                                           x_coord = c(1.5,2,2.5,1,2,3), y_coord = c(2,3,2,1,1,1), color = "orange1")),
+                                                           target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                           x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1), color = "orange1")),
   
   tar_target(piecewisemales_high_combi1,get_piecewise_males(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
                                                            target_sr = "r_sr_all", target_ps = "r_mean_ps",
-                                                           target_traits = c("r_nb_flo_open","r_height_mean","r_nb_stem"),
-                                                           x_coord = c(1.5,2,2.5,1,2,3), y_coord = c(2,3,2,1,1,1), color = "orange4")),
+                                                           target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                           x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1), color = "orange4")),
   
-  ## sr_all and combi2 c("r_nb_flo_all","r_height_max","r_nb_stem")
-  tar_target(piecewisemales_low_combi2,get_piecewise_males(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+  ## sr and combi1 c("r_nb_flo_open","r_height_mean")
+  tar_target(piecewisemales_sr_low_combi1,get_piecewise_males(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                                           target_sr = "r_sr", target_ps = "r_mean_ps",
+                                                           target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                           x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1), color = "bisque4")),
+  
+  tar_target(piecewisemales_sr_medium_combi1,get_piecewise_males(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                                              target_sr = "r_sr", target_ps = "r_mean_ps",
+                                                              target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                              x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1), color = "orange1")),
+  
+  tar_target(piecewisemales_sr_high_combi1,get_piecewise_males(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                                            target_sr = "r_sr", target_ps = "r_mean_ps",
+                                                            target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                            x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1), color = "orange4")),
+  
+  ## Piecewise females ----
+  
+  ## sr_all and combi1 c("r_nb_flo_open","r_height_mean")
+  tar_target(piecewisefemales_low_combi1,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
                                                            target_sr = "r_sr_all", target_ps = "r_mean_ps",
-                                                           target_traits = c("r_nb_flo_all","r_height_max","r_nb_stem"),
-                                                           x_coord = c(1.5,2,2.5,1,2,3), y_coord = c(2,3,2,1,1,1), color = "bisque4")),
+                                                           target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                           x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1), color = "bisque4")),
   
-  tar_target(piecewisemales_medium_combi2,get_piecewise_males(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+  tar_target(piecewisefemales_medium_combi1,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
                                                               target_sr = "r_sr_all", target_ps = "r_mean_ps",
-                                                              target_traits = c("r_nb_flo_all","r_height_max","r_nb_stem"),
-                                                              x_coord = c(1.5,2,2.5,1,2,3), y_coord = c(2,3,2,1,1,1), color = "orange1")),
+                                                              target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                              x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1), color = "orange1")),
   
-  tar_target(piecewisemales_high_combi2,get_piecewise_males(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+  tar_target(piecewisefemales_high_combi1,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
                                                             target_sr = "r_sr_all", target_ps = "r_mean_ps",
-                                                            target_traits = c("r_nb_flo_all","r_height_max","r_nb_stem"),
-                                                            x_coord = c(1.5,2,2.5,1,2,3), y_coord = c(2,3,2,1,1,1), color = "orange4")),
+                                                            target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                            x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1), color = "orange4")),
+  
+  ## sr and combi1 c("r_nb_flo_open","r_height_mean")
+  tar_target(piecewisefemales_sr_low_combi1,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                                               target_sr = "r_sr", target_ps = "r_mean_ps",
+                                                               target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                               x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1), color = "bisque4")),
+  
+  tar_target(piecewisefemales_sr_medium_combi1,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
+                                                                  target_sr = "r_sr", target_ps = "r_mean_ps",
+                                                                  target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                                  x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1), color = "orange1")),
+  
+  tar_target(piecewisefemales_sr_high_combi1,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
+                                                                target_sr = "r_sr", target_ps = "r_mean_ps",
+                                                                target_traits = c("r_nb_flo_open","r_height_mean"),
+                                                                x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1), color = "orange4")),
+  
+ 
   
   ## Quarto ----
   

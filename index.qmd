@@ -311,11 +311,11 @@ at least on oms and (ii) rs is different (contrary to oms) between sexual functi
 and there are biological hypotheses on a different effect of floral traits between sexual
 function.
 
-## Separate sex : same pathways
+## Just with oms
 
-Only work on total reproductive success for the moment to be consistant with the last paper
+### total rs
 
-### With nb_flo_open, nb_stem and height_mean
+### With nb_flo_open and height_mean
 
 **For the low treatment :**
 
@@ -393,7 +393,7 @@ piecewise_high_mal_combi1$plot
 
 
 
-### With nb_flo_all, nb_stem and height_max
+### With nb_flo_open and height_max
 
 **For the low treatment :**
 
@@ -470,60 +470,932 @@ piecewise_high_mal_combi2$plot
 > - For the latter point, check with paternity share if it is mediated by more ovules fertilized
 
 
-## Males only : with paternity share
 
-We estimate the paternity share by excluding selfing in order to be consistant
+### With nb_flo_all and height_mean
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_low_fem_combi3)
+piecewise_low_fem_combi3$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_low_mal_combi3)
+piecewise_low_mal_combi3$plot
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_medium_fem_combi3)
+piecewise_medium_fem_combi3$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_medium_mal_combi3)
+piecewise_medium_mal_combi3$plot
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_high_fem_combi3)
+piecewise_high_fem_combi3$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_high_mal_combi3)
+piecewise_high_mal_combi3$plot
+```
+:::
+:::::
+
+> - Always positive bateman gradients in both sexes
+> - For males only, flower number under natural selection in high treatment 
+> - For the latter point, check with paternity share if it is mediated by more ovules fertilized
+
+### With nb_flo_all and height_max
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_low_fem_combi4)
+piecewise_low_fem_combi4$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_low_mal_combi4)
+piecewise_low_mal_combi4$plot
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_medium_fem_combi4)
+piecewise_medium_fem_combi4$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_medium_mal_combi4)
+piecewise_medium_mal_combi4$plot
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_high_fem_combi4)
+piecewise_high_fem_combi4$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_high_mal_combi4)
+piecewise_high_mal_combi4$plot
+```
+:::
+:::::
+
+> - Always positive bateman gradients in both sexes
+> - For males only, flower number under natural selection in high treatment 
+> - For the latter point, check with paternity share if it is mediated by more ovules fertilized
+
+### With nb_stem and height_mean
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_low_fem_combi5)
+piecewise_low_fem_combi5$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_low_mal_combi5)
+piecewise_low_mal_combi5$plot
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_medium_fem_combi5)
+piecewise_medium_fem_combi5$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_medium_mal_combi5)
+piecewise_medium_mal_combi5$plot
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_high_fem_combi5)
+piecewise_high_fem_combi5$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_high_mal_combi5)
+piecewise_high_mal_combi5$plot
+```
+:::
+:::::
+
+> - Always positive bateman gradients in both sexes
+> - For males only, flower number under natural selection in high treatment 
+> - For the latter point, check with paternity share if it is mediated by more ovules fertilized
+
+### With nb_stem and height_max
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_low_fem_combi6)
+piecewise_low_fem_combi6$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_low_mal_combi6)
+piecewise_low_mal_combi6$plot
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_medium_fem_combi6)
+piecewise_medium_fem_combi6$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_medium_mal_combi6)
+piecewise_medium_mal_combi6$plot
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_high_fem_combi6)
+piecewise_high_fem_combi6$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_high_mal_combi6)
+piecewise_high_mal_combi6$plot
+```
+:::
+:::::
+
+> - Always positive bateman gradients in both sexes
+> - For males only, flower number under natural selection in high treatment 
+> - For the latter point, check with paternity share if it is mediated by more ovules fertilized
+
+
+
+### outcross rs
+
+### With nb_flo_open and height_mean
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_low_fem_combi1)
+piecewise_low_fem_combi1$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_low_mal_combi1)
+piecewise_low_mal_combi1$plot
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_medium_fem_combi1)
+piecewise_medium_fem_combi1$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_medium_mal_combi1)
+piecewise_medium_mal_combi1$plot
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_high_fem_combi1)
+piecewise_high_fem_combi1$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_high_mal_combi1)
+piecewise_high_mal_combi1$plot
+```
+:::
+:::::
+
+> - Always positive bateman gradients in both sexes
+> - For males only, flower number under natural selection in high treatment 
+> - For the latter point, check with paternity share if it is mediated by more ovules fertilized
+
+
+
+### With nb_flo_open and height_max
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_low_fem_combi2)
+piecewise_low_fem_combi2$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_low_mal_combi2)
+piecewise_low_mal_combi2$plot
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_medium_fem_combi2)
+piecewise_medium_fem_combi2$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_medium_mal_combi2)
+piecewise_medium_mal_combi2$plot
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_high_fem_combi2)
+piecewise_high_fem_combi2$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_high_mal_combi2)
+piecewise_high_mal_combi2$plot
+```
+:::
+:::::
+
+> - Always positive bateman gradients in both sexes
+> - For males only, flower number under natural selection in high treatment 
+> - For the latter point, check with paternity share if it is mediated by more ovules fertilized
+
+
+
+### With nb_flo_all and height_mean
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_low_fem_combi3)
+piecewise_low_fem_combi3$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_low_mal_combi3)
+piecewise_low_mal_combi3$plot
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_medium_fem_combi3)
+piecewise_medium_fem_combi3$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_medium_mal_combi3)
+piecewise_medium_mal_combi3$plot
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_high_fem_combi3)
+piecewise_high_fem_combi3$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_high_mal_combi3)
+piecewise_high_mal_combi3$plot
+```
+:::
+:::::
+
+> - Always positive bateman gradients in both sexes
+> - For males only, flower number under natural selection in high treatment 
+> - For the latter point, check with paternity share if it is mediated by more ovules fertilized
+
+### With nb_flo_all and height_max
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_low_fem_combi4)
+piecewise_low_fem_combi4$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_low_mal_combi4)
+piecewise_low_mal_combi4$plot
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_medium_fem_combi4)
+piecewise_medium_fem_combi4$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_medium_mal_combi4)
+piecewise_medium_mal_combi4$plot
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_high_fem_combi4)
+piecewise_high_fem_combi4$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_high_mal_combi4)
+piecewise_high_mal_combi4$plot
+```
+:::
+:::::
+
+> - Always positive bateman gradients in both sexes
+> - For males only, flower number under natural selection in high treatment 
+> - For the latter point, check with paternity share if it is mediated by more ovules fertilized
+
+### With nb_stem and height_mean
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_low_fem_combi5)
+piecewise_low_fem_combi5$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_low_mal_combi5)
+piecewise_low_mal_combi5$plot
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_medium_fem_combi5)
+piecewise_medium_fem_combi5$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_medium_mal_combi5)
+piecewise_medium_mal_combi5$plot
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_high_fem_combi5)
+piecewise_high_fem_combi5$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_high_mal_combi5)
+piecewise_high_mal_combi5$plot
+```
+:::
+:::::
+
+> - Always positive bateman gradients in both sexes
+> - For males only, flower number under natural selection in high treatment 
+> - For the latter point, check with paternity share if it is mediated by more ovules fertilized
+
+### With nb_stem and height_max
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_low_fem_combi6)
+piecewise_low_fem_combi6$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_low_mal_combi6)
+piecewise_low_mal_combi6$plot
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_medium_fem_combi6)
+piecewise_medium_fem_combi6$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_medium_mal_combi6)
+piecewise_medium_mal_combi6$plot
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_high_fem_combi6)
+piecewise_high_fem_combi6$plot
+
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_sr_high_mal_combi6)
+piecewise_high_mal_combi6$plot
+```
+:::
+:::::
+
+> - Always positive bateman gradients in both sexes
+> - For males only, flower number under natural selection in high treatment 
+> - For the latter point, check with paternity share if it is mediated by more ovules fertilized
+
+
+## With ~ post-poll process
+
+For males, we estimate the paternity share by excluding selfing in order to be consistant
 with oms. Paternity share is the proportion of genotyped seeds sired by a focal father.
 We can also do the analysis by integrating selfing events in the estimation of paternity share (mean_ps_all).
 
-### With nb_flo_open, nb_stem and height_mean
+For females, post-poll process are more difficult to define: the diversity of sexual partners
+that had reached ovules matter (?) but here we define post-poll as the partner ability to fertilize ovules
+("from the female point of view, to which point she has gathered a good team which score a lot of points")
+but note that we did not categorize this as as post-poll process in the abundance paper
+)
+
+### With nb_flo_open and height_mean (sr all)
+
 
 **For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisefemales_low_combi1)
+piecewisefemales_low_combi1$plot
+```
+:::
+
+::: g-col-6
+Males:
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewisemales_low_combi1)
 piecewisemales_low_combi1$plot
+
 ```
+:::
+:::::
 
 **For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisefemales_medium_combi1)
+piecewisefemales_medium_combi1$plot
+```
+:::
+
+::: g-col-6
+Males:
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewisemales_medium_combi1)
 piecewisemales_medium_combi1$plot
+
 ```
+:::
+:::::
 
 **For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisefemales_high_combi1)
+piecewisefemales_high_combi1$plot
+```
+:::
+
+::: g-col-6
+Males:
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewisemales_high_combi1)
 piecewisemales_high_combi1$plot
+
 ```
+:::
+:::::
 
 
+### With nb_flo_open and height_mean (sr outcrossed)
 
-### With nb_flo_all, nb_stem and height_max
 
 **For the low treatment :**
 
+::::: grid
+::: g-col-6
+Females:
+
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_low_combi2)
-piecewisemales_low_combi2$plot
+targets::tar_load(piecewisefemales_sr_low_combi1)
+piecewisefemales_sr_low_combi1$plot
 ```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisemales_sr_low_combi1)
+piecewisemales_sr_low_combi1$plot
+
+```
+:::
+:::::
 
 **For the medium treatment :**
 
+::::: grid
+::: g-col-6
+Females:
+
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_medium_combi2)
-piecewisemales_medium_combi2$plot
+targets::tar_load(piecewisefemales_sr_medium_combi1)
+piecewisefemales_sr_medium_combi1$plot
 ```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisemales_sr_medium_combi1)
+piecewisemales_sr_medium_combi1$plot
+
+```
+:::
+:::::
 
 **For the high treatment :**
 
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_high_combi2)
-piecewisemales_high_combi2$plot
-```
+::::: grid
+::: g-col-6
+Females:
 
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisefemales_sr_high_combi1)
+piecewisefemales_sr_high_combi1$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisemales_sr_high_combi1)
+piecewisemales_sr_high_combi1$plot
+
+```
+:::
+:::::
 
 ## Test with brms: pool everything
 
