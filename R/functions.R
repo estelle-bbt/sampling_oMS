@@ -26,6 +26,8 @@ load_data_id <- function(file_path, cols = c("co5", "co10", "co20")){
     rename(id = ID_full) |>
     select(session, id, nbGr_SR_sum,
            nb_flo, nb_flo_open, nb_flo_all, height_max, height_mean, nb_stem, nb_poll_focal,
+           !!!syms(paste0("import_nb_part_ID_all_", cols)),
+           !!!syms(paste0("export_nb_part_ID_all_", cols)),
            !!!syms(paste0("import_nb_part_ID_out_", cols)),
            !!!syms(paste0("export_nb_part_ID_out_", cols)),
            !!!syms(paste0("import_nb_part_flo_out_", cols)),
@@ -36,13 +38,137 @@ load_data_id <- function(file_path, cols = c("co5", "co10", "co20")){
   #     mutate(!!sym(paste0("mean_flower_per_mate_fem_", c)) := !!sym(paste0("import_nb_part_flo_out_", c)) / !!sym(paste0("import_nb_part_ID_out_", c)),
   #            !!sym(paste0("mean_flower_per_mate_mal_", c)) := !!sym(paste0("export_nb_part_flo_out_", c)) / !!sym(paste0("export_nb_part_ID_out_", c)))
   # }
+  
+  for (col in cols) {
+    for (type in c("import", "export")) {
+      all_col <- sym(paste0(type, "_nb_part_ID_all_", col))
+      out_col <- sym(paste0(type, "_nb_part_ID_out_", col))
+      
+      data_id <- data_id %>%
+        mutate(!!out_col := if_else(!!all_col == 0, NA_integer_, !!out_col))
+    }
+  }
 
     data_id <- data_id %>%
     rename(sr_fem_total=nbGr_SR_sum) |>
     rename_with(~ gsub("import_nb_part_ID_out_", "oms_fem_", .x), starts_with("import_")) |>
-    rename_with(~ gsub("export_nb_part_ID_out_", "oms_mal_", .x), starts_with("export_"))
+    rename_with(~ gsub("export_nb_part_ID_out_", "oms_mal_", .x), starts_with("export_")) |>
+      mutate(ttt=as.factor(case_when(grepl("FA",session)~"1_low",
+                                     grepl("MO",session)~"2_medium",
+                                     TRUE~"3_high")),.before = 2)
   
   return(data_id)
+}
+
+#' Read data about plant flowers
+#'
+#' @description 
+#' This function reads the data about plant flowers and format the table.
+#'
+#' @param file a character of length 1. The path to the .txt file.
+#'
+#' @return A `table` containing data. 
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+load_data_flower <- function(file_path, cols = c("co5", "co10", "co20")){
+  
+  data_flower <- read.table(file_path,head=T) |>
+    rename(id = ID_full) |>
+    select(session, id, id_flow, nbGr_SR,
+           !!!syms(paste0("import_nb_part_ID_all_", cols)),
+           !!!syms(paste0("export_nb_part_ID_all_", cols)),
+           !!!syms(paste0("import_nb_part_ID_out_", cols)),
+           !!!syms(paste0("export_nb_part_ID_out_", cols))) |>
+    mutate(ttt=as.factor(case_when(grepl("FA",session)~"1_low",
+                                   grepl("MO",session)~"2_medium",
+                                   TRUE~"3_high")),.before = 2)
+  
+  for (col in cols) {
+    for (type in c("import", "export")) {
+      all_col <- sym(paste0(type, "_nb_part_ID_all_", col))
+      out_col <- sym(paste0(type, "_nb_part_ID_out_", col))
+      
+      data_flower <- data_flower %>%
+        mutate(!!out_col := if_else(!!all_col == 0, NA_integer_, !!out_col))
+    }
+  }
+  
+  return(data_flower)
+}
+
+#' Estimate oms at the flower level
+#'
+#' @description 
+#'
+#' @param file 
+#'
+#' @return Results
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+get_oms_flower <- function(data_flower){
+  
+  model_flower <- lme4::glmer(data = data_flower, import_nb_part_ID_out_co10 ~ ttt + (1|session) + (1|session:id), family = "poisson")
+  anova_flower <- car::Anova(model_flower)
+  tukey_flower <- emmeans::contrast(emmeans::emmeans(model_flower, "ttt"), "pairwise", adjust = "Tukey")
+  
+  mu <- data_flower |>
+    group_by(ttt) |>
+    summarise(mean = mean(import_nb_part_ID_out_co10,na.rm = T))
+  
+  plot_flower <- ggplot(data = data_flower, aes(x = import_nb_part_ID_out_co10, fill = ttt)) +
+    theme_classic() +
+    facet_wrap(ttt ~ ., ncol = 1) +
+    geom_histogram(aes(y=..density..)) +
+    geom_density() +
+    geom_vline(data=mu, aes(xintercept=mean, color=ttt),
+              linetype="dashed")
+  
+  return(list(model_flower = model_flower,
+         anova_flower = anova_flower,
+         tukey_flower = tukey_flower,
+         plot_flower = plot_flower))
+}
+
+#' Estimate oms at the id level
+#'
+#' @description 
+#'
+#' @param file 
+#'
+#' @return Results
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+get_oms_id <- function(data_id){
+  
+  model_id <- lme4::glmer(data = data_id, oms_fem_co10 ~ ttt + (1|session), family = "poisson")
+  anova_id <- car::Anova(model_id)
+  tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
+  
+  mu <- data_id |>
+    group_by(ttt) |>
+    summarise(mean = mean(oms_fem_co10,na.rm = T))
+  
+  plot_id <- ggplot(data = data_id, aes(x = oms_fem_co10, fill = ttt)) +
+    theme_classic() +
+    facet_wrap(ttt ~ ., ncol = 1) +
+    geom_histogram(aes(y=..density..)) +
+    geom_density() +
+    geom_vline(data=mu, aes(xintercept=mean, color=ttt),
+               linetype="dashed")
+  
+  return(list(model_id = model_id,
+              anova_id = anova_id,
+              tukey_id = tukey_id,
+              plot_id = plot_id))
 }
 
 #' Read data about pollinator visit observations
