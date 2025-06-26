@@ -36,12 +36,7 @@ Visualize the pipeline analyses:
 targets::tar_visnetwork()
 ```
 
-WARNING !!!!!!!!!
-oms (both at the flower or the id scale) is encoded as following: if it has not been
-visited at all (i.e. oms including itself = 0), then oms = NA. Otherwise, oms is a true zero
-because it can reproduce through selfing. BUT this is valuable only when reproductive success
-include selfing (as in the first manuscript, to keep consistancy); if we focus on outcrossed
-reproductive success, then null oms should not exist.
+WARNING !!!!!!!!! oms (both at the flower or the id scale) is encoded as following: if it has not been visited at all (i.e. oms including itself = 0), then oms = NA. Otherwise, oms is a true zero because it can reproduce through selfing. BUT this is valuable only when reproductive success include selfing (as in the first manuscript, to keep consistancy); if we focus on outcrossed reproductive success, then null oms should not exist.
 
 # Level of polyandry on flowers
 
@@ -51,6 +46,7 @@ targets::tar_load(oms_flower)
 oms_flower$anova_flower
 oms_flower$tukey_flower
 oms_flower$plot_flower
+oms_flower$mean_flower
 ```
 
 # Level of polyandry on individuals
@@ -61,6 +57,18 @@ targets::tar_load(oms_id)
 oms_id$anova_id
 oms_id$tukey_id
 oms_id$plot_id
+oms_id$mean_id
+```
+
+# Number of flowers
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(data_id)
+
+data_id |>
+  group_by(ttt) |>
+  summarise(mean_flower = mean(nb_flo_open, na.rm = T),
+            sd_dlower = sd(nb_flo_open, na.rm = T))
 ```
 
 # Path analysis with oms
@@ -1016,6 +1024,7 @@ Females:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewisefemales_low_combi1)
 piecewisefemales_low_combi1$plot
+piecewisefemales_low_combi1$summary
 ```
 :::
 
@@ -1025,6 +1034,7 @@ Males:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewisemales_low_combi1)
 piecewisemales_low_combi1$plot
+piecewisemales_low_combi1$summary
 
 ```
 :::
@@ -1039,6 +1049,7 @@ Females:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewisefemales_medium_combi1)
 piecewisefemales_medium_combi1$plot
+piecewisefemales_medium_combi1$summary
 ```
 :::
 
@@ -1048,6 +1059,7 @@ Males:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewisemales_medium_combi1)
 piecewisemales_medium_combi1$plot
+piecewisemales_medium_combi1$summary
 
 ```
 :::
@@ -1062,6 +1074,7 @@ Females:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewisefemales_high_combi1)
 piecewisefemales_high_combi1$plot
+piecewisefemales_high_combi1$summary
 ```
 :::
 
@@ -1071,6 +1084,7 @@ Males:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewisemales_high_combi1)
 piecewisemales_high_combi1$plot
+piecewisemales_high_combi1$summary
 
 ```
 :::
@@ -1147,6 +1161,77 @@ piecewisemales_high_combi3$plot
 :::
 :::::
 
+### With nb_flo and height_mean (sr all)
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisefemales_low_combi7)
+piecewisefemales_low_combi7$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisemales_low_combi7)
+piecewisemales_low_combi7$plot
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisefemales_medium_combi7)
+piecewisefemales_medium_combi7$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisemales_medium_combi7)
+piecewisemales_medium_combi7$plot
+piecewisemales_medium_combi7$summary
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisefemales_high_combi7)
+piecewisefemales_high_combi7$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisemales_high_combi7)
+piecewisemales_high_combi7$plot
+
+```
+:::
+:::::
+
 ### With nb_flo_open and height_mean (sr outcrossed)
 
 **For the low treatment :**
@@ -1218,18 +1303,133 @@ piecewisemales_sr_high_combi1$plot
 :::
 :::::
 
-## Test with brms: pool everything
+<!-- ## Test with brms: pool everything -->
 
-With total rs and nb_flo_all and height_mean
+<!-- With total rs and nb_flo_all and height_mean -->
 
-**All sex and ttt :**
+<!-- **All sex and ttt :** -->
+
+<!-- ```{r,echo=FALSE,warning=FALSE,message=FALSE} -->
+
+<!-- targets::tar_load(brms_pooled_data) -->
+
+<!-- brms_pooled_data$summary -->
+
+<!-- ``` -->
+
+<!-- > The only thing that we can conclude is that flower number increase reproductive success in the high treatment for the female function, and that this effect is less strong for the male function -->
+
+# Piecewise complete including visits
+
+## With nb_flo_open and height_mean (sr all)
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisefemales_low_combi1)
+piecewisefemales_low_combi1$plot
+piecewisefemales_low_combi1$summary
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+# targets::tar_load(piecewisemales_low_combi1_visits)
+# piecewisemales_low_combi1_visits$plot
+# piecewisemales_low_combi1_visits$summary
+
+```
+:::
+:::::
+
+
+# Explaining pollinator visits with linear models
+
+## Pooling all treatment :
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 
-targets::tar_load(brms_pooled_data)
+targets::tar_load(analyses_visits)
 
-brms_pooled_data$summary
+analyses_visits$mod_pos_tot_anova
 
 ```
 
-> The only thing that we can conclude is that flower number increase reproductive success in the high treatment for the female function, and that this effect is less strong for the male function
+# Explaining pollinator visits with piecewise
+
+## With nb_flo_open and height_mean 
+
+**For the low treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_visits_female_low)
+piecewise_visits_female_low$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_visits_male_low)
+piecewise_visits_male_low$plot
+
+```
+:::
+:::::
+
+**For the medium treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_visits_female_medium)
+piecewise_visits_female_medium$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_visits_male_medium)
+piecewise_visits_male_medium$plot
+
+```
+:::
+:::::
+
+**For the high treatment :**
+
+::::: grid
+::: g-col-6
+Females:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_visits_female_high)
+piecewise_visits_female_high$plot
+```
+:::
+
+::: g-col-6
+Males:
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewise_visits_male_high)
+piecewise_visits_male_high$plot
+
+```
+:::
+:::::

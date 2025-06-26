@@ -1,3 +1,77 @@
+#' Get data that summarize pollinator visits
+#'
+#' @description 
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_resume_visits <- function(file_path) {
+  
+  data_arrival_with_bee <- read.table(file_path,head=T) |>
+    rename(id=ID_full) |>
+    arrange(session,time) |> # to calculate ID age (visits needed to be sequentially arrange, independently of the pollinators)
+    pivot_wider(values_from=id,names_from=id,names_prefix="newid_",values_fn = list(id = ~ 1), values_fill = list(id = 0)) |>
+    mutate(across(starts_with("newid"),~ifelse(duplicated(cumsum(.)),NA,cumsum(.)))) |>
+    rowwise() |>
+    mutate(id_age=sum(across(starts_with("newid")),na.rm=T)-1) |>
+    select(!starts_with("newid")) |>
+    mutate(id=paste0(session,".",ifelse(ID==10,10,paste0("0",ID)))) |>
+    group_by(session,people) |>
+    mutate(no_visit=1:n()) |>
+    group_by(session,people) |>
+    mutate(consecut=consecutive_id(id)) |>
+    group_by(session,people,consecut) |>
+    summarise(start=min(time),
+              name_id=unique(id),
+              length=n(),
+              duration=sum(duration,na.rm=T)) |> 
+    mutate(id=name_id) |>
+    pivot_wider(values_from=name_id,names_from=name_id,names_prefix="newid_",values_fn = list(name_id = ~ 1), values_fill = list(name_id = 0)) |>
+    mutate(across(starts_with("newid"),~ifelse(duplicated(cumsum(.)),NA,cumsum(.)))) |>
+    rowwise() |>
+    mutate(no_arrival=sum(across(starts_with("newid")),na.rm=T)-1) |>
+    select(!starts_with("newid")) |>
+    select(session,start,id,people,consecut,duration,no_arrival) |>
+    arrange(session,start)
+  
+  data_position <- data_arrival_with_bee |>
+    group_by(session, people, id) |>
+    summarise(mean_position_focal_bee = mean(consecut)) |>
+    left_join(data_arrival_with_bee |>
+                group_by(session, people) |>
+                summarise(max_boot = max(consecut))) |>
+    mutate(rel_mean_position_focal_bee = mean_position_focal_bee / max_boot) |>
+    group_by(session,id) |>
+    summarise(mean_position = mean(rel_mean_position_focal_bee))
+  
+  data_nb_visits <- read.table(file_path,head=T) |>
+    rename(id=ID_full) |> 
+    group_by(id) |>
+    summarise(nb_visits = n(),
+              nb_flower_visited = n_distinct(id_flow_full))
+  
+  data_resume_visits <- data_arrival_with_bee |>
+    group_by(session,id,people) |>
+    summarize(contact_id_bee=max(no_arrival),
+              dur_tot_bee=sum(duration,na.rm=T)) |>
+    group_by(session,id) |>
+    summarize(contact_id=sum(contact_id_bee),
+              dur_tot=sum(dur_tot_bee,na.rm=T)) |>
+    left_join(data_position) |>
+    left_join(data_nb_visits) |> 
+    mutate(ttt=as.factor(case_when(grepl("FA",session)~"1_low",
+                                   grepl("MO",session)~"2_medium",
+                                   TRUE~"3_high"))) 
+  
+  return(data_resume_visits)
+}
+
+
 #' Read data about plant ids
 #'
 #' @description 
@@ -11,7 +85,7 @@
 #' 
 #' @export
 
-load_data_id <- function(file_path, cols = c("co5", "co10", "co20")){
+load_data_id <- function(file_path, data_resume_visits, cols = c("co5", "co10", "co20")){
   # data_id <- read.table(file_path,head=T) |>
   #   mutate(poll_treat_factor=as.factor(case_when(poll_treat==1~"low",
   #                                                poll_treat==2~"medium",
@@ -26,15 +100,18 @@ load_data_id <- function(file_path, cols = c("co5", "co10", "co20")){
     rename(id = ID_full) |>
     select(session, id, nbGr_SR_sum,
            nb_flo, nb_flo_open, nb_flo_all, height_max, height_mean, nb_stem, nb_poll_focal,
+           SR_fem_out, SR_self,
            !!!syms(paste0("import_nb_part_ID_all_", cols)),
            !!!syms(paste0("export_nb_part_ID_all_", cols)),
            !!!syms(paste0("import_nb_part_ID_out_", cols)),
            !!!syms(paste0("export_nb_part_ID_out_", cols)),
            !!!syms(paste0("import_nb_part_flo_out_", cols)),
-           !!!syms(paste0("export_nb_part_flo_out_", cols))) 
+           !!!syms(paste0("export_nb_part_flo_out_", cols))) |>
+    rename(sr_fem_out = SR_fem_out,
+           sr_self = SR_self)
   
   # for(c in cols){
-  #   data_id <- data_id %>%
+  #   data_id <- data_id |>
   #     mutate(!!sym(paste0("mean_flower_per_mate_fem_", c)) := !!sym(paste0("import_nb_part_flo_out_", c)) / !!sym(paste0("import_nb_part_ID_out_", c)),
   #            !!sym(paste0("mean_flower_per_mate_mal_", c)) := !!sym(paste0("export_nb_part_flo_out_", c)) / !!sym(paste0("export_nb_part_ID_out_", c)))
   # }
@@ -44,18 +121,27 @@ load_data_id <- function(file_path, cols = c("co5", "co10", "co20")){
       all_col <- sym(paste0(type, "_nb_part_ID_all_", col))
       out_col <- sym(paste0(type, "_nb_part_ID_out_", col))
       
-      data_id <- data_id %>%
+      data_id <- data_id |>
         mutate(!!out_col := if_else(!!all_col == 0, NA_integer_, !!out_col))
     }
   }
 
-    data_id <- data_id %>%
+    data_id <- data_id |>
     rename(sr_fem_total=nbGr_SR_sum) |>
     rename_with(~ gsub("import_nb_part_ID_out_", "oms_fem_", .x), starts_with("import_")) |>
     rename_with(~ gsub("export_nb_part_ID_out_", "oms_mal_", .x), starts_with("export_")) |>
       mutate(ttt=as.factor(case_when(grepl("FA",session)~"1_low",
                                      grepl("MO",session)~"2_medium",
-                                     TRUE~"3_high")),.before = 2)
+                                     TRUE~"3_high")),.before = 2) |>
+      left_join(data_resume_visits) |>
+      # replace NA by 0 only for contact_id 
+      # for nb_flower_visited, nb_visits, duration and mean position, not any sense if not visited
+      mutate(contact_id = replace_na(contact_id, 0)) |>
+      group_by(session) |>
+      mutate(across(where(is.numeric), ~ . / mean(., na.rm = TRUE), .names = "r_{.col}")) |>
+      ungroup()
+
+      
   
   return(data_id)
 }
@@ -91,13 +177,15 @@ load_data_flower <- function(file_path, cols = c("co5", "co10", "co20")){
       all_col <- sym(paste0(type, "_nb_part_ID_all_", col))
       out_col <- sym(paste0(type, "_nb_part_ID_out_", col))
       
-      data_flower <- data_flower %>%
+      data_flower <- data_flower |>
         mutate(!!out_col := if_else(!!all_col == 0, NA_integer_, !!out_col))
     }
   }
   
   return(data_flower)
 }
+
+
 
 #' Estimate oms at the flower level
 #'
@@ -115,11 +203,13 @@ get_oms_flower <- function(data_flower){
   
   model_flower <- lme4::glmer(data = data_flower, import_nb_part_ID_out_co10 ~ ttt + (1|session) + (1|session:id), family = "poisson")
   anova_flower <- car::Anova(model_flower)
+  summary_flower <- summary(model_flower)
   tukey_flower <- emmeans::contrast(emmeans::emmeans(model_flower, "ttt"), "pairwise", adjust = "Tukey")
   
   mu <- data_flower |>
     group_by(ttt) |>
-    summarise(mean = mean(import_nb_part_ID_out_co10,na.rm = T))
+    summarise(mean = mean(import_nb_part_ID_out_co10,na.rm = T),
+              sd = sd(import_nb_part_ID_out_co10,na.rm = T))
   
   plot_flower <- ggplot(data = data_flower, aes(x = import_nb_part_ID_out_co10, fill = ttt)) +
     theme_classic() +
@@ -131,6 +221,8 @@ get_oms_flower <- function(data_flower){
   
   return(list(model_flower = model_flower,
          anova_flower = anova_flower,
+         summary_flower = summary_flower,
+         mean_flower = mu,
          tukey_flower = tukey_flower,
          plot_flower = plot_flower))
 }
@@ -151,11 +243,13 @@ get_oms_id <- function(data_id){
   
   model_id <- lme4::glmer(data = data_id, oms_fem_co10 ~ ttt + (1|session), family = "poisson")
   anova_id <- car::Anova(model_id)
+  summary_id <- summary(model_id)
   tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
   
   mu <- data_id |>
     group_by(ttt) |>
-    summarise(mean = mean(oms_fem_co10,na.rm = T))
+    summarise(mean = mean(oms_fem_co10,na.rm = T),
+              sd = sd(oms_fem_co10,na.rm = T))
   
   plot_id <- ggplot(data = data_id, aes(x = oms_fem_co10, fill = ttt)) +
     theme_classic() +
@@ -167,6 +261,8 @@ get_oms_id <- function(data_id){
   
   return(list(model_id = model_id,
               anova_id = anova_id,
+              mean_id = mu,
+              summary_id = summary_id,
               tukey_id = tukey_id,
               plot_id = plot_id))
 }
@@ -379,7 +475,7 @@ get_pca <- function(data_proxy, cols = "co10"){
       names_pattern = "oms_(fem|mal)_.*"
     )
   
-  pca_sex <- FactoMineR::PCA(sex_proxy %>% select(-sex))
+  pca_sex <- FactoMineR::PCA(sex_proxy |> select(-sex))
   
   return(list(pca_fem = plot(pca_fem, choix="var"),
               pca_mal = plot(pca_mal, choix="var"),
@@ -884,18 +980,18 @@ get_hedges <- function(data_sampling_bateman, data_true_bateman_raw, per_session
     data_true_bateman <- data_true_bateman_raw$data_true_bateman
   }
   
-  data_hedges <- data_sampling_bateman %>%
+  data_hedges <- data_sampling_bateman |>
     filter(sex != "inter") |>
-    group_by(!!!syms(group_vars)) %>%
+    group_by(!!!syms(group_vars)) |>
     summarise(mean_est = mean(est_bat_gms,na.rm=T),
               med_est = median(est_bat_gms,na.rm=T),
               n_sim_est = n(),
               n_id_est = max(n_id), # we take the maximum nb of ind used ? the mean ? the min ?
-              sd_est = sd(est_bat_gms,na.rm=T)) %>%
+              sd_est = sd(est_bat_gms,na.rm=T)) |>
     left_join(data_true_bateman |>
                 filter(sex != "inter") |>
                 rename(n_id_true = n_id) |>
-                mutate(sd_true = se_bat_oms*sqrt(n_id_true))) %>%
+                mutate(sd_true = se_bat_oms*sqrt(n_id_true))) |>
     mutate(sd_comb = sqrt(((n_id_est - 1) * sd_est^2 + (n_id_true - 1) * sd_true^2) / (n_id_est + n_id_true - 2)),
            cohen_d = (med_est - est_bat_oms) / sd_comb,
            var_cohen_d = (n_id_est + n_id_true) / (n_id_est * n_id_true) + (cohen_d^2 / (2 * (n_id_est + n_id_true))),
@@ -994,69 +1090,69 @@ get_var_gms <- function(data_sampling,data_id) {
             
             # MALES 
             
-            rs_gms_mal <- data_foc_out %>%
-              group_by(candidate_id,known_id) %>%
-              summarise(seed_couple=n()) %>%
-              left_join(data_foc %>% # all genotypes per mother
-                          group_by(known_id) %>%
-                          summarise(n_genot=n())) %>%
-              left_join(data_id_foc %>%
-                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
-              mutate(rs_couple=(seed_couple/n_genot)*sr_fem_total) %>%
-              group_by(candidate_id) %>%
+            rs_gms_mal <- data_foc_out |>
+              group_by(candidate_id,known_id) |>
+              summarise(seed_couple=n()) |>
+              left_join(data_foc |> # all genotypes per mother
+                          group_by(known_id) |>
+                          summarise(n_genot=n())) |>
+              left_join(data_id_foc |>
+                          select(id,sr_fem_total),by=join_by(known_id==id)) |>
+              mutate(rs_couple=(seed_couple/n_genot)*sr_fem_total) |>
+              group_by(candidate_id) |>
               summarise(rs=sum(rs_couple,na.rm=T))
             
-            gms_gms_mal <- data_foc_out %>%
-              group_by(candidate_id) %>%
+            gms_gms_mal <- data_foc_out |>
+              group_by(candidate_id) |>
               summarise(gms=n_distinct(known_id))
             
-            fec_gms_mal <- data_foc_out %>%
-              group_by(candidate_id,known_id) %>%
-              summarise(seed_couple=n()) %>%
-              left_join(data_id_foc %>%
-                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
+            fec_gms_mal <- data_foc_out |>
+              group_by(candidate_id,known_id) |>
+              summarise(seed_couple=n()) |>
+              left_join(data_id_foc |>
+                          select(id,sr_fem_total),by=join_by(known_id==id)) |>
               summarise(fec=mean(sr_fem_total,na.rm=T))
             
-            ps_gms_mal <- data_foc_out %>%
-              group_by(candidate_id,known_id) %>%
-              summarise(seed_couple=n()) %>%
-              left_join(data_foc %>% # all genotypes per mother
-                          group_by(known_id) %>%
-                          summarise(n_genot=n())) %>%
-              left_join(data_id_foc %>%
-                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
-              mutate(rs_couple=(seed_couple/n_genot)*sr_fem_total) %>%
-              group_by(candidate_id) %>%
+            ps_gms_mal <- data_foc_out |>
+              group_by(candidate_id,known_id) |>
+              summarise(seed_couple=n()) |>
+              left_join(data_foc |> # all genotypes per mother
+                          group_by(known_id) |>
+                          summarise(n_genot=n())) |>
+              left_join(data_id_foc |>
+                          select(id,sr_fem_total),by=join_by(known_id==id)) |>
+              mutate(rs_couple=(seed_couple/n_genot)*sr_fem_total) |>
+              group_by(candidate_id) |>
               summarise(ps=sum(rs_couple,na.rm=T)/sum(sr_fem_total,na.rm=T))
             
             # merged table and verification
-            var_dec_gms_mal <- rs_gms_mal %>%
-              left_join(gms_gms_mal) %>%
-              left_join(fec_gms_mal) %>%
-              left_join(ps_gms_mal) %>%
-              replace(is.na(.),0) %>%
+            var_dec_gms_mal <- rs_gms_mal |>
+              left_join(gms_gms_mal) |>
+              left_join(fec_gms_mal) |>
+              left_join(ps_gms_mal) |>
+              replace(is.na(.),0) |>
               mutate(mult=gms*ps*fec,
                      verif=ifelse(rs==mult,1,0))  # ok
             
             # including 0
             if(put_0==TRUE){
-              var_dec_gms_mal <- var_dec_gms_mal %>%
-                bind_rows(data_id_foc %>%
-                            filter(!id %in% var_dec_gms_mal$candidate_id) %>%
-                            select(id) %>%
-                            rename(candidate_id=id) %>%
+              var_dec_gms_mal <- var_dec_gms_mal |>
+                bind_rows(data_id_foc |>
+                            filter(!id %in% var_dec_gms_mal$candidate_id) |>
+                            select(id) |>
+                            rename(candidate_id=id) |>
                             mutate(rs=0,gms=0))
             }
             
             # relativization
-            var_dec_gms_mal <- var_dec_gms_mal %>%
+            var_dec_gms_mal <- var_dec_gms_mal |>
               mutate(r_rs=rs/mean(rs,na.rm=T),
                      r_gms=gms/mean(gms,na.rm=T),
                      r_fec=fec/mean(fec,na.rm=T),
                      r_ps=ps/mean(ps,na.rm=T))
             
             # final table for males
-            var_dec_gms_mal_anal <- var_dec_gms_mal %>%
+            var_dec_gms_mal_anal <- var_dec_gms_mal |>
               summarise(rs = var(r_rs,na.rm=T),
                         gms = var(r_gms,na.rm=T),
                         fec = var(r_fec,na.rm=T),
@@ -1072,53 +1168,53 @@ get_var_gms <- function(data_sampling,data_id) {
             
             # FEMALES
             
-            rs_gms_fem <- data_foc %>%
-              group_by(known_id) %>%
+            rs_gms_fem <- data_foc |>
+              group_by(known_id) |>
               summarise(seed_self=sum(known_id==candidate_id),
-                        seed_out=sum(known_id!=candidate_id)) %>%
-              left_join(data_id_foc %>%
-                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
-              mutate(rs=(seed_out/(seed_self+seed_out))*sr_fem_total) %>%
+                        seed_out=sum(known_id!=candidate_id)) |>
+              left_join(data_id_foc |>
+                          select(id,sr_fem_total),by=join_by(known_id==id)) |>
+              mutate(rs=(seed_out/(seed_self+seed_out))*sr_fem_total) |>
               filter(rs!=0) # remove female that only selfed
             
-            gms_gms_fem <- data_foc_out %>%
-              group_by(known_id) %>%
+            gms_gms_fem <- data_foc_out |>
+              group_by(known_id) |>
               summarise(gms=n_distinct(candidate_id))
             
-            fec_gms_fem <- data_foc_out %>%
-              group_by(known_id,candidate_id) %>%
-              summarise(seed_couple=n()) %>%
-              left_join(rs_gms_fem) %>%
-              mutate(rs_couple=(seed_couple/(seed_self+seed_out))*sr_fem_total) %>%
-              group_by(known_id) %>%
+            fec_gms_fem <- data_foc_out |>
+              group_by(known_id,candidate_id) |>
+              summarise(seed_couple=n()) |>
+              left_join(rs_gms_fem) |>
+              mutate(rs_couple=(seed_couple/(seed_self+seed_out))*sr_fem_total) |>
+              group_by(known_id) |>
               summarise(fec=mean(rs_couple))
             
             # merge tables and verification
-            var_dec_gms_fem <- rs_gms_fem %>%
-              left_join(gms_gms_fem) %>%
-              left_join(fec_gms_fem) %>%
-              replace(is.na(.),0) %>%
+            var_dec_gms_fem <- rs_gms_fem |>
+              left_join(gms_gms_fem) |>
+              left_join(fec_gms_fem) |>
+              replace(is.na(.),0) |>
               mutate(mult=gms*fec,
                      verif=ifelse(rs==mult,1,0)) # ok
             
             # including 0
             if(put_0==TRUE){
-              var_dec_gms_fem <- var_dec_gms_fem %>%
-                bind_rows(data_id_foc %>%
-                            filter(!id %in% var_dec_gms_fem$known_id) %>%
-                            select(id) %>%
-                            rename(known_id=id) %>%
+              var_dec_gms_fem <- var_dec_gms_fem |>
+                bind_rows(data_id_foc |>
+                            filter(!id %in% var_dec_gms_fem$known_id) |>
+                            select(id) |>
+                            rename(known_id=id) |>
                             mutate(rs=0,gms=0))
             }
             
             # relativization
-            var_dec_gms_fem <- var_dec_gms_fem %>%
+            var_dec_gms_fem <- var_dec_gms_fem |>
               mutate(r_rs=rs/mean(rs,na.rm=T),
                      r_gms=gms/mean(gms,na.rm=T),
                      r_fec=fec/mean(fec,na.rm=T))
             
             # final table for females
-            var_dec_gms_fem_anal <- var_dec_gms_fem %>%
+            var_dec_gms_fem_anal <- var_dec_gms_fem |>
               summarise(rs = var(r_rs,na.rm=T),
                         gms = var(r_gms,na.rm=T),
                         fec = var(r_fec,na.rm=T),
@@ -1180,69 +1276,69 @@ get_plot_gms <- function(data_sampling,data_id) {
             
             # MALES 
             
-            rs_gms_mal <- data_foc_out %>%
-              group_by(candidate_id,known_id) %>%
-              summarise(seed_couple=n()) %>%
-              left_join(data_foc %>% # all genotypes per mother
-                          group_by(known_id) %>%
-                          summarise(n_genot=n())) %>%
-              left_join(data_id_foc %>%
-                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
-              mutate(rs_couple=(seed_couple/n_genot)*sr_fem_total) %>%
-              group_by(candidate_id) %>%
+            rs_gms_mal <- data_foc_out |>
+              group_by(candidate_id,known_id) |>
+              summarise(seed_couple=n()) |>
+              left_join(data_foc |> # all genotypes per mother
+                          group_by(known_id) |>
+                          summarise(n_genot=n())) |>
+              left_join(data_id_foc |>
+                          select(id,sr_fem_total),by=join_by(known_id==id)) |>
+              mutate(rs_couple=(seed_couple/n_genot)*sr_fem_total) |>
+              group_by(candidate_id) |>
               summarise(rs=sum(rs_couple,na.rm=T))
             
-            gms_gms_mal <- data_foc_out %>%
-              group_by(candidate_id) %>%
+            gms_gms_mal <- data_foc_out |>
+              group_by(candidate_id) |>
               summarise(gms=n_distinct(known_id))
             
-            fec_gms_mal <- data_foc_out %>%
-              group_by(candidate_id,known_id) %>%
-              summarise(seed_couple=n()) %>%
-              left_join(data_id_foc %>%
-                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
+            fec_gms_mal <- data_foc_out |>
+              group_by(candidate_id,known_id) |>
+              summarise(seed_couple=n()) |>
+              left_join(data_id_foc |>
+                          select(id,sr_fem_total),by=join_by(known_id==id)) |>
               summarise(fec=mean(sr_fem_total,na.rm=T))
             
-            ps_gms_mal <- data_foc_out %>%
-              group_by(candidate_id,known_id) %>%
-              summarise(seed_couple=n()) %>%
-              left_join(data_foc %>% # all genotypes per mother
-                          group_by(known_id) %>%
-                          summarise(n_genot=n())) %>%
-              left_join(data_id_foc %>%
-                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
-              mutate(rs_couple=(seed_couple/n_genot)*sr_fem_total) %>%
-              group_by(candidate_id) %>%
+            ps_gms_mal <- data_foc_out |>
+              group_by(candidate_id,known_id) |>
+              summarise(seed_couple=n()) |>
+              left_join(data_foc |> # all genotypes per mother
+                          group_by(known_id) |>
+                          summarise(n_genot=n())) |>
+              left_join(data_id_foc |>
+                          select(id,sr_fem_total),by=join_by(known_id==id)) |>
+              mutate(rs_couple=(seed_couple/n_genot)*sr_fem_total) |>
+              group_by(candidate_id) |>
               summarise(ps=sum(rs_couple,na.rm=T)/sum(sr_fem_total,na.rm=T))
             
             # merged table and verification
-            var_dec_gms_mal <- rs_gms_mal %>%
-              left_join(gms_gms_mal) %>%
-              left_join(fec_gms_mal) %>%
-              left_join(ps_gms_mal) %>%
-              replace(is.na(.),0) %>%
+            var_dec_gms_mal <- rs_gms_mal |>
+              left_join(gms_gms_mal) |>
+              left_join(fec_gms_mal) |>
+              left_join(ps_gms_mal) |>
+              replace(is.na(.),0) |>
               mutate(mult=gms*ps*fec,
                      verif=ifelse(rs==mult,1,0))  # ok
             
             # including 0
             if(put_0==TRUE){
-              var_dec_gms_mal <- var_dec_gms_mal %>%
-                bind_rows(data_id_foc %>%
-                            filter(!id %in% var_dec_gms_mal$candidate_id) %>%
-                            select(id) %>%
-                            rename(candidate_id=id) %>%
+              var_dec_gms_mal <- var_dec_gms_mal |>
+                bind_rows(data_id_foc |>
+                            filter(!id %in% var_dec_gms_mal$candidate_id) |>
+                            select(id) |>
+                            rename(candidate_id=id) |>
                             mutate(rs=0,gms=0))
             }
             
             # relativization
-            var_dec_gms_mal <- var_dec_gms_mal %>%
+            var_dec_gms_mal <- var_dec_gms_mal |>
               mutate(r_rs=rs/mean(rs,na.rm=T),
                      r_gms=gms/mean(gms,na.rm=T),
                      r_fec=fec/mean(fec,na.rm=T),
                      r_ps=ps/mean(ps,na.rm=T))
             
             # final table for males
-            var_dec_gms_mal_anal <- var_dec_gms_mal %>%
+            var_dec_gms_mal_anal <- var_dec_gms_mal |>
               summarise(rs = var(r_rs,na.rm=T),
                         gms = var(r_gms,na.rm=T),
                         fec = var(r_fec,na.rm=T),
@@ -1258,53 +1354,53 @@ get_plot_gms <- function(data_sampling,data_id) {
             
             # FEMALES
             
-            rs_gms_fem <- data_foc %>%
-              group_by(known_id) %>%
+            rs_gms_fem <- data_foc |>
+              group_by(known_id) |>
               summarise(seed_self=sum(known_id==candidate_id),
-                        seed_out=sum(known_id!=candidate_id)) %>%
-              left_join(data_id_foc %>%
-                          select(id,sr_fem_total),by=join_by(known_id==id)) %>%
-              mutate(rs=(seed_out/(seed_self+seed_out))*sr_fem_total) %>%
+                        seed_out=sum(known_id!=candidate_id)) |>
+              left_join(data_id_foc |>
+                          select(id,sr_fem_total),by=join_by(known_id==id)) |>
+              mutate(rs=(seed_out/(seed_self+seed_out))*sr_fem_total) |>
               filter(rs!=0) # remove female that only selfed
             
-            gms_gms_fem <- data_foc_out %>%
-              group_by(known_id) %>%
+            gms_gms_fem <- data_foc_out |>
+              group_by(known_id) |>
               summarise(gms=n_distinct(candidate_id))
             
-            fec_gms_fem <- data_foc_out %>%
-              group_by(known_id,candidate_id) %>%
-              summarise(seed_couple=n()) %>%
-              left_join(rs_gms_fem) %>%
-              mutate(rs_couple=(seed_couple/(seed_self+seed_out))*sr_fem_total) %>%
-              group_by(known_id) %>%
+            fec_gms_fem <- data_foc_out |>
+              group_by(known_id,candidate_id) |>
+              summarise(seed_couple=n()) |>
+              left_join(rs_gms_fem) |>
+              mutate(rs_couple=(seed_couple/(seed_self+seed_out))*sr_fem_total) |>
+              group_by(known_id) |>
               summarise(fec=mean(rs_couple))
             
             # merge tables and verification
-            var_dec_gms_fem <- rs_gms_fem %>%
-              left_join(gms_gms_fem) %>%
-              left_join(fec_gms_fem) %>%
-              replace(is.na(.),0) %>%
+            var_dec_gms_fem <- rs_gms_fem |>
+              left_join(gms_gms_fem) |>
+              left_join(fec_gms_fem) |>
+              replace(is.na(.),0) |>
               mutate(mult=gms*fec,
                      verif=ifelse(rs==mult,1,0)) # ok
             
             # including 0
             if(put_0==TRUE){
-              var_dec_gms_fem <- var_dec_gms_fem %>%
-                bind_rows(data_id_foc %>%
-                            filter(!id %in% var_dec_gms_fem$known_id) %>%
-                            select(id) %>%
-                            rename(known_id=id) %>%
+              var_dec_gms_fem <- var_dec_gms_fem |>
+                bind_rows(data_id_foc |>
+                            filter(!id %in% var_dec_gms_fem$known_id) |>
+                            select(id) |>
+                            rename(known_id=id) |>
                             mutate(rs=0,gms=0))
             }
             
             # relativization
-            var_dec_gms_fem <- var_dec_gms_fem %>%
+            var_dec_gms_fem <- var_dec_gms_fem |>
               mutate(r_rs=rs/mean(rs,na.rm=T),
                      r_gms=gms/mean(gms,na.rm=T),
                      r_fec=fec/mean(fec,na.rm=T))
             
             # final table for females
-            var_dec_gms_fem_anal <- var_dec_gms_fem %>%
+            var_dec_gms_fem_anal <- var_dec_gms_fem |>
               summarise(rs = var(r_rs,na.rm=T),
                         gms = var(r_gms,na.rm=T),
                         fec = var(r_fec,na.rm=T),
@@ -1433,7 +1529,7 @@ get_data_sem_complete_sessions <- function(data_true_rs_ms, data_proxy, cols="co
 #' 
 #' @export
 
-get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_proxy, data_parent_share, cols="co10") {
+get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_id, data_proxy, data_parent_share, cols="co10") {
   
   data_sem <- data_id_sampled_sessions |>
     select(session, ID_full, type, r_SR_out, r_SR_all, poll_treat_factor,
@@ -1449,10 +1545,11 @@ get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_proxy, 
            r_mean_ps_all = mean_ps_all / mean(mean_ps_all,na.rm = T)) |>
     ungroup() |>
     select(!c(mean_ps,mean_ps_all)) |>
+        left_join(data_id %>% select(id, r_contact_id, r_dur_tot, r_mean_position, r_nb_visits, r_nb_flower_visited)) |>
     left_join(
       data_proxy |>
         select(id, session,
-               nb_flo_open,nb_flo_all,height_max,height_mean,nb_stem,
+               nb_flo,nb_flo_open,nb_flo_all,height_max,height_mean,nb_stem,
                !!sym(paste0("oms_fem_", cols)),
                !!sym(paste0("oms_mal_", cols))) |>
         group_by(session) |>
@@ -1569,8 +1666,8 @@ compute_predictions_oms_proxy <- function(linear_models_oms_proxy,data_proxy_lon
     stat = "mean",
     type = "linear.prediction",
     include.resid.var = FALSE
-  ) %>%
-    cbind(x_seq) %>%
+  ) |>
+    cbind(x_seq) |>
     mutate(var = "raw",
            cat = "id level")
   
@@ -1597,8 +1694,8 @@ compute_predictions_oms_proxy <- function(linear_models_oms_proxy,data_proxy_lon
     stat = "mean",
     type = "linear.prediction",
     include.resid.var = FALSE
-  ) %>%
-    cbind(x_seq) %>%
+  ) |>
+    cbind(x_seq) |>
     mutate(var = "raw * oms",
            cat = "id level")
   
@@ -1625,8 +1722,8 @@ compute_predictions_oms_proxy <- function(linear_models_oms_proxy,data_proxy_lon
     stat = "mean",
     type = "linear.prediction",
     include.resid.var = FALSE
-  ) %>%
-    cbind(x_seq) %>%
+  ) |>
+    cbind(x_seq) |>
     mutate(var = "raw",
            cat = "flower level")
   
@@ -1653,8 +1750,8 @@ compute_predictions_oms_proxy <- function(linear_models_oms_proxy,data_proxy_lon
     stat = "mean",
     type = "linear.prediction",
     include.resid.var = FALSE
-  ) %>%
-    cbind(x_seq) %>%
+  ) |>
+    cbind(x_seq) |>
     mutate(var = "raw * oms",
            cat = "flower level")
   
@@ -1681,8 +1778,8 @@ compute_predictions_oms_proxy <- function(linear_models_oms_proxy,data_proxy_lon
     stat = "mean",
     type = "linear.prediction",
     include.resid.var = FALSE
-  ) %>%
-    cbind(x_seq) %>%
+  ) |>
+    cbind(x_seq) |>
     mutate(var = "raw",
            cat = "duration")
   
@@ -1709,16 +1806,16 @@ compute_predictions_oms_proxy <- function(linear_models_oms_proxy,data_proxy_lon
     stat = "mean",
     type = "linear.prediction",
     include.resid.var = FALSE
-  ) %>%
-    cbind(x_seq) %>%
+  ) |>
+    cbind(x_seq) |>
     mutate(var = "raw * oms",
            cat = "duration")
   
-  pred_df <- ci_A1 %>%
-    bind_rows(ci_A3) %>%
-    bind_rows(ci_B1) %>%
-    bind_rows(ci_B3) %>%
-    bind_rows(ci_C1) %>%
+  pred_df <- ci_A1 |>
+    bind_rows(ci_A3) |>
+    bind_rows(ci_B1) |>
+    bind_rows(ci_B3) |>
+    bind_rows(ci_C1) |>
     bind_rows(ci_C3)
   
   return(pred_df)
@@ -1778,7 +1875,7 @@ get_piecewise_general <- function(data_sem_sampled_sessions, target_ttt = "low",
                                   target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean"),
                                   x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4") {
   
-  data_target <- data_sem_sampled_sessions %>% 
+  data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
   
   formula1 <- reformulate(target_traits, response = "r_oms")
@@ -1825,7 +1922,7 @@ get_piecewise_males <- function(data_sem_sampled_sessions, target_ttt = "low", t
                                   target_traits = c("r_nb_flo_open","r_height_mean"),
                                   x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1), color = "bisque4") {
   
-  data_target <- data_sem_sampled_sessions %>% 
+  data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
   
   formula1 <- reformulate(target_traits, response = "r_oms")
@@ -1876,7 +1973,7 @@ get_piecewise_females <- function(data_sem_sampled_sessions, target_ttt = "low",
                                 target_traits = c("r_nb_flo_open","r_height_mean"),
                                 x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1), color = "bisque4") {
   
-  data_target <- data_sem_sampled_sessions %>% 
+  data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
   
   formula1 <- reformulate(target_traits, response = "r_oms")
@@ -1908,4 +2005,343 @@ get_piecewise_females <- function(data_sem_sampled_sessions, target_ttt = "low",
   
   return(list(summary = summary,
               plot = plot))
+}
+
+#' Get linear models for pollinator visits
+#'
+#' @description ...
+#'
+#' @param data ...
+#'
+#' @return ...
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_analyses_visits <- function(data_id) {
+  
+  # simple description
+  data_id |> 
+    group_by(ttt) |> 
+    summarise(mean_nb_visits = mean(nb_visits, na.rm = T),
+              var_nb_visits = var(nb_visits, na.rm = T))
+  
+  ggplot(data = data_id, aes(x = ttt, y = nb_visits)) + 
+    geom_violin(trim = FALSE) + 
+    stat_summary(
+      fun.data = "mean_sdl",  fun.args = list(mult = 1), 
+      geom = "pointrange", color = "black"
+    )
+           
+  
+  data_id <- data_id |>
+    mutate(visited_or_not = ifelse(contact_id == 0, 0, 1))
+  
+  ggplot(data = data_id, aes(x = ttt, y = visited_or_not)) + 
+    geom_violin(trim = FALSE) + 
+    stat_summary(
+      fun.data = "mean_sdl",  fun.args = list(mult = 1), 
+      geom = "pointrange", color = "black"
+    )
+  
+  ggplot(data = data_id, aes(x = ttt, y = nb_flower_visited)) + 
+    geom_violin(trim = FALSE) + 
+    stat_summary(
+      fun.data = "mean_sdl",  fun.args = list(mult = 1), 
+      geom = "pointrange", color = "black"
+    )
+  
+  mod_visited_or_not <- lme4::glmer(data= data_id, visited_or_not ~ ttt + (1|session), family = binomial)
+  car::Anova(mod_visited_or_not)
+  summary(mod_visited_or_not)
+  emmeans::contrast(emmeans::emmeans(mod_visited_or_not, "ttt"), "pairwise", adjust = "Tukey")
+  
+  # for the beta distribution, can't be exactly 1
+  eps <- 1e-6 
+  data_id$r_mean_position <- pmin(pmax(data_id$r_mean_position, eps), 1 - eps)
+  
+  # to avoid convergence problem, centered-scaled variables
+  # data_id$nb_flo_open_z <- scale(data_id$nb_flo_open)
+  # data_id$height_mean_z <- scale(data_id$height_mean)
+  # if absolute mean position, need to use beta family
+  # mod_pos_tot <- glmmTMB::glmmTMB(
+  #   r_mean_position ~ r_nb_flo_open * ttt + r_height_mean * ttt + (1 | session),
+  #   family = glmmTMB::beta_family(link = "logit"),
+  #   data = data_id %>% filter(!is.na(r_mean_position))
+  # )
+  
+  mod_pos_tot <- lme4::lmer(data=data_id,r_mean_position~r_nb_flo_open*ttt+r_height_mean*ttt+(1|session))
+  mod_pos_tot_anova <- car::Anova(mod_pos_tot)
+  mod_pos_tot_summary <- summary(mod_pos_tot)
+  
+  # if absolute contact number need to use poisson family
+  mod_contact_id_tot <- lme4::lmer(data=data_id,r_contact_id~r_nb_flo_open*ttt+r_height_mean*ttt+(1|session))
+  # performance::check_overdispersion(mod_contact_id_tot)
+  mod_contact_id_tot_anova <- car::Anova(mod_contact_id_tot)
+  mod_contact_id_tot_summary <- summary(mod_contact_id_tot)
+  
+  mod_dur_tot <- lme4::lmer(data=data_id,r_dur_tot~r_nb_flo_open*ttt+r_height_mean*ttt+(1|session))
+  mod_dur_tot_anova <- car::Anova(mod_dur_tot)
+  mod_dur_tot_summary <- summary(mod_dur_tot)
+  
+  mod_nb_visits_tot <- lme4::lmer(data=data_id,r_nb_visits~r_nb_flo_open*ttt+r_height_mean*ttt+(1|session))
+  # performance::check_overdispersion(mod_nb_visits_tot)
+  mod_nb_visits_tot_anova <- car::Anova(mod_nb_visits_tot)
+  mod_nb_visits_tot_summary <- summary(mod_nb_visits_tot)
+  
+  data_id_low <- data_id |>
+    filter(ttt == "1_low")
+  
+  mod_pos_low <- lme4::lmer(data=data_id_low,r_mean_position~r_nb_flo_open+r_height_mean+(1|session))
+  mod_pos_low_anova <- car::Anova(mod_pos_low)
+  mod_pos_low_summary <- summary(mod_pos_low)
+  
+  mod_contact_id_low <- lme4::lmer(data=data_id_low,r_contact_id~r_nb_flo_open+r_height_mean+(1|session))
+  mod_contact_id_low_anova <- car::Anova(mod_contact_id_low)
+  mod_contact_id_low_summary <- summary(mod_contact_id_low)
+  
+  mod_dur_low <- lme4::lmer(data=data_id_low,r_dur_tot~r_nb_flo_open+r_height_mean+(1|session))
+  mod_dur_low_anova <- car::Anova(mod_dur_low)
+  mod_dur_low_summary <- summary(mod_dur_low)
+  
+  mod_nb_visits_low <- lme4::lmer(data=data_id_low,r_nb_visits~r_nb_flo_open+r_height_mean+(1|session))
+  mod_nb_visits_low_anova <- car::Anova(mod_nb_visits_low)
+  mod_nb_visits_low_summary <- summary(mod_nb_visits_low)
+  
+  data_id_medium <- data_id |>
+    filter(ttt == "2_medium")
+  
+  mod_pos_medium <- lme4::lmer(data=data_id_medium,r_mean_position~r_nb_flo_open+r_height_mean+(1|session))
+  mod_pos_medium_anova <- car::Anova(mod_pos_medium)
+  mod_pos_medium_summary <- summary(mod_pos_medium)
+  
+  mod_contact_id_medium <- lme4::lmer(data=data_id_medium,r_contact_id~r_nb_flo_open+r_height_mean+(1|session))
+  mod_contact_id_medium_anova <- car::Anova(mod_contact_id_medium)
+  mod_contact_id_medium_summary <- summary(mod_contact_id_medium)
+  
+  mod_dur_medium <- lme4::lmer(data=data_id_medium,r_dur_tot~r_nb_flo_open+r_height_mean+(1|session))
+  mod_dur_medium_anova <- car::Anova(mod_dur_medium)
+  mod_dur_medium_summary <- summary(mod_dur_medium)
+  
+  mod_nb_visits_medium <- lme4::lmer(data=data_id_medium,r_nb_visits~r_nb_flo_open+r_height_mean+(1|session))
+  mod_nb_visits_medium_anova <- car::Anova(mod_nb_visits_medium)
+  mod_nb_visits_medium_summary <- summary(mod_nb_visits_medium)
+  
+  data_id_high <- data_id |>
+    filter(ttt == "3_high")
+  
+  mod_pos_high <- lme4::lmer(data=data_id_high,r_mean_position~r_nb_flo_open+r_height_mean+(1|session))
+  mod_pos_high_anova <- car::Anova(mod_pos_high)
+  mod_pos_high_summary<- summary(mod_pos_high)
+  
+  mod_contact_id_high <- lme4::lmer(data=data_id_high,r_contact_id~r_nb_flo_open+r_height_mean+(1|session))
+  mod_contact_id_high_anova <- car::Anova(mod_contact_id_high)
+  mod_contact_id_high_summary <- summary(mod_contact_id_high)
+  
+  mod_dur_high <- lme4::lmer(data=data_id_high,r_dur_tot~r_nb_flo_open+r_height_mean+(1|session))
+  mod_dur_high_anova <- car::Anova(mod_dur_high)
+  mod_dur_high_summary <- summary(mod_dur_high)
+  
+  mod_nb_visits_high <- lme4::lmer(data=data_id_high,r_nb_visits~r_nb_flo_open+r_height_mean+(1|session))
+  mod_nb_visits_high_anova <- car::Anova(mod_nb_visits_high)
+  mod_nb_visits_high_summary <- summary(mod_nb_visits_high)
+  
+  return(list(mod_pos_tot_anova = mod_pos_tot_anova,
+              mod_pos_tot_summary = mod_pos_tot_summary,
+              mod_contact_id_tot_anova = mod_contact_id_tot_anova,
+              mod_contact_id_tot_summary = mod_contact_id_tot_summary,
+              mod_dur_tot_anova = mod_dur_tot_anova,
+              mod_dur_tot_summary = mod_dur_tot_summary,
+              mod_nb_visits_tot_anova = mod_nb_visits_tot_anova,
+              mod_nb_visits_tot_summary = mod_nb_visits_tot_summary,
+              mod_pos_low_anova = mod_pos_low_anova,
+              mod_pos_low_summary = mod_pos_low_summary,
+              mod_contact_id_low_anova = mod_contact_id_low_anova,
+              mod_contact_id_low_summary = mod_contact_id_low_summary,
+              mod_dur_low_anova = mod_dur_low_anova,
+              mod_dur_low_summary = mod_dur_low_summary,
+              mod_nb_visits_low_anova = mod_nb_visits_low_anova,
+              mod_nb_visits_low_summary = mod_nb_visits_low_summary,
+              mod_pos_medium_anova = mod_pos_medium_anova,
+              mod_pos_medium_summary = mod_pos_medium_summary,
+              mod_contact_id_medium_anova = mod_contact_id_medium_anova,
+              mod_contact_id_medium_summary = mod_contact_id_medium_summary,
+              mod_dur_medium_anova = mod_dur_medium_anova,
+              mod_dur_medium_summary = mod_dur_medium_summary,
+              mod_nb_visits_medium_anova = mod_nb_visits_medium_anova,
+              mod_nb_visits_medium_summary = mod_nb_visits_medium_summary,
+              mod_pos_high_anova = mod_pos_high_anova,
+              mod_pos_high_summary = mod_pos_high_summary,
+              mod_contact_id_high_anova = mod_contact_id_high_anova,
+              mod_contact_id_high_summary = mod_contact_id_high_summary,
+              mod_dur_high_anova = mod_dur_high_anova,
+              mod_dur_high_summary = mod_dur_high_summary,
+              mod_nb_visits_high_anova = mod_nb_visits_high_anova,
+              mod_nb_visits_high_summary = mod_nb_visits_high_summary
+              ))
+}
+
+#' SEM analyses with piecewise - males with paternity share and visits
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_males_visits <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                       target_sr = "r_sr_all", target_ps = "r_mean_ps",
+                                       target_traits = c("r_nb_flo_open","r_height_mean"),
+                                       # x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1), 
+                                       x_coord = c(1.5,2.5,1.25,1.5,1.75,2,1,3), y_coord = c(2,2,4,1.5,1.5,1.5,1,1), 
+                                       color = "bisque4") {
+  
+  data_target <- data_sem_sampled_sessions |> 
+    filter(ttt == target_ttt & sex == target_sex)
+  
+  formula1a <- reformulate(target_traits, response = "r_mean_position")
+  formula1a <- update(formula1a, . ~ . + (1|session))
+  
+  formula1b <- reformulate(target_traits, response = "contact_id")
+  formula1b <- update(formula1b, . ~ . + (1|session))
+  
+  formula1c <- reformulate(target_traits, response = "dur_tot")
+  formula1c <- update(formula1c, . ~ . + (1|session))
+  
+  formula1d <- reformulate(c("r_mean_position","contact_id","dur_tot"), response = "r_oms")
+  formula1d <- update(formula1d, . ~ . + (1|session))
+  
+  formula2 <- reformulate(c("r_oms", target_ps), response = target_sr)
+  formula2 <- update(formula2, . ~ . + (1|session))
+  
+  formula3 <- reformulate(target_traits, response = target_ps)
+  formula3 <- update(formula3, . ~ . + (1|session))
+  
+  psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_target,formula1a),
+                                   
+                                   lme4::lmer(data=data_target,formula1b),
+                                   
+                                   lme4::lmer(data=data_target,formula1c),
+                                   
+                                   lme4::lmer(data=data_target,formula1d),
+                                   
+                                   lme4::lmer(data=data_target,formula2),
+                                   
+                                   lme4::lmer(data=data_target,formula3))
+  
+  plot <- plot(psem_proxy,
+               
+               node_attrs = data.frame(fillcolor = color,
+                                       
+                                       x = x_coord, y = y_coord,
+                                       
+                                       fontsize=6),
+               
+               edge_attrs = data.frame(fontsize=6))
+  
+  summary <- summary(psem_proxy)
+  
+  return(list(summary = summary,
+              plot = plot))
+}
+
+#' SEM analyses with piecewise - visits and oms
+#'
+#' @description 
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_visits <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                 target_traits = c("r_nb_flo_open","r_height_mean"),
+                                 x_coord = c(1,2,3,4,5,3,2,4), y_coord = c(2,2,2,2,2,3,1,1), 
+                                 color = "bisque4") {
+  
+  data_target <- data_sem_sampled_sessions |> 
+    filter(ttt == target_ttt & sex == target_sex)
+  
+  formula1a <- reformulate(target_traits, response = "r_mean_position")
+  formula1a <- update(formula1a, . ~ . + (1|session))
+  
+  formula1b <- reformulate(target_traits, response = "r_contact_id")
+  formula1b <- update(formula1b, . ~ . + (1|session))
+  
+  formula1c <- reformulate(target_traits, response = "r_dur_tot")
+  formula1c <- update(formula1c, . ~ . + (1|session))
+  
+  formula1d <- reformulate(target_traits, response = "r_nb_visits")
+  formula1d <- update(formula1d, . ~ . + (1|session))
+  
+  formula1e <- reformulate(target_traits, response = "r_nb_flower_visited")
+  formula1e <- update(formula1e, . ~ . + (1|session))
+  
+  formula2 <- reformulate(c("r_mean_position","r_contact_id","r_dur_tot","r_nb_visits","r_nb_flower_visited"), response = "r_oms")
+  formula2 <- update(formula2, . ~ . + (1|session))
+  
+  
+  psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_target,formula1a),
+                                   
+                                   lme4::lmer(data=data_target,formula1b),
+                                   
+                                   lme4::lmer(data=data_target,formula1c),
+                                   
+                                   lme4::lmer(data=data_target,formula1d),
+                                   
+                                   lme4::lmer(data=data_target,formula1e),
+                                   
+                                   lme4::lmer(data=data_target,formula2))
+  
+  plot <- plot(psem_proxy,
+               
+               node_attrs = data.frame(fillcolor = color,
+                                       
+                                       x = x_coord, y = y_coord,
+                                       
+                                       fontsize=6),
+               
+               edge_attrs = data.frame(fontsize=6))
+  
+  summary <- summary(psem_proxy)
+  
+  return(list(summary = summary,
+              plot = plot))
+}
+
+#' Analyses on selfed versus outcrossed seeds through the female function
+#'
+#' @description 
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_selfing <- function(data_id) {
+  
+  mod_prop_selfing <- lme4::glmer(data = data_id, cbind(sr_self, sr_fem_out) ~ ttt + (1|session), family = "binomial")
+  car::Anova(mod_prop_selfing)
+  summary(mod_prop_selfing)
+  
+  data_id <- data_id |>
+    mutate(prop_selfing = sr_self / (sr_fem_out + sr_self))
+  
+  car::leveneTest(prop_selfing ~ ttt, data = data_id)
+  
+  data_id |>
+    group_by(ttt) |>
+    summarise(mean_prop_selfing = mean(prop_selfing, na.rm = T),
+              var_prop_selfing = var(prop_selfing, na.rm = T))
 }
