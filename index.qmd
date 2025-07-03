@@ -1243,6 +1243,7 @@ Females:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewisefemales_sr_low_combi1)
 piecewisefemales_sr_low_combi1$plot
+piecewisefemales_sr_low_combi1$summary
 ```
 :::
 
@@ -1363,7 +1364,7 @@ analyses_visits$mod_pos_tot_anova
 
 # Explaining pollinator visits with piecewise
 
-## With nb_flo_open and height_mean 
+With nb_flo_open and height_mean 
 
 **For the low treatment :**
 
@@ -1374,6 +1375,7 @@ Females:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewise_visits_female_low)
 piecewise_visits_female_low$plot
+piecewise_visits_female_low$summary
 ```
 :::
 
@@ -1383,7 +1385,7 @@ Males:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewise_visits_male_low)
 piecewise_visits_male_low$plot
-
+piecewise_visits_male_low$summary
 ```
 :::
 :::::
@@ -1397,6 +1399,7 @@ Females:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewise_visits_female_medium)
 piecewise_visits_female_medium$plot
+piecewise_visits_female_medium$summary
 ```
 :::
 
@@ -1406,6 +1409,7 @@ Males:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewise_visits_male_medium)
 piecewise_visits_male_medium$plot
+piecewise_visits_male_medium$summary
 
 ```
 :::
@@ -1420,6 +1424,7 @@ Females:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewise_visits_female_high)
 piecewise_visits_female_high$plot
+piecewise_visits_female_high$summary
 ```
 :::
 
@@ -1429,7 +1434,39 @@ Males:
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 targets::tar_load(piecewise_visits_male_high)
 piecewise_visits_male_high$plot
-
+piecewise_visits_male_high$summary
 ```
 :::
 :::::
+
+# At the flower scale
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_flower_low)
+piecewise_flower_low$plot
+piecewise_flower_low$summary
+
+```
+
+**For the medium treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_flower_medium)
+piecewise_flower_medium$plot
+piecewise_flower_medium$summary
+
+```
+
+**For the high treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_flower_high)
+piecewise_flower_high$plot
+piecewise_flower_high$summary
+
+```

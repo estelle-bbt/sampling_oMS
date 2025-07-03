@@ -53,7 +53,8 @@ get_resume_visits <- function(file_path) {
     rename(id=ID_full) |> 
     group_by(id) |>
     summarise(nb_visits = n(),
-              nb_flower_visited = n_distinct(id_flow_full))
+              nb_flower_visited = n_distinct(id_flow_full)) |>
+    mutate(nb_visits_per_flower = nb_visits / nb_flower_visited)
   
   data_resume_visits <- data_arrival_with_bee |>
     group_by(session,id,people) |>
@@ -64,6 +65,7 @@ get_resume_visits <- function(file_path) {
               dur_tot=sum(dur_tot_bee,na.rm=T)) |>
     left_join(data_position) |>
     left_join(data_nb_visits) |> 
+    mutate(dur_per_visit = dur_tot / nb_visits) |>
     mutate(ttt=as.factor(case_when(grepl("FA",session)~"1_low",
                                    grepl("MO",session)~"2_medium",
                                    TRUE~"3_high"))) 
@@ -99,8 +101,8 @@ load_data_id <- function(file_path, data_resume_visits, cols = c("co5", "co10", 
   data_id <- read.table(file_path,head=T) |>
     rename(id = ID_full) |>
     select(session, id, nbGr_SR_sum,
-           nb_flo, nb_flo_open, nb_flo_all, height_max, height_mean, nb_stem, nb_poll_focal,
-           SR_fem_out, SR_self,
+           nb_flo, nb_flo_open, nb_flo_all, height_max, height_mean, nb_stem, nb_poll_focal, pl_mean,
+           SR_fem_out, SR_self, SR_fem_out_share,
            !!!syms(paste0("import_nb_part_ID_all_", cols)),
            !!!syms(paste0("export_nb_part_ID_all_", cols)),
            !!!syms(paste0("import_nb_part_ID_out_", cols)),
@@ -108,6 +110,7 @@ load_data_id <- function(file_path, data_resume_visits, cols = c("co5", "co10", 
            !!!syms(paste0("import_nb_part_flo_out_", cols)),
            !!!syms(paste0("export_nb_part_flo_out_", cols))) |>
     rename(sr_fem_out = SR_fem_out,
+           sr_fem_out_share = SR_fem_out_share,
            sr_self = SR_self)
   
   # for(c in cols){
@@ -162,12 +165,14 @@ load_data_id <- function(file_path, data_resume_visits, cols = c("co5", "co10", 
 load_data_flower <- function(file_path, cols = c("co5", "co10", "co20")){
   
   data_flower <- read.table(file_path,head=T) |>
+    mutate(selfing_or_not = gMS_fem_all - gMS_fem_out) |>
     rename(id = ID_full) |>
-    select(session, id, id_flow, nbGr_SR,
+    select(session, id, id_flow, nbGr_SR, selfing_or_not, pl, nb_visit,
            !!!syms(paste0("import_nb_part_ID_all_", cols)),
            !!!syms(paste0("export_nb_part_ID_all_", cols)),
            !!!syms(paste0("import_nb_part_ID_out_", cols)),
            !!!syms(paste0("export_nb_part_ID_out_", cols))) |>
+    rename(nb_seeds = nbGr_SR) |>
     mutate(ttt=as.factor(case_when(grepl("FA",session)~"1_low",
                                    grepl("MO",session)~"2_medium",
                                    TRUE~"3_high")),.before = 2)
@@ -1545,7 +1550,7 @@ get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_id, dat
            r_mean_ps_all = mean_ps_all / mean(mean_ps_all,na.rm = T)) |>
     ungroup() |>
     select(!c(mean_ps,mean_ps_all)) |>
-        left_join(data_id %>% select(id, r_contact_id, r_dur_tot, r_mean_position, r_nb_visits, r_nb_flower_visited)) |>
+        left_join(data_id %>% select(id, r_contact_id, r_dur_tot, r_mean_position, r_nb_visits, r_nb_flower_visited, r_dur_per_visit, r_nb_visits_per_flower)) |>
     left_join(
       data_proxy |>
         select(id, session,
@@ -1894,9 +1899,7 @@ get_piecewise_general <- function(data_sem_sampled_sessions, target_ttt = "low",
                                        
                                        x = x_coord, y = y_coord,
                                        
-                                       fontsize=6),
-               
-               edge_attrs = data.frame(fontsize=6))
+                                       fontsize=6))
   
   summary <- summary(psem_proxy)
   
@@ -1921,9 +1924,12 @@ get_piecewise_males <- function(data_sem_sampled_sessions, target_ttt = "low", t
                                   target_sr = "r_sr_all", target_ps = "r_mean_ps",
                                   target_traits = c("r_nb_flo_open","r_height_mean"),
                                   x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1), color = "bisque4") {
+
   
   data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
+  
+  cor.test(data_target$r_oms,data_target$r_mean_ps)
   
   formula1 <- reformulate(target_traits, response = "r_oms")
   formula1 <- update(formula1, . ~ . + (1|session))
@@ -1946,9 +1952,7 @@ get_piecewise_males <- function(data_sem_sampled_sessions, target_ttt = "low", t
                                        
                                        x = x_coord, y = y_coord,
                                        
-                                       fontsize=6),
-               
-               edge_attrs = data.frame(fontsize=6))
+                                       fontsize=6))
   
   summary <- summary(psem_proxy)
   
@@ -1997,9 +2001,111 @@ get_piecewise_females <- function(data_sem_sampled_sessions, target_ttt = "low",
                                        
                                        x = x_coord, y = y_coord,
                                        
-                                       fontsize=6),
+                                       fontsize=6))
+  
+  summary <- summary(psem_proxy)
+  
+  return(list(summary = summary,
+              plot = plot))
+}
+
+#' SEM analyses with multigroup females - effect of ttt
+#'
+#' @description piecewise adapted only to females
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_multigroup_females <- function(data_sem_sampled_sessions, target_sex = "fem",
+                                  target_sr = "r_sr_all",
+                                  x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1), color = "bisque4") {
+  
+  data_target <- data_sem_sampled_sessions |> 
+    filter(sex == target_sex) |>
+    mutate(ttt = as.factor(ttt)) |>
+    mutate(
+      r_nb_flo_open_ttt = r_nb_flo_open * as.numeric(ttt),
+      r_height_mean_ttt = r_height_mean * as.numeric(ttt),
+      r_oms_ttt = r_oms * as.numeric(ttt),
+      r_mean_ps_ttt = r_mean_ps * as.numeric(ttt)
+    )
+  
+  formula1 <- as.formula("r_oms ~ r_nb_flo_open + r_height_mean + r_nb_flo_open_ttt + r_height_mean_ttt + (1|session)")
+  
+  formula2 <- as.formula(paste(target_sr, "~ r_oms + r_mean_ps + r_nb_flo_open + r_oms_ttt + r_mean_ps_ttt + r_nb_flo_open_ttt + (1|session)"))
+  
+  formula3 <- as.formula("r_mean_ps ~ r_nb_flo_open + r_height_mean + r_nb_flo_open_ttt + r_height_mean_ttt + (1|session)")
+  
+  psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_target,formula1),
+                                   
+                                   lme4::lmer(data=data_target,formula2),
+                                   
+                                   lme4::lmer(data=data_target,formula3))
+  
+  plot <- plot(psem_proxy,
                
-               edge_attrs = data.frame(fontsize=6))
+               node_attrs = data.frame(fillcolor = color,
+                                       
+                                       # x = x_coord, y = y_coord,
+                                       
+                                       fontsize=6))
+  
+  summary <- summary(psem_proxy)
+  
+  return(list(summary = summary,
+              plot = plot))
+}
+
+#' SEM analyses with multigroup females - effect of ttt
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_multigroup_males <- function(data_sem_sampled_sessions, target_sex = "mal",
+                                   target_sr = "r_sr_all",
+                                   x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1), color = "bisque4") {
+  
+  data_target <- data_sem_sampled_sessions |> 
+    filter(sex == target_sex) |>
+    mutate(ttt = as.factor(ttt)) |>
+    mutate(
+      r_nb_flo_open_ttt = r_nb_flo_open * as.numeric(ttt),
+      r_height_mean_ttt = r_height_mean * as.numeric(ttt),
+      r_oms_ttt = r_oms * as.numeric(ttt),
+      r_mean_ps_ttt = r_mean_ps * as.numeric(ttt)
+    )
+  
+  formula1 <- as.formula("r_oms ~ r_nb_flo_open + r_height_mean + r_nb_flo_open_ttt + r_height_mean_ttt + (1|session)")
+  
+  formula2 <- as.formula(paste(target_sr, "~ r_oms + r_mean_ps + r_oms_ttt + r_mean_ps_ttt + (1|session)"))
+  
+  formula3 <- as.formula("r_mean_ps ~ r_nb_flo_open + r_height_mean + r_nb_flo_open_ttt + r_height_mean_ttt + (1|session)")
+  
+  psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_target,formula1),
+                                   
+                                   lme4::lmer(data=data_target,formula2),
+                                   
+                                   lme4::lmer(data=data_target,formula3))
+  
+  plot <- plot(psem_proxy,
+               
+               node_attrs = data.frame(fillcolor = color,
+                                       
+                                       # x = x_coord, y = y_coord,
+                                       
+                                       fontsize=6))
   
   summary <- summary(psem_proxy)
   
@@ -2025,7 +2131,9 @@ get_analyses_visits <- function(data_id) {
   data_id |> 
     group_by(ttt) |> 
     summarise(mean_nb_visits = mean(nb_visits, na.rm = T),
-              var_nb_visits = var(nb_visits, na.rm = T))
+              var_nb_visits = var(nb_visits, na.rm = T),
+              mean_contact_id = mean(contact_id, na.rm = T),
+              var_contact_id = var(contact_id, na.rm = T))
   
   ggplot(data = data_id, aes(x = ttt, y = nb_visits)) + 
     geom_violin(trim = FALSE) + 
@@ -2046,6 +2154,17 @@ get_analyses_visits <- function(data_id) {
     )
   
   ggplot(data = data_id, aes(x = ttt, y = nb_flower_visited)) + 
+    geom_violin(trim = FALSE) + 
+    stat_summary(
+      fun.data = "mean_sdl",  fun.args = list(mult = 1), 
+      geom = "pointrange", color = "black"
+    )
+  
+  data_id_resume <- data_id %>%
+    group_by(session,ttt) %>%
+    summarise(sum_visited = sum(visited_or_not, na.rm=T))
+  
+  ggplot(data = data_id_resume, aes(x = ttt, y = sum_visited)) + 
     geom_violin(trim = FALSE) + 
     stat_summary(
       fun.data = "mean_sdl",  fun.args = list(mult = 1), 
@@ -2240,9 +2359,7 @@ get_piecewise_males_visits <- function(data_sem_sampled_sessions, target_ttt = "
                                        
                                        x = x_coord, y = y_coord,
                                        
-                                       fontsize=6),
-               
-               edge_attrs = data.frame(fontsize=6))
+                                       fontsize=6))
   
   summary <- summary(psem_proxy)
   
@@ -2250,7 +2367,7 @@ get_piecewise_males_visits <- function(data_sem_sampled_sessions, target_ttt = "
               plot = plot))
 }
 
-#' SEM analyses with piecewise - visits and oms
+#' SEM analyses with piecewise - visits and oms (old)
 #'
 #' @description 
 #'
@@ -2262,7 +2379,7 @@ get_piecewise_males_visits <- function(data_sem_sampled_sessions, target_ttt = "
 #' 
 #' @export
 
-get_piecewise_visits <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+get_piecewise_visits_old <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
                                  target_traits = c("r_nb_flo_open","r_height_mean"),
                                  x_coord = c(1,2,3,4,5,3,2,4), y_coord = c(2,2,2,2,2,3,1,1), 
                                  color = "bisque4") {
@@ -2288,6 +2405,69 @@ get_piecewise_visits <- function(data_sem_sampled_sessions, target_ttt = "low", 
   formula2 <- reformulate(c("r_mean_position","r_contact_id","r_dur_tot","r_nb_visits","r_nb_flower_visited"), response = "r_oms")
   formula2 <- update(formula2, . ~ . + (1|session))
   
+  psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_target,formula1a),
+                                   
+                                   lme4::lmer(data=data_target,formula1b),
+                                   
+                                   lme4::lmer(data=data_target,formula1c),
+                                   
+                                   lme4::lmer(data=data_target,formula1d),
+                                   
+                                   lme4::lmer(data=data_target,formula1e),
+                                   
+                                   lme4::lmer(data=data_target,formula2))
+  
+  plot <- plot(psem_proxy,
+               
+               node_attrs = data.frame(fillcolor = color,
+                                       
+                                       x = x_coord, y = y_coord,
+                                       
+                                       fontsize=6))
+  
+  summary <- summary(psem_proxy)
+  
+  return(list(summary = summary,
+              plot = plot))
+}
+
+#' SEM analyses with piecewise - visits and oms (updated with decorrelated visit proxy)
+#'
+#' @description 
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_visits <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                     target_traits = c("r_nb_flo_open","r_height_mean"),
+                                     x_coord = c(1,2,3,4,5,3,2,4), y_coord = c(2,2,2,2,2,3,1,1), 
+                                     color = "bisque4") {
+  
+  data_target <- data_sem_sampled_sessions |> 
+    filter(ttt == target_ttt & sex == target_sex)
+  
+  formula1a <- reformulate(target_traits, response = "r_mean_position")
+  formula1a <- update(formula1a, . ~ . + (1|session))
+  
+  formula1b <- reformulate(target_traits, response = "r_contact_id")
+  formula1b <- update(formula1b, . ~ . + (1|session))
+  
+  formula1c <- reformulate(target_traits, response = "r_dur_per_visit")
+  formula1c <- update(formula1c, . ~ . + (1|session))
+  
+  formula1d <- reformulate(target_traits, response = "r_nb_visits_per_flower")
+  formula1d <- update(formula1d, . ~ . + (1|session))
+  
+  formula1e <- reformulate(target_traits, response = "r_nb_flower_visited")
+  formula1e <- update(formula1e, . ~ . + (1|session))
+  
+  formula2 <- reformulate(c("r_mean_position","r_contact_id","r_dur_per_visit","r_nb_visits_per_flower","r_nb_flower_visited"), response = "r_oms")
+  formula2 <- update(formula2, . ~ . + (1|session))
   
   psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_target,formula1a),
                                    
@@ -2307,9 +2487,7 @@ get_piecewise_visits <- function(data_sem_sampled_sessions, target_ttt = "low", 
                                        
                                        x = x_coord, y = y_coord,
                                        
-                                       fontsize=6),
-               
-               edge_attrs = data.frame(fontsize=6))
+                                       fontsize=6))
   
   summary <- summary(psem_proxy)
   
@@ -2329,19 +2507,193 @@ get_piecewise_visits <- function(data_sem_sampled_sessions, target_ttt = "low", 
 #' 
 #' @export
 
-get_selfing <- function(data_id) {
-  
-  mod_prop_selfing <- lme4::glmer(data = data_id, cbind(sr_self, sr_fem_out) ~ ttt + (1|session), family = "binomial")
-  car::Anova(mod_prop_selfing)
-  summary(mod_prop_selfing)
-  
+get_selfing <- function(data_id, data_flower) {
+
   data_id <- data_id |>
-    mutate(prop_selfing = sr_self / (sr_fem_out + sr_self))
+    mutate(prop_selfing = sr_self / (sr_fem_out + sr_self),
+           n_genot = sr_self + sr_fem_out) |>
+    mutate(visited_or_not = ifelse(contact_id == 0, "F", "T")) |>
+    group_by(session) |>
+    mutate(r_prop_selfing = prop_selfing / mean(prop_selfing, na.rm = T),
+           r_sr_self = sr_self / mean(sr_self,na.rm = T))
+  
+  
+  mod_prop_selfing_id_01 <- lme4::glmer(data = data_id, cbind(sr_self, sr_fem_out) ~  ttt * nb_visits  + (1|session), family = "binomial")
+  mod_prop_selfing_id_01 <- lme4::lmer(data = data_id, r_sr_self ~  ttt * r_nb_visits + (1|session))
+  mod_prop_selfing_id_01 <- lme4::glmer(data = data_id, sr_self ~  ttt * nb_visits + (1|session), family = "poisson")
+  car::Anova(mod_prop_selfing_id_01)
+  summary(mod_prop_selfing_id_01)
+  
+  mod_prop_selfing_id_01 <- lme4::glmer(data = data_id, cbind(sr_self, sr_fem_out) ~  ttt * nb_flo_open  + (1|session), family = "binomial")
+  mod_prop_selfing_id_01 <- lme4::lmer(data = data_id, r_sr_self ~  ttt * r_nb_flo_open + (1|session))
+  mod_prop_selfing_id_01 <- lme4::glmer(data = data_id, sr_self ~  ttt * nb_flo_open + (1|session), family = "poisson")
+  car::Anova(mod_prop_selfing_id_01)
+  summary(mod_prop_selfing_id_01)
+  
+  mod_prop_selfing_id_02 <- lme4::glmer(data = data_id, cbind(sr_self, sr_fem_out) ~  ttt * r_nb_flo_open + (1|session), family = "binomial")
+  car::Anova(mod_prop_selfing_id_02)
+  summary(mod_prop_selfing_id_02)
+  
+  mod_prop_selfing_id_02 <- lme4::glmer(data = data_id, sr_self ~  ttt * r_nb_visits + (1|session), family = "poisson")
+  car::Anova(mod_prop_selfing_id_02)
+  summary(mod_prop_selfing_id_02)
+  
+  mod_prop_selfing_id_02 <- lme4::glmer(data = data_id, cbind(sr_self, sr_fem_out) ~  ttt * oms_fem_co10 + pl_mean * ttt + (1|session), family = "binomial")
+  car::Anova(mod_prop_selfing_id_02)
+  summary(mod_prop_selfing_id_02)
   
   car::leveneTest(prop_selfing ~ ttt, data = data_id)
+  car::leveneTest(sr_fem_out_share ~ ttt, data = data_id)
+  car::leveneTest(sr_fem_total ~ ttt, data = data_id)
   
   data_id |>
     group_by(ttt) |>
     summarise(mean_prop_selfing = mean(prop_selfing, na.rm = T),
-              var_prop_selfing = var(prop_selfing, na.rm = T))
+              var_prop_selfing = var(prop_selfing, na.rm = T),
+              mean_sr_fem_out_share = mean(sr_fem_out_share, na.rm = T),
+              var_sr_fem_out_share = var(sr_fem_out_share, na.rm = T),
+              mean_sr_fem_total = mean(sr_fem_total, na.rm = T),
+              var_sr_fem_total = var(sr_fem_total, na.rm = T))
+
+  mod_prop_selfing_flower_01 <- lme4::glmer(data = data_flower, selfing_or_not ~ ttt + (1|session) + (1|session:id), family = "binomial")
+  car::Anova(mod_prop_selfing_flower_01)
+  summary(mod_prop_selfing_flower_01)
+  
+  data_flower_resume <- data_flower |>
+    group_by(session,ttt,id) |>
+    summarise(nb_flower_selfing = sum(selfing_or_not, na.rm = T))
+  
+  mod_prop_selfing_flower_02 <- lme4::glmer(data = data_flower_resume, nb_flower_selfing ~ ttt + (1|session), family = "poisson")
+  car::Anova(mod_prop_selfing_flower_02)
+  summary(mod_prop_selfing_flower_02)
+  
+  mod_rs_selfing <- lme4::lmer(data = data_id, r_sr_fem_total ~ prop_selfing * ttt + (1|session))
+  car::Anova(mod_rs_selfing)
+  summary(mod_rs_selfing)
+  
 }
+
+#' SEM analyses with piecewise - flower scale
+#'
+#' @description 
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_flower <- function(data_flower, target_ttt = "1_low",
+                                 x_coord = c(3,2,2,1), y_coord = c(2,1.5,2.5,2), 
+                                 color = "bisque4") {
+  
+  data_target <- data_flower |> 
+    filter(ttt == target_ttt) 
+  
+  formula1a <- reformulate(c("pl","import_nb_part_ID_out_co10"), response = "nb_seeds")
+  formula1a <- update(formula1a, . ~ . + (1|session))
+  
+  formula1b <- reformulate("nb_visit", response = "pl")
+  formula1b <- update(formula1b, . ~ . + (1|session))
+  
+  formula1c <- reformulate("nb_visit", response = "import_nb_part_ID_out_co10")
+  formula1c <- update(formula1c, . ~ . + (1|session))
+  
+  
+  psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_target,formula1a),
+                                   
+                                   lme4::lmer(data=data_target,formula1b),
+                                   
+                                   lme4::lmer(data=data_target,formula1c))
+  
+  plot <- plot(psem_proxy,
+               
+               node_attrs = data.frame(fillcolor = color,
+                                       
+                                       x = x_coord, y = y_coord,
+                                       
+                                       fontsize=6))
+  
+  summary <- summary(psem_proxy)
+  
+  return(list(summary = summary,
+              plot = plot))
+}
+
+#' SEM analyses with piecewise - selfing
+#'
+#' @description 
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_selfing <- function(data_id, target_ttt = "1_low", target_sr = "r_sr_fem_total",
+                                 x_coord = c(3,2,1,0), y_coord = c(2,2,2,2), 
+                                 color = "bisque4") {
+  
+  data_target <- data_id |> 
+    filter(ttt == target_ttt) |>
+    mutate(prop_selfing = sr_self / (sr_fem_out + sr_self))
+    
+  
+  formula1a <- reformulate("prop_selfing", response = target_sr,)
+  formula1a <- update(formula1a, . ~ . + (1|session))
+  
+  formula1b <- reformulate("nb_visits", response = "prop_selfing")
+  formula1b <- update(formula1b, . ~ . + (1|session))
+  
+  formula1c <- reformulate("nb_flo_open", response = "nb_visits")
+  formula1c <- update(formula1c, . ~ . + (1|session))
+  
+  
+  psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_target,formula1a),
+                                   
+                                   lme4::lmer(data=data_target,formula1b),
+                                   
+                                   lme4::lmer(data=data_target,formula1c))
+  
+  plot <- plot(psem_proxy,
+               
+               node_attrs = data.frame(fillcolor = color,
+                                       
+                                       x = x_coord, y = y_coord,
+                                       
+                                       fontsize=6))
+  
+  summary <- summary(psem_proxy)
+  
+  return(list(summary = summary,
+              plot = plot))
+}
+
+# get_piecewise_selfing(data_id, target_ttt = "1_low", target_sr = "r_sr_fem_total",
+#                       x_coord = c(3,2,1,0), y_coord = c(2,2,2,2),
+#                       color = "bisque4")$plot
+# # 
+# get_piecewise_selfing(data_id, target_ttt = "2_medium", target_sr = "r_sr_fem_total",
+#                       x_coord = c(3,2,1,0), y_coord = c(2,2,2,2), 
+#                       color = "bisque4")$plot
+# 
+# get_piecewise_selfing(data_id, target_ttt = "3_high", target_sr = "r_sr_fem_total",
+#                       x_coord = c(3,2,1,0), y_coord = c(2,2,2,2), 
+#                       color = "bisque4")$plot
+# 
+# 
+# get_piecewise_selfing(data_id, target_ttt = "1_low", target_sr = "r_sr_fem_out_share",
+#                       x_coord = c(3,2,1,0), y_coord = c(2,2,2,2),
+#                       color = "bisque4")$plot
+# # 
+# get_piecewise_selfing(data_id, target_ttt = "2_medium", target_sr = "r_sr_fem_out_share",
+#                       x_coord = c(3,2,1,0), y_coord = c(2,2,2,2), 
+#                       color = "bisque4")$plot
+# 
+# get_piecewise_selfing(data_id, target_ttt = "3_high", target_sr = "r_sr_fem_out_share",
+#                       x_coord = c(3,2,1,0), y_coord = c(2,2,2,2), 
+#                       color = "bisque4")$plot

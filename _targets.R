@@ -547,6 +547,19 @@ list(
                                                              color = "orange4")),
   
   
+  ## Piecewise for flower scale ----
+  
+  tar_target(piecewise_flower_low,get_piecewise_flower(data_flower, target_ttt = "1_low",
+                                                            x_coord = c(3,2,2,1), y_coord = c(2,1.5,2.5,2), 
+                                                            color = "bisque4")),
+  
+  tar_target(piecewise_flower_medium,get_piecewise_flower(data_flower, target_ttt = "2_medium",
+                                                       x_coord = c(3,2,2,1), y_coord = c(2,1.5,2.5,2), 
+                                                       color = "orange1")),
+  
+  tar_target(piecewise_flower_high,get_piecewise_flower(data_flower, target_ttt = "3_high",
+                                                       x_coord = c(3,2,2,1), y_coord = c(2,1.5,2.5,2), 
+                                                       color = "orange4")),
   
   
   ## Quarto ----
