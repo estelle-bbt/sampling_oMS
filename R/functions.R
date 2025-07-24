@@ -175,7 +175,12 @@ load_data_flower <- function(file_path, cols = c("co5", "co10", "co20")){
     rename(nb_seeds = nbGr_SR) |>
     mutate(ttt=as.factor(case_when(grepl("FA",session)~"1_low",
                                    grepl("MO",session)~"2_medium",
-                                   TRUE~"3_high")),.before = 2)
+                                   TRUE~"3_high")),
+           ttt_plot=as.factor(case_when(grepl("FA",session)~"Low",
+                                   grepl("MO",session)~"Medium",
+                                   TRUE~"High")),
+           ttt_plot=forcats::fct_relevel(ttt_plot, c("Low","Medium","High")),
+           .before = 2)
   
   for (col in cols) {
     for (type in c("import", "export")) {
@@ -191,46 +196,6 @@ load_data_flower <- function(file_path, cols = c("co5", "co10", "co20")){
 }
 
 
-
-#' Estimate oms at the flower level
-#'
-#' @description 
-#'
-#' @param file 
-#'
-#' @return Results
-#' 
-#' @import dplyr
-#' 
-#' @export
-
-get_oms_flower <- function(data_flower){
-  
-  model_flower <- lme4::glmer(data = data_flower, import_nb_part_ID_out_co10 ~ ttt + (1|session) + (1|session:id), family = "poisson")
-  anova_flower <- car::Anova(model_flower)
-  summary_flower <- summary(model_flower)
-  tukey_flower <- emmeans::contrast(emmeans::emmeans(model_flower, "ttt"), "pairwise", adjust = "Tukey")
-  
-  mu <- data_flower |>
-    group_by(ttt) |>
-    summarise(mean = mean(import_nb_part_ID_out_co10,na.rm = T),
-              sd = sd(import_nb_part_ID_out_co10,na.rm = T))
-  
-  plot_flower <- ggplot(data = data_flower, aes(x = import_nb_part_ID_out_co10, fill = ttt)) +
-    theme_classic() +
-    facet_wrap(ttt ~ ., ncol = 1) +
-    geom_histogram(aes(y=..density..)) +
-    geom_density() +
-    geom_vline(data=mu, aes(xintercept=mean, color=ttt),
-              linetype="dashed")
-  
-  return(list(model_flower = model_flower,
-         anova_flower = anova_flower,
-         summary_flower = summary_flower,
-         mean_flower = mu,
-         tukey_flower = tukey_flower,
-         plot_flower = plot_flower))
-}
 
 #' Estimate oms at the id level
 #'
@@ -1534,7 +1499,7 @@ get_data_sem_complete_sessions <- function(data_true_rs_ms, data_proxy, cols="co
 #' 
 #' @export
 
-get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_id, data_proxy, data_parent_share, cols="co10") {
+get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_id, data_proxy, data_parent_share, data_q_by_female, cols="co10") {
   
   data_sem <- data_id_sampled_sessions |>
     select(session, ID_full, type, r_SR_out, r_SR_all, poll_treat_factor,
@@ -1567,7 +1532,20 @@ get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_id, dat
           names_pattern = "r_oms_(fem|mal)_.*",
           values_to = "r_oms"
         ) 
-    ) 
+    ) |>
+    left_join(data_q_by_female |>
+                mutate(sex = "fem") |>
+                rename(id = ID_full_foc) |>
+                mutate(ratio_q = q_gen / q_obs,
+                       log_ratio_q = abs(log(ratio_q))) |>
+                # for log calculation, when infinite change for NA (but bias compared to ratio_q)
+                # not use it for the moment : need to find a better solution
+                mutate(log_ratio_q = ifelse(is.infinite(log_ratio_q), NA, log_ratio_q)) |> 
+                group_by(session) |>
+                mutate(r_ratio_q = ratio_q / mean(ratio_q,na.rm = T),
+                       r_log_ratio_q = log_ratio_q / mean(log_ratio_q,na.rm = T)) |>
+                ungroup() |>
+                select(session, id, sex, q_obs, q_gen, nb_genot, ratio_q, r_ratio_q)) 
     
   
   return(data_sem)
@@ -1878,7 +1856,11 @@ get_brms_pooled_data <- function(data_sem_sampled_sessions) {
 
 get_piecewise_general <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
                                   target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean"),
-                                  x_coord = c(2,2,1,3), y_coord = c(2,3,1,1), color = "bisque4") {
+                                  x_coord = c(2,2,1,3), y_coord = c(2,3,1,1)) {
+  
+  color <- case_when(target_ttt == "low" ~ "bisque4",
+                     target_ttt == "medium" ~ "orange1",
+                     target_ttt == "high" ~ "orange4")
   
   data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
@@ -1923,7 +1905,11 @@ get_piecewise_general <- function(data_sem_sampled_sessions, target_ttt = "low",
 get_piecewise_males <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
                                   target_sr = "r_sr_all", target_ps = "r_mean_ps",
                                   target_traits = c("r_nb_flo_open","r_height_mean"),
-                                  x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1), color = "bisque4") {
+                                  x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1)) {
+  
+  color <- case_when(target_ttt == "low" ~ "bisque4",
+                     target_ttt == "medium" ~ "orange1",
+                     target_ttt == "high" ~ "orange4")
 
   
   data_target <- data_sem_sampled_sessions |> 
@@ -1973,9 +1959,13 @@ get_piecewise_males <- function(data_sem_sampled_sessions, target_ttt = "low", t
 #' @export
 
 get_piecewise_females <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-                                target_sr = "r_sr_all", target_ps = "r_mean_ps",
-                                target_traits = c("r_nb_flo_open","r_height_mean"),
-                                x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1), color = "bisque4") {
+                                      target_sr = "r_sr_all", target_ps = "r_ratio_q",
+                                      target_traits = c("r_nb_flo_open","r_height_mean"),
+                                      x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1)) {
+  
+  color <- case_when(target_ttt == "low" ~ "bisque4",
+                     target_ttt == "medium" ~ "orange1",
+                     target_ttt == "high" ~ "orange4")
   
   data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
@@ -2023,7 +2013,11 @@ get_piecewise_females <- function(data_sem_sampled_sessions, target_ttt = "low",
 
 get_multigroup_females <- function(data_sem_sampled_sessions, target_sex = "fem",
                                   target_sr = "r_sr_all",
-                                  x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1), color = "bisque4") {
+                                  x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1)) {
+  
+  color <- case_when(target_ttt == "low" ~ "bisque4",
+                     target_ttt == "medium" ~ "orange1",
+                     target_ttt == "high" ~ "orange4")
   
   data_target <- data_sem_sampled_sessions |> 
     filter(sex == target_sex) |>
@@ -2075,7 +2069,11 @@ get_multigroup_females <- function(data_sem_sampled_sessions, target_sex = "fem"
 
 get_multigroup_males <- function(data_sem_sampled_sessions, target_sex = "mal",
                                    target_sr = "r_sr_all",
-                                   x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1), color = "bisque4") {
+                                   x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1)) {
+  
+  color <- case_when(target_ttt == "low" ~ "bisque4",
+                     target_ttt == "medium" ~ "orange1",
+                     target_ttt == "high" ~ "orange4")
   
   data_target <- data_sem_sampled_sessions |> 
     filter(sex == target_sex) |>
@@ -2317,8 +2315,11 @@ get_piecewise_males_visits <- function(data_sem_sampled_sessions, target_ttt = "
                                        target_sr = "r_sr_all", target_ps = "r_mean_ps",
                                        target_traits = c("r_nb_flo_open","r_height_mean"),
                                        # x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1), 
-                                       x_coord = c(1.5,2.5,1.25,1.5,1.75,2,1,3), y_coord = c(2,2,4,1.5,1.5,1.5,1,1), 
-                                       color = "bisque4") {
+                                       x_coord = c(1.5,2.5,1.25,1.5,1.75,2,1,3), y_coord = c(2,2,4,1.5,1.5,1.5,1,1)){
+  
+  color <- case_when(target_ttt == "low" ~ "bisque4",
+                     target_ttt == "medium" ~ "orange1",
+                     target_ttt == "high" ~ "orange4")
   
   data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
@@ -2379,10 +2380,13 @@ get_piecewise_males_visits <- function(data_sem_sampled_sessions, target_ttt = "
 #' 
 #' @export
 
-get_piecewise_visits_old <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+get_piecewise_visits_old1 <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
                                  target_traits = c("r_nb_flo_open","r_height_mean"),
-                                 x_coord = c(1,2,3,4,5,3,2,4), y_coord = c(2,2,2,2,2,3,1,1), 
-                                 color = "bisque4") {
+                                 x_coord = c(1,2,3,4,5,3,2,4), y_coord = c(2,2,2,2,2,3,1,1)) {
+  
+  color <- case_when(target_ttt == "low" ~ "bisque4",
+                     target_ttt == "medium" ~ "orange1",
+                     target_ttt == "high" ~ "orange4")
   
   data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
@@ -2445,8 +2449,11 @@ get_piecewise_visits_old <- function(data_sem_sampled_sessions, target_ttt = "lo
 
 get_piecewise_visits <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
                                      target_traits = c("r_nb_flo_open","r_height_mean"),
-                                     x_coord = c(1,2,3,4,5,3,2,4), y_coord = c(2,2,2,2,2,3,1,1), 
-                                     color = "bisque4") {
+                                     x_coord = c(1,2,3,4,5,3,2,4), y_coord = c(2,2,2,2,2,3,1,1)) {
+  
+  color <- case_when(target_ttt == "low" ~ "bisque4",
+                     target_ttt == "medium" ~ "orange1",
+                     target_ttt == "high" ~ "orange4")
   
   data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
@@ -2476,6 +2483,69 @@ get_piecewise_visits <- function(data_sem_sampled_sessions, target_ttt = "low", 
                                    lme4::lmer(data=data_target,formula1c),
                                    
                                    lme4::lmer(data=data_target,formula1d),
+                                   
+                                   lme4::lmer(data=data_target,formula1e),
+                                   
+                                   lme4::lmer(data=data_target,formula2))
+  
+  plot <- plot(psem_proxy,
+               
+               node_attrs = data.frame(fillcolor = color,
+                                       
+                                       x = x_coord, y = y_coord,
+                                       
+                                       fontsize=6))
+  
+  summary <- summary(psem_proxy)
+  
+  return(list(summary = summary,
+              plot = plot))
+}
+
+#' SEM analyses with piecewise - visits and oms (updated without visit nb per flower)
+#'
+#' @description 
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_visits_old2 <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                      target_traits = c("r_nb_flo_open","r_height_mean"),
+                                      x_coord = c(1,2,3,4,3,2,4), y_coord = c(2,2,2,2,3,1,1)) {
+  
+  color <- case_when(target_ttt == "low" ~ "bisque4",
+                     target_ttt == "medium" ~ "orange1",
+                     target_ttt == "high" ~ "orange4")
+  
+  data_target <- data_sem_sampled_sessions |> 
+    filter(ttt == target_ttt & sex == target_sex)
+  
+  formula1a <- reformulate(target_traits, response = "r_mean_position")
+  formula1a <- update(formula1a, . ~ . + (1|session))
+  
+  formula1b <- reformulate(target_traits, response = "r_contact_id")
+  formula1b <- update(formula1b, . ~ . + (1|session))
+  
+  formula1c <- reformulate(target_traits, response = "r_dur_per_visit")
+  formula1c <- update(formula1c, . ~ . + (1|session))
+  
+  
+  formula1e <- reformulate(target_traits, response = "r_nb_flower_visited")
+  formula1e <- update(formula1e, . ~ . + (1|session))
+  
+  formula2 <- reformulate(c("r_mean_position","r_contact_id","r_dur_per_visit","r_nb_flower_visited"), response = "r_oms")
+  formula2 <- update(formula2, . ~ . + (1|session))
+  
+  psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_target,formula1a),
+                                   
+                                   lme4::lmer(data=data_target,formula1b),
+                                   
+                                   lme4::lmer(data=data_target,formula1c),
                                    
                                    lme4::lmer(data=data_target,formula1e),
                                    
@@ -2586,8 +2656,11 @@ get_selfing <- function(data_id, data_flower) {
 #' @export
 
 get_piecewise_flower <- function(data_flower, target_ttt = "1_low",
-                                 x_coord = c(3,2,2,1), y_coord = c(2,1.5,2.5,2), 
-                                 color = "bisque4") {
+                                 x_coord = c(3,2,2,1), y_coord = c(2,1.5,2.5,2)) {
+  
+  color <- case_when(target_ttt == "low" ~ "bisque4",
+                     target_ttt == "medium" ~ "orange1",
+                     target_ttt == "high" ~ "orange4")
   
   data_target <- data_flower |> 
     filter(ttt == target_ttt) 
@@ -2635,8 +2708,11 @@ get_piecewise_flower <- function(data_flower, target_ttt = "1_low",
 #' @export
 
 get_piecewise_selfing <- function(data_id, target_ttt = "1_low", target_sr = "r_sr_fem_total",
-                                 x_coord = c(3,2,1,0), y_coord = c(2,2,2,2), 
-                                 color = "bisque4") {
+                                 x_coord = c(3,2,1,0), y_coord = c(2,2,2,2)) {
+  
+  color <- case_when(target_ttt == "low" ~ "bisque4",
+                     target_ttt == "medium" ~ "orange1",
+                     target_ttt == "high" ~ "orange4")
   
   data_target <- data_id |> 
     filter(ttt == target_ttt) |>
@@ -2697,3 +2773,119 @@ get_piecewise_selfing <- function(data_id, target_ttt = "1_low", target_sr = "r_
 # get_piecewise_selfing(data_id, target_ttt = "3_high", target_sr = "r_sr_fem_out_share",
 #                       x_coord = c(3,2,1,0), y_coord = c(2,2,2,2), 
 #                       color = "bisque4")$plot
+
+#' MANOVA on floral traits between treatments and correlations
+#'
+#' @description 
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_manova_and_correlation <- function(data_id) {
+  
+  data_traits <- data_id |>
+    select(ttt, nb_flo_open, nb_flo_all, nb_stem, height_mean, height_max)
+  
+  list_traits <- data_traits |>
+    select(-ttt) |>
+    as.matrix()
+    
+  model.man <- lm(list_traits ~ ttt, data = data_traits)
+  manova_results <- rstatix::Manova(model.man,test.statistic = "Wilks") 
+  manova_summary <- summary(model.man) 
+  
+  corr <- list_traits
+  cols <- character()
+  
+  matrix_cor <- cor(list_traits,use="na.or.complete",method="pearson")
+  res_cor <- corrplot::cor.mtest(list_traits, conf.level = .95,method="pearson")
+  names_cor <- c("Number of open flowers","Total number of flowers produced","Number of stems","Mean height of the stems","Height of the tallest stem")
+
+  colnames(matrix_cor) <- names_cor
+  rownames(matrix_cor) <- names_cor
+  
+  table_corr <- as.data.frame(round(matrix_cor,digits=3))
+  
+  bonferroni <- 0.05 / ((5 * (5-1)) / 2)
+  
+  # threshold pval after bonferonni correction = 0.0026315
+  corr_plot <- corrplot::corrplot(matrix_cor, type="lower",diag=FALSE, cl.align.text="l",tl.cex=0.8,tl.srt=50,tl.col="black", cl.cex=0.8,p.mat = res_cor$p, col = RColorBrewer::brewer.pal(n = 8, name = "RdYlBu"),sig.level=bonferroni,cl.pos = "b",insig="blank")
+  
+  cairo_ps("figures/corr_plot.eps",family="Arial")
+  corr_plot
+  dev.off()
+  
+}
+
+#' Data summary for plots - effect of ttt on variables
+#'
+#' @description 
+#'
+#' @param file 
+#'
+#' @return Results
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+data_summary_plot <- function(x) {
+  m <- mean(x)
+  ymin <- m-sd(x)
+  ymax <- m+sd(x)
+  return(c(y=m,ymin=ymin,ymax=ymax))
+}
+
+#' Estimate oms at the flower level
+#'
+#' @description 
+#'
+#' @param file 
+#'
+#' @return Results
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+get_ttt_effect_flower <- function(data_flower, variable){
+  
+  clean_name <- case_when(variable == "import_nb_part_ID_out_co10" ~ "Number of mates",
+                          variable == "pl" ~ "Pollen load",
+                          variable == "nb_seeds" ~ "Number of seeds")
+  
+  model_flower <- lme4::glmer(data = data_flower, get(variable) ~ ttt + (1|session) + (1|session:id), family = "poisson")
+  anova_flower <- car::Anova(model_flower)
+  summary_flower <- summary(model_flower)
+  tukey_flower <- emmeans::contrast(emmeans::emmeans(model_flower, "ttt"), "pairwise", adjust = "Tukey")
+  
+  plot_flower <- ggplot(data = data_flower, aes(x = ttt_plot, y = get(variable), fill = ttt_plot)) +
+    theme_classic() +
+    geom_violin() + 
+    # geom_jitter(shape = 16, height = 0, width = 0.3, alpha = 0.05) +
+    scale_fill_manual(values=c("#DCBC93","#C89656","#81675F")) +
+    theme(legend.position = "none") +
+    xlab("Pollinator abundance treatment") +
+    ylab(clean_name) +
+    stat_summary(
+      fun.data = data_summary_plot,
+      geom = "pointrange",
+      shape = 21,            
+      size = 1,             
+      stroke = 1,           
+      color = "black",       
+      fill = "white"        
+    )
+  
+  return(list(model_flower = model_flower,
+              anova_flower = anova_flower,
+              summary_flower = summary_flower,
+              tukey_flower = tukey_flower,
+              plot_flower = plot_flower))
+}
+
