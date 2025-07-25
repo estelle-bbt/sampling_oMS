@@ -197,46 +197,6 @@ load_data_flower <- function(file_path, cols = c("co5", "co10", "co20")){
 
 
 
-#' Estimate oms at the id level
-#'
-#' @description 
-#'
-#' @param file 
-#'
-#' @return Results
-#' 
-#' @import dplyr
-#' 
-#' @export
-
-get_oms_id <- function(data_id){
-  
-  model_id <- lme4::glmer(data = data_id, oms_fem_co10 ~ ttt + (1|session), family = "poisson")
-  anova_id <- car::Anova(model_id)
-  summary_id <- summary(model_id)
-  tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
-  
-  mu <- data_id |>
-    group_by(ttt) |>
-    summarise(mean = mean(oms_fem_co10,na.rm = T),
-              sd = sd(oms_fem_co10,na.rm = T))
-  
-  plot_id <- ggplot(data = data_id, aes(x = oms_fem_co10, fill = ttt)) +
-    theme_classic() +
-    facet_wrap(ttt ~ ., ncol = 1) +
-    geom_histogram(aes(y=..density..)) +
-    geom_density() +
-    geom_vline(data=mu, aes(xintercept=mean, color=ttt),
-               linetype="dashed")
-  
-  return(list(model_id = model_id,
-              anova_id = anova_id,
-              mean_id = mu,
-              summary_id = summary_id,
-              tukey_id = tukey_id,
-              plot_id = plot_id))
-}
-
 #' Read data about pollinator visit observations
 #'
 #' @description 
@@ -1425,21 +1385,7 @@ get_data_parent_share <- function(data_genotypes) {
                 group_by(candidate_id) |>
                 summarise(mean_ps_all = mean(paternity_share)) |>
                 rename(id = candidate_id)) |>
-    mutate(sex = "mal",.before = 2) |>
-    bind_rows(data_genotypes |>
-                filter(candidate_id != known_id) |>
-                group_by(candidate_id,known_id) |>
-                summarise(genot_couple = n()) |>
-                group_by(known_id) |>
-                summarise(mean_ps = mean(genot_couple)) |>
-                rename(id = known_id) |>
-                left_join(data_genotypes |>
-                            group_by(candidate_id,known_id) |>
-                            summarise(genot_couple = n()) |>
-                            group_by(known_id) |>
-                            summarise(mean_ps_all = mean(genot_couple)) |>
-                            rename(id = known_id)) |>
-                mutate(sex = "fem",.before = 2))
+    mutate(sex = "mal",.before = 2) 
   
   return(data_parent_share)
 }
@@ -1502,10 +1448,12 @@ get_data_sem_complete_sessions <- function(data_true_rs_ms, data_proxy, cols="co
 get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_id, data_proxy, data_parent_share, data_q_by_female, cols="co10") {
   
   data_sem <- data_id_sampled_sessions |>
-    select(session, ID_full, type, r_SR_out, r_SR_all, poll_treat_factor,
+    select(session, ID_full, type, SR_out, SR_all, r_SR_out, r_SR_all, poll_treat_factor,
            !!sym(paste0("r_mean_nb_dist_flo_out_", cols))) |>
     rename(id = ID_full,
            sex = type,
+           sr = SR_out,
+           sr_all = SR_all,
            r_sr = r_SR_out,
            r_sr_all = r_SR_all,
            ttt = poll_treat_factor) |>
@@ -1514,8 +1462,7 @@ get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_id, dat
     mutate(r_mean_ps = mean_ps / mean(mean_ps,na.rm = T),
            r_mean_ps_all = mean_ps_all / mean(mean_ps_all,na.rm = T)) |>
     ungroup() |>
-    select(!c(mean_ps,mean_ps_all)) |>
-        left_join(data_id %>% select(id, r_contact_id, r_dur_tot, r_mean_position, r_nb_visits, r_nb_flower_visited, r_dur_per_visit, r_nb_visits_per_flower)) |>
+        left_join(data_id %>% select(id, contact_id, dur_tot, mean_position, nb_visits, nb_flower_visited, dur_per_visit, nb_visits_per_flower, r_contact_id, r_dur_tot, r_mean_position, r_nb_visits, r_nb_flower_visited, r_dur_per_visit, r_nb_visits_per_flower)) |>
     left_join(
       data_proxy |>
         select(id, session,
@@ -1525,27 +1472,29 @@ get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_id, dat
         group_by(session) |>
         mutate(across(where(is.numeric), ~ . / mean(., na.rm = TRUE), .names = "r_{.col}")) |>
         ungroup() |>
-        select(session, id, starts_with("r_")) |>
         pivot_longer(
-          cols = starts_with(c("r_oms")),
-          names_to = "sex",
-          names_pattern = "r_oms_(fem|mal)_.*",
-          values_to = "r_oms"
+          cols = starts_with(c("r_oms","oms")),
+          names_to = c(".value", "sex"),
+          names_pattern = "(r_oms|oms)_(fem|mal)_co10"
         ) 
     ) |>
     left_join(data_q_by_female |>
                 mutate(sex = "fem") |>
                 rename(id = ID_full_foc) |>
                 mutate(ratio_q = q_gen / q_obs,
-                       log_ratio_q = abs(log(ratio_q))) |>
-                # for log calculation, when infinite change for NA (but bias compared to ratio_q)
-                # not use it for the moment : need to find a better solution
-                mutate(log_ratio_q = ifelse(is.infinite(log_ratio_q), NA, log_ratio_q)) |> 
+                       diff_q = q_gen - q_obs,
+                       abs_diff_q = abs(diff_q)) |>
                 group_by(session) |>
                 mutate(r_ratio_q = ratio_q / mean(ratio_q,na.rm = T),
-                       r_log_ratio_q = log_ratio_q / mean(log_ratio_q,na.rm = T)) |>
+                       r_diff_q = diff_q / mean(diff_q,na.rm = T),
+                       r_abs_diff_q = abs_diff_q / mean(abs_diff_q,na.rm = T)) |>
                 ungroup() |>
-                select(session, id, sex, q_obs, q_gen, nb_genot, ratio_q, r_ratio_q)) 
+                select(session, id, sex, q_obs, q_gen, nb_genot, r_ratio_q, diff_q, r_diff_q, r_abs_diff_q)) |>
+    mutate(ttt_plot=as.factor(case_when(grepl("FA",session)~"Low",
+                                 grepl("MO",session)~"Medium",
+                                 TRUE~"High")),
+    ttt_plot=forcats::fct_relevel(ttt_plot, c("Low","Medium","High")),
+    .before = 2)
     
   
   return(data_sem)
@@ -1959,7 +1908,7 @@ get_piecewise_males <- function(data_sem_sampled_sessions, target_ttt = "low", t
 #' @export
 
 get_piecewise_females <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-                                      target_sr = "r_sr_all", target_ps = "r_ratio_q",
+                                      target_sr = "r_sr_all", target_ps = "r_diff_q",
                                       target_traits = c("r_nb_flo_open","r_height_mean"),
                                       x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1)) {
   
@@ -2663,15 +2612,18 @@ get_piecewise_flower <- function(data_flower, target_ttt = "1_low",
                      target_ttt == "high" ~ "orange4")
   
   data_target <- data_flower |> 
-    filter(ttt == target_ttt) 
+    filter(ttt == target_ttt) |>
+    group_by(session) |>
+    mutate(across(where(is.numeric), ~ . / mean(., na.rm = TRUE), .names = "r_{.col}"))
+    
   
-  formula1a <- reformulate(c("pl","import_nb_part_ID_out_co10"), response = "nb_seeds")
+  formula1a <- reformulate(c("r_pl","r_import_nb_part_ID_out_co10"), response = "r_nb_seeds")
   formula1a <- update(formula1a, . ~ . + (1|session))
   
-  formula1b <- reformulate("nb_visit", response = "pl")
+  formula1b <- reformulate("r_nb_visit", response = "r_pl")
   formula1b <- update(formula1b, . ~ . + (1|session))
   
-  formula1c <- reformulate("nb_visit", response = "import_nb_part_ID_out_co10")
+  formula1c <- reformulate("r_nb_visit", response = "r_import_nb_part_ID_out_co10")
   formula1c <- update(formula1c, . ~ . + (1|session))
   
   
@@ -2841,7 +2793,7 @@ data_summary_plot <- function(x) {
   return(c(y=m,ymin=ymin,ymax=ymax))
 }
 
-#' Estimate oms at the flower level
+#' Get ttt effect on variables at the flower level
 #'
 #' @description 
 #'
@@ -2889,3 +2841,168 @@ get_ttt_effect_flower <- function(data_flower, variable){
               plot_flower = plot_flower))
 }
 
+#' Get ttt effect on variables at the id level
+#'
+#' @description 
+#'
+#' @param file 
+#'
+#' @return Results
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+get_ttt_effect_id <- function(data_sem_sampled_sessions, variable){
+  
+  clean_name <- case_when(variable == "sr_all" ~ "Total reproductive success",
+                          variable == "sr" ~ "Outcrossed reproductive success",
+                          variable == "oms" ~ "Observational number of mates", # Poisson
+                          variable == "mean_ps" ~ "Fertilization post-pollination",
+                          variable == "diff_q" ~ "Filtering post-pollination",
+                          variable == "mean_position" ~ "Relative mean position of the plant in the visit sequence",
+                          variable == "contact_id" ~ "Number of pollinator visits to the plant", # Poisson
+                          variable == "dur_per_visit" ~ "Average visit duration",
+                          variable == "nb_visits_per_flower" ~ "Average number of pollinator visits per visited flower",
+                          variable == "nb_flower_visited" ~ "Number of distinct flowers visited on the plant", # Poisson
+                          )
+  
+  if(variable %in% c("sr","sr_all")){
+    
+    model_id <- lme4::lmer(data = data_sem_sampled_sessions, get(variable) ~ ttt * sex + (1|session) + (1|session:id))
+    anova_id <- car::Anova(model_id)
+    summary_id <- summary(model_id)
+    tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
+    
+    plot_id <- ggplot(data = data_sem_sampled_sessions, aes(x = ttt_plot, y = get(variable), fill = ttt_plot)) +
+      facet_wrap(. ~ sex) +
+      theme_classic() +
+      geom_violin() + 
+      # geom_jitter(shape = 16, height = 0, width = 0.3, alpha = 0.05) +
+      scale_fill_manual(values=c("#DCBC93","#C89656","#81675F")) +
+      theme(legend.position = "none") +
+      xlab("Pollinator abundance treatment") +
+      ylab(clean_name) +
+      stat_summary(
+        fun.data = data_summary_plot,
+        geom = "pointrange",
+        shape = 21,            
+        size = 1,             
+        stroke = 1,           
+        color = "black",       
+        fill = "white"        
+      )
+  }else if(variable == "oms"){
+    
+    model_id <- lme4::glmer(data = data_sem_sampled_sessions, get(variable) ~ ttt * sex + (1|session) + (1|session:id), family = "poisson")
+    anova_id <- car::Anova(model_id)
+    summary_id <- summary(model_id)
+    tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
+    
+    plot_id <- ggplot(data = data_sem_sampled_sessions, aes(x = ttt_plot, y = get(variable), fill = ttt_plot)) +
+      facet_wrap(. ~ sex) +
+      theme_classic() +
+      geom_violin() + 
+      # geom_jitter(shape = 16, height = 0, width = 0.3, alpha = 0.05) +
+      scale_fill_manual(values=c("#DCBC93","#C89656","#81675F")) +
+      theme(legend.position = "none") +
+      xlab("Pollinator abundance treatment") +
+      ylab(clean_name) +
+      stat_summary(
+        fun.data = data_summary_plot,
+        geom = "pointrange",
+        shape = 21,            
+        size = 1,             
+        stroke = 1,           
+        color = "black",       
+        fill = "white"        
+      )
+  }else if(variable == "mean_ps"){
+    
+    data_sem_sampled_sessions <- data_sem_sampled_sessions |>
+      filter(sex == "mal")
+    
+    model_id <- lme4::lmer(data = data_sem_sampled_sessions, get(variable) ~ ttt + (1|session))
+    anova_id <- car::Anova(model_id)
+    summary_id <- summary(model_id)
+    tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
+    
+    plot_id <- ggplot(data = data_sem_sampled_sessions, aes(x = ttt_plot, y = get(variable), fill = ttt_plot)) +
+      theme_classic() +
+      geom_violin() + 
+      # geom_jitter(shape = 16, height = 0, width = 0.3, alpha = 0.05) +
+      scale_fill_manual(values=c("#DCBC93","#C89656","#81675F")) +
+      theme(legend.position = "none") +
+      xlab("Pollinator abundance treatment") +
+      ylab(clean_name) +
+      stat_summary(
+        fun.data = data_summary_plot,
+        geom = "pointrange",
+        shape = 21,            
+        size = 1,             
+        stroke = 1,           
+        color = "black",       
+        fill = "white"        
+      )
+  }else if(variable %in% c("contact_id","nb_flower_visited")){
+    
+    data_sem_sampled_sessions <- data_sem_sampled_sessions |>
+      filter(sex == "fem")
+    
+    model_id <- lme4::glmer(data = data_sem_sampled_sessions, get(variable) ~ ttt + (1|session), family = "poisson")
+    anova_id <- car::Anova(model_id)
+    summary_id <- summary(model_id)
+    tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
+    
+    plot_id <- ggplot(data = data_sem_sampled_sessions, aes(x = ttt_plot, y = get(variable), fill = ttt_plot)) +
+      theme_classic() +
+      geom_violin() + 
+      # geom_jitter(shape = 16, height = 0, width = 0.3, alpha = 0.05) +
+      scale_fill_manual(values=c("#DCBC93","#C89656","#81675F")) +
+      theme(legend.position = "none") +
+      xlab("Pollinator abundance treatment") +
+      ylab(clean_name) +
+      stat_summary(
+        fun.data = data_summary_plot,
+        geom = "pointrange",
+        shape = 21,            
+        size = 1,             
+        stroke = 1,           
+        color = "black",       
+        fill = "white"        
+      )
+  }else{
+    
+    data_sem_sampled_sessions <- data_sem_sampled_sessions |>
+      filter(sex == "fem")
+    
+    model_id <- lme4::lmer(data = data_sem_sampled_sessions, get(variable) ~ ttt + (1|session))
+    anova_id <- car::Anova(model_id)
+    summary_id <- summary(model_id)
+    tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
+    
+    plot_id <- ggplot(data = data_sem_sampled_sessions, aes(x = ttt_plot, y = get(variable), fill = ttt_plot)) +
+      theme_classic() +
+      geom_violin() + 
+      # geom_jitter(shape = 16, height = 0, width = 0.3, alpha = 0.05) +
+      scale_fill_manual(values=c("#DCBC93","#C89656","#81675F")) +
+      theme(legend.position = "none") +
+      xlab("Pollinator abundance treatment") +
+      ylab(clean_name) +
+      stat_summary(
+        fun.data = data_summary_plot,
+        geom = "pointrange",
+        shape = 21,            
+        size = 1,             
+        stroke = 1,           
+        color = "black",       
+        fill = "white"        
+      )
+  }
+  
+  return(list(model_id = model_id,
+              anova_id = anova_id,
+              summary_id = summary_id,
+              tukey_id = tukey_id,
+              plot_id = plot_id))
+}

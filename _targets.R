@@ -31,9 +31,11 @@ list(
   
   tar_target(oms_flower,get_ttt_effect_flower(data_flower,"import_nb_part_ID_out_co10")),
   
-  tar_target(data_q_by_female,load_data("data/q_by_female_ABPOLL.txt")),
+  tar_target(pl_flower,get_ttt_effect_flower(data_flower,"pl")),
   
-  tar_target(oms_id,get_oms_id(data_id)),
+  tar_target(seeds_flower,get_ttt_effect_flower(data_flower,"nb_seeds")),
+  
+  tar_target(data_q_by_female,load_data("data/q_by_female_ABPOLL.txt")),
   
   tar_target(data_obs,load_data_obs("data/obs_ABPOLL.txt")),
   
@@ -58,6 +60,26 @@ list(
   tar_target(data_sem_complete_sessions,get_data_sem_complete_sessions(data_true_rs_ms, data_proxy$data_proxy, cols="co10")),
   
   tar_target(data_id_sampled_sessions,load_data("data/all_data_long_NA_0AllFemFALSE_raw.txt")),
+  
+  tar_target(oms_id,get_ttt_effect_id(data_sem_sampled_sessions,"oms")),
+  
+  tar_target(sr_id,get_ttt_effect_id(data_sem_sampled_sessions,"sr")),
+  
+  tar_target(sr_all_id,get_ttt_effect_id(data_sem_sampled_sessions,"sr_all")),
+  
+  tar_target(mean_ps_id,get_ttt_effect_id(data_sem_sampled_sessions,"mean_ps")),
+  
+  tar_target(diff_q_id,get_ttt_effect_id(data_sem_sampled_sessions,"diff_q")),
+  
+  tar_target(contid_id,get_ttt_effect_id(data_sem_sampled_sessions,"contact_id")),
+  
+  tar_target(meanpos_id,get_ttt_effect_id(data_sem_sampled_sessions,"mean_position")),
+  
+  tar_target(durvis_id,get_ttt_effect_id(data_sem_sampled_sessions,"dur_per_visit")),
+  
+  tar_target(visflo_id,get_ttt_effect_id(data_sem_sampled_sessions,"nb_visits_per_flower")),
+  
+  tar_target(flo_id,get_ttt_effect_id(data_sem_sampled_sessions,"nb_flower_visited")),
   
   tar_target(data_parent_share,get_data_parent_share(data_genotypes)),
   

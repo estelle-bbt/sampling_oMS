@@ -38,7 +38,9 @@ targets::tar_visnetwork()
 
 WARNING !!!!!!!!! oms (both at the flower or the id scale) is encoded as following: if it has not been visited at all (i.e. oms including itself = 0), then oms = NA. Otherwise, oms is a true zero because it can reproduce through selfing. BUT this is valuable only when reproductive success include selfing (as in the first manuscript, to keep consistancy); if we focus on outcrossed reproductive success, then null oms should not exist.
 
-# Level of polyandry on flowers
+# Treatment effect on variables at the flower level
+
+## oms
 
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
 targets::tar_load(oms_flower)
@@ -48,17 +50,117 @@ oms_flower$tukey_flower
 oms_flower$plot_flower
 ```
 
-# Level of polyandry on individuals
+## pl 
 
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(pl_flower)
+
+pl_flower$anova_flower
+pl_flower$tukey_flower
+pl_flower$plot_flower
+```
+
+## seeds
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(seeds_flower)
+
+seeds_flower$anova_flower
+seeds_flower$tukey_flower
+seeds_flower$plot_flower
+```
+
+# Treatment effect on variables at the id level
+
+## oms
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
 targets::tar_load(oms_id)
 
 oms_id$anova_id
 oms_id$tukey_id
 oms_id$plot_id
-oms_id$mean_id
 ```
 
+## sr
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(sr_id)
+
+sr_id$anova_id
+sr_id$tukey_id
+sr_id$plot_id
+```
+
+## sr_all
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(sr_all_id)
+
+sr_all_id$anova_id
+sr_all_id$tukey_id
+sr_all_id$plot_id
+```
+
+## mean_ps
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(mean_ps_id)
+
+mean_ps_id$anova_id
+mean_ps_id$tukey_id
+mean_ps_id$plot_id
+```
+
+## diff_q
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(diff_q_id)
+
+diff_q_id$anova_id
+diff_q_id$tukey_id
+diff_q_id$plot_id
+```
+
+## contact_id
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(contid_id)
+
+contid_id$anova_id
+contid_id$tukey_id
+contid_id$plot_id
+```
+
+## mean_position
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(meanpos_id)
+
+meanpos_id$anova_id
+meanpos_id$tukey_id
+meanpos_id$plot_id
+```
+
+## nb flower visited
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(flo_id)
+
+flo_id$anova_id
+flo_id$tukey_id
+flo_id$plot_id
+```
+
+## nb visit per flower
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(visflo_id)
+
+visflo_id$anova_id
+visflo_id$tukey_id
+visflo_id$plot_id
+```
+
+## dur visit
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(durvis_id)
+
+durvis_id$anova_id
+durvis_id$tukey_id
+durvis_id$plot_id
+```
 # MANOVA
 
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
