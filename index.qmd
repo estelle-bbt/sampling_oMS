@@ -50,6 +50,16 @@ oms_flower$tukey_flower
 oms_flower$plot_flower
 ```
 
+## nb_visit
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(visit_flower)
+
+visit_flower$anova_flower
+visit_flower$tukey_flower
+visit_flower$plot_flower
+```
+
 ## pl 
 
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}

@@ -1494,8 +1494,19 @@ get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_id, dat
                                  grepl("MO",session)~"Medium",
                                  TRUE~"High")),
     ttt_plot=forcats::fct_relevel(ttt_plot, c("Low","Medium","High")),
-    .before = 2)
-    
+    .before = 2) |>
+    rename(Wout = r_sr,
+           W = r_sr_all,
+           PS = r_mean_ps,
+           MF = r_diff_q,
+           MS = r_oms,
+           F = r_nb_flo_open,
+           H = r_height_mean,
+           POS = r_mean_position,
+           PLA = r_contact_id,
+           DUR = r_dur_per_visit,
+           VIS = r_nb_visits_per_flower,
+           FLO = r_nb_flower_visited)
   
   return(data_sem)
 }
@@ -1807,9 +1818,9 @@ get_piecewise_general <- function(data_sem_sampled_sessions, target_ttt = "low",
                                   target_sr = "r_sr_all", target_traits = c("r_nb_flo_open","r_height_mean"),
                                   x_coord = c(2,2,1,3), y_coord = c(2,3,1,1)) {
   
-  color <- case_when(target_ttt == "low" ~ "bisque4",
-                     target_ttt == "medium" ~ "orange1",
-                     target_ttt == "high" ~ "orange4")
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
   
   data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
@@ -1852,24 +1863,23 @@ get_piecewise_general <- function(data_sem_sampled_sessions, target_ttt = "low",
 #' @export
 
 get_piecewise_males <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-                                  target_sr = "r_sr_all", target_ps = "r_mean_ps",
-                                  target_traits = c("r_nb_flo_open","r_height_mean"),
-                                  x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1)) {
+                                  target_sr = "W", target_ps = "PS",
+                                  target_traits = c("F","H"),
+                                  x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1)) {
   
-  color <- case_when(target_ttt == "low" ~ "bisque4",
-                     target_ttt == "medium" ~ "orange1",
-                     target_ttt == "high" ~ "orange4")
+  color <- case_when(target_ttt == "low" ~ "#43C59E",
+                     target_ttt == "medium" ~ "#3D7068",
+                     target_ttt == "high" ~ "#14453D")
 
-  
   data_target <- data_sem_sampled_sessions |> 
-    filter(ttt == target_ttt & sex == target_sex)
+    filter(ttt == target_ttt & sex == target_sex) 
   
-  cor.test(data_target$r_oms,data_target$r_mean_ps)
+  cor.test(data_target$MS,data_target$PS)
   
-  formula1 <- reformulate(target_traits, response = "r_oms")
+  formula1 <- reformulate(target_traits, response = "MS")
   formula1 <- update(formula1, . ~ . + (1|session))
   
-  formula2 <- reformulate(c("r_oms", target_ps), response = target_sr)
+  formula2 <- reformulate(c("MS", target_ps), response = target_sr)
   formula2 <- update(formula2, . ~ . + (1|session))
   
   formula3 <- reformulate(target_traits, response = target_ps)
@@ -1908,21 +1918,21 @@ get_piecewise_males <- function(data_sem_sampled_sessions, target_ttt = "low", t
 #' @export
 
 get_piecewise_females <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-                                      target_sr = "r_sr_all", target_ps = "r_diff_q",
-                                      target_traits = c("r_nb_flo_open","r_height_mean"),
+                                      target_sr = "W", target_ps = "r_diff_q",
+                                      target_traits = c("F","H"),
                                       x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1)) {
   
-  color <- case_when(target_ttt == "low" ~ "bisque4",
-                     target_ttt == "medium" ~ "orange1",
-                     target_ttt == "high" ~ "orange4")
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
   
   data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
   
-  formula1 <- reformulate(target_traits, response = "r_oms")
+  formula1 <- reformulate(target_traits, response = "MS")
   formula1 <- update(formula1, . ~ . + (1|session))
   
-  formula2 <- reformulate(c("r_oms", target_ps, target_traits), response = target_sr)
+  formula2 <- reformulate(c("MS", target_ps, target_traits), response = target_sr)
   formula2 <- update(formula2, . ~ . + (1|session))
   
   formula3 <- reformulate(target_traits, response = target_ps)
@@ -1964,9 +1974,9 @@ get_multigroup_females <- function(data_sem_sampled_sessions, target_sex = "fem"
                                   target_sr = "r_sr_all",
                                   x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1)) {
   
-  color <- case_when(target_ttt == "low" ~ "bisque4",
-                     target_ttt == "medium" ~ "orange1",
-                     target_ttt == "high" ~ "orange4")
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
   
   data_target <- data_sem_sampled_sessions |> 
     filter(sex == target_sex) |>
@@ -2020,9 +2030,9 @@ get_multigroup_males <- function(data_sem_sampled_sessions, target_sex = "mal",
                                    target_sr = "r_sr_all",
                                    x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1)) {
   
-  color <- case_when(target_ttt == "low" ~ "bisque4",
-                     target_ttt == "medium" ~ "orange1",
-                     target_ttt == "high" ~ "orange4")
+  color <- case_when(target_ttt == "low" ~ "#43C59E",
+                     target_ttt == "medium" ~ "#3D7068",
+                     target_ttt == "high" ~ "#14453D")
   
   data_target <- data_sem_sampled_sessions |> 
     filter(sex == target_sex) |>
@@ -2266,9 +2276,9 @@ get_piecewise_males_visits <- function(data_sem_sampled_sessions, target_ttt = "
                                        # x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1), 
                                        x_coord = c(1.5,2.5,1.25,1.5,1.75,2,1,3), y_coord = c(2,2,4,1.5,1.5,1.5,1,1)){
   
-  color <- case_when(target_ttt == "low" ~ "bisque4",
-                     target_ttt == "medium" ~ "orange1",
-                     target_ttt == "high" ~ "orange4")
+  color <- case_when(target_ttt == "low" ~ "#43C59E",
+                     target_ttt == "medium" ~ "#3D7068",
+                     target_ttt == "high" ~ "#14453D")
   
   data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
@@ -2333,9 +2343,9 @@ get_piecewise_visits_old1 <- function(data_sem_sampled_sessions, target_ttt = "l
                                  target_traits = c("r_nb_flo_open","r_height_mean"),
                                  x_coord = c(1,2,3,4,5,3,2,4), y_coord = c(2,2,2,2,2,3,1,1)) {
   
-  color <- case_when(target_ttt == "low" ~ "bisque4",
-                     target_ttt == "medium" ~ "orange1",
-                     target_ttt == "high" ~ "orange4")
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
   
   data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
@@ -2397,32 +2407,38 @@ get_piecewise_visits_old1 <- function(data_sem_sampled_sessions, target_ttt = "l
 #' @export
 
 get_piecewise_visits <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-                                     target_traits = c("r_nb_flo_open","r_height_mean"),
+                                     target_traits = c("F","H"),
                                      x_coord = c(1,2,3,4,5,3,2,4), y_coord = c(2,2,2,2,2,3,1,1)) {
   
-  color <- case_when(target_ttt == "low" ~ "bisque4",
-                     target_ttt == "medium" ~ "orange1",
-                     target_ttt == "high" ~ "orange4")
+  if(target_sex == "fem"){
+    color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
+  }else{
+    color <- case_when(target_ttt == "low" ~ "#43C59E",
+                       target_ttt == "medium" ~ "#3D7068",
+                       target_ttt == "high" ~ "#14453D")
+  }
   
   data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
   
-  formula1a <- reformulate(target_traits, response = "r_mean_position")
+  formula1a <- reformulate(target_traits, response = "POS")
   formula1a <- update(formula1a, . ~ . + (1|session))
   
-  formula1b <- reformulate(target_traits, response = "r_contact_id")
+  formula1b <- reformulate(target_traits, response = "PLA")
   formula1b <- update(formula1b, . ~ . + (1|session))
   
-  formula1c <- reformulate(target_traits, response = "r_dur_per_visit")
+  formula1c <- reformulate(target_traits, response = "DUR")
   formula1c <- update(formula1c, . ~ . + (1|session))
   
-  formula1d <- reformulate(target_traits, response = "r_nb_visits_per_flower")
+  formula1d <- reformulate(target_traits, response = "VIS")
   formula1d <- update(formula1d, . ~ . + (1|session))
   
-  formula1e <- reformulate(target_traits, response = "r_nb_flower_visited")
+  formula1e <- reformulate(target_traits, response = "FLO")
   formula1e <- update(formula1e, . ~ . + (1|session))
   
-  formula2 <- reformulate(c("r_mean_position","r_contact_id","r_dur_per_visit","r_nb_visits_per_flower","r_nb_flower_visited"), response = "r_oms")
+  formula2 <- reformulate(c("POS","PLA","DUR","VIS","FLO"), response = "MS")
   formula2 <- update(formula2, . ~ . + (1|session))
   
   psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_target,formula1a),
@@ -2467,9 +2483,9 @@ get_piecewise_visits_old2 <- function(data_sem_sampled_sessions, target_ttt = "l
                                       target_traits = c("r_nb_flo_open","r_height_mean"),
                                       x_coord = c(1,2,3,4,3,2,4), y_coord = c(2,2,2,2,3,1,1)) {
   
-  color <- case_when(target_ttt == "low" ~ "bisque4",
-                     target_ttt == "medium" ~ "orange1",
-                     target_ttt == "high" ~ "orange4")
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
   
   data_target <- data_sem_sampled_sessions |> 
     filter(ttt == target_ttt & sex == target_sex)
@@ -2607,9 +2623,9 @@ get_selfing <- function(data_id, data_flower) {
 get_piecewise_flower <- function(data_flower, target_ttt = "1_low",
                                  x_coord = c(3,2,2,1), y_coord = c(2,1.5,2.5,2)) {
   
-  color <- case_when(target_ttt == "low" ~ "bisque4",
-                     target_ttt == "medium" ~ "orange1",
-                     target_ttt == "high" ~ "orange4")
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
   
   data_target <- data_flower |> 
     filter(ttt == target_ttt) |>
@@ -2662,9 +2678,9 @@ get_piecewise_flower <- function(data_flower, target_ttt = "1_low",
 get_piecewise_selfing <- function(data_id, target_ttt = "1_low", target_sr = "r_sr_fem_total",
                                  x_coord = c(3,2,1,0), y_coord = c(2,2,2,2)) {
   
-  color <- case_when(target_ttt == "low" ~ "bisque4",
-                     target_ttt == "medium" ~ "orange1",
-                     target_ttt == "high" ~ "orange4")
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
   
   data_target <- data_id |> 
     filter(ttt == target_ttt) |>
@@ -2703,28 +2719,28 @@ get_piecewise_selfing <- function(data_id, target_ttt = "1_low", target_sr = "r_
 
 # get_piecewise_selfing(data_id, target_ttt = "1_low", target_sr = "r_sr_fem_total",
 #                       x_coord = c(3,2,1,0), y_coord = c(2,2,2,2),
-#                       color = "bisque4")$plot
+#                       color = "#E6AA68")$plot
 # # 
 # get_piecewise_selfing(data_id, target_ttt = "2_medium", target_sr = "r_sr_fem_total",
 #                       x_coord = c(3,2,1,0), y_coord = c(2,2,2,2), 
-#                       color = "bisque4")$plot
+#                       color = "#E6AA68")$plot
 # 
 # get_piecewise_selfing(data_id, target_ttt = "3_high", target_sr = "r_sr_fem_total",
 #                       x_coord = c(3,2,1,0), y_coord = c(2,2,2,2), 
-#                       color = "bisque4")$plot
+#                       color = "#E6AA68")$plot
 # 
 # 
 # get_piecewise_selfing(data_id, target_ttt = "1_low", target_sr = "r_sr_fem_out_share",
 #                       x_coord = c(3,2,1,0), y_coord = c(2,2,2,2),
-#                       color = "bisque4")$plot
+#                       color = "#E6AA68")$plot
 # # 
 # get_piecewise_selfing(data_id, target_ttt = "2_medium", target_sr = "r_sr_fem_out_share",
 #                       x_coord = c(3,2,1,0), y_coord = c(2,2,2,2), 
-#                       color = "bisque4")$plot
+#                       color = "#E6AA68")$plot
 # 
 # get_piecewise_selfing(data_id, target_ttt = "3_high", target_sr = "r_sr_fem_out_share",
 #                       x_coord = c(3,2,1,0), y_coord = c(2,2,2,2), 
-#                       color = "bisque4")$plot
+#                       color = "#E6AA68")$plot
 
 #' MANOVA on floral traits between treatments and correlations
 #'
@@ -2805,11 +2821,17 @@ data_summary_plot <- function(x) {
 #' 
 #' @export
 
-get_ttt_effect_flower <- function(data_flower, variable){
+get_ttt_effect_flower <- function(data_flower, variable, filter_pl = T){
+  
+  if(filter_pl){
+    data_flower <- data_flower %>%
+      filter(!is.na(pl))
+  }
   
   clean_name <- case_when(variable == "import_nb_part_ID_out_co10" ~ "Number of mates",
                           variable == "pl" ~ "Pollen load",
-                          variable == "nb_seeds" ~ "Number of seeds")
+                          variable == "nb_seeds" ~ "Number of seeds",
+                          variable == "nb_visit" ~ "Number of visits")
   
   model_flower <- lme4::glmer(data = data_flower, get(variable) ~ ttt + (1|session) + (1|session:id), family = "poisson")
   anova_flower <- car::Anova(model_flower)
@@ -2820,7 +2842,7 @@ get_ttt_effect_flower <- function(data_flower, variable){
     theme_classic() +
     geom_violin() + 
     # geom_jitter(shape = 16, height = 0, width = 0.3, alpha = 0.05) +
-    scale_fill_manual(values=c("#DCBC93","#C89656","#81675F")) +
+    scale_fill_manual(values=c("#E6AA68","#D36135","#9A4D1D")) +
     theme(legend.position = "none") +
     xlab("Pollinator abundance treatment") +
     ylab(clean_name) +
@@ -2874,12 +2896,16 @@ get_ttt_effect_id <- function(data_sem_sampled_sessions, variable){
     summary_id <- summary(model_id)
     tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
     
-    plot_id <- ggplot(data = data_sem_sampled_sessions, aes(x = ttt_plot, y = get(variable), fill = ttt_plot)) +
+    data_sem_sampled_sessions <- data_sem_sampled_sessions |>
+      mutate(plot_label = paste0(ttt, sex),
+             sex = ifelse(sex == "mal","Males","Females"))
+
+    plot_id <- ggplot(data = data_sem_sampled_sessions, aes(x = ttt_plot, y = get(variable), fill = plot_label)) +
       facet_wrap(. ~ sex) +
       theme_classic() +
       geom_violin() + 
       # geom_jitter(shape = 16, height = 0, width = 0.3, alpha = 0.05) +
-      scale_fill_manual(values=c("#DCBC93","#C89656","#81675F")) +
+      scale_fill_manual(values=c("#9A4D1D", "#14453D", "#E6AA68","#43C59E","#D36135","#3D7068")) +
       theme(legend.position = "none") +
       xlab("Pollinator abundance treatment") +
       ylab(clean_name) +
@@ -2899,12 +2925,16 @@ get_ttt_effect_id <- function(data_sem_sampled_sessions, variable){
     summary_id <- summary(model_id)
     tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
     
-    plot_id <- ggplot(data = data_sem_sampled_sessions, aes(x = ttt_plot, y = get(variable), fill = ttt_plot)) +
+    data_sem_sampled_sessions <- data_sem_sampled_sessions |>
+      mutate(plot_label = paste0(ttt, sex),
+             sex = ifelse(sex == "mal","Males","Females"))
+    
+    plot_id <- ggplot(data = data_sem_sampled_sessions, aes(x = ttt_plot, y = get(variable), fill = plot_label)) +
       facet_wrap(. ~ sex) +
       theme_classic() +
       geom_violin() + 
       # geom_jitter(shape = 16, height = 0, width = 0.3, alpha = 0.05) +
-      scale_fill_manual(values=c("#DCBC93","#C89656","#81675F")) +
+      scale_fill_manual(values=c("#9A4D1D", "#14453D", "#E6AA68","#43C59E","#D36135","#3D7068")) +
       theme(legend.position = "none") +
       xlab("Pollinator abundance treatment") +
       ylab(clean_name) +
@@ -2931,7 +2961,7 @@ get_ttt_effect_id <- function(data_sem_sampled_sessions, variable){
       theme_classic() +
       geom_violin() + 
       # geom_jitter(shape = 16, height = 0, width = 0.3, alpha = 0.05) +
-      scale_fill_manual(values=c("#DCBC93","#C89656","#81675F")) +
+      scale_fill_manual(values=c("#43C59E","#3D7068","#14453D")) +
       theme(legend.position = "none") +
       xlab("Pollinator abundance treatment") +
       ylab(clean_name) +
@@ -2958,7 +2988,7 @@ get_ttt_effect_id <- function(data_sem_sampled_sessions, variable){
       theme_classic() +
       geom_violin() + 
       # geom_jitter(shape = 16, height = 0, width = 0.3, alpha = 0.05) +
-      scale_fill_manual(values=c("#DCBC93","#C89656","#81675F")) +
+      scale_fill_manual(values=c("#E9C8CE","#B384A7","#81657C")) +
       theme(legend.position = "none") +
       xlab("Pollinator abundance treatment") +
       ylab(clean_name) +
@@ -2985,7 +3015,7 @@ get_ttt_effect_id <- function(data_sem_sampled_sessions, variable){
       theme_classic() +
       geom_violin() + 
       # geom_jitter(shape = 16, height = 0, width = 0.3, alpha = 0.05) +
-      scale_fill_manual(values=c("#DCBC93","#C89656","#81675F")) +
+      scale_fill_manual(values=c("#E9C8CE","#B384A7","#81657C")) +
       theme(legend.position = "none") +
       xlab("Pollinator abundance treatment") +
       ylab(clean_name) +
