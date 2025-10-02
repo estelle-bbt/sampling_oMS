@@ -8,7 +8,7 @@ library(tarchetypes)
 library(ggplot2)
 
 tar_option_set(
-  packages = c("dplyr","tidyr","ggplot2")  # load dplyr in each environement
+  packages = c("dplyr","tidyr","ggplot2","piecewiseSEM")  # load dplyr in each environement
 )
 
 tar_source()
@@ -61,11 +61,11 @@ list(
   
   tar_target(data_sem_complete_sessions,get_data_sem_complete_sessions(data_true_rs_ms, data_proxy$data_proxy, cols="co10")),
   
-  tar_target(data_id_sampled_sessions,load_data("data/all_data_long_NA_0AllFemFALSE_raw.txt")),
+  tar_target(data_previous_study,load_data("data/all_data_long_NA_0AllFemFALSE_raw.txt")),
   
   tar_target(oms_id,get_ttt_effect_id(data_sem_sampled_sessions,"oms")),
   
-  tar_target(sr_id,get_ttt_effect_id(data_sem_sampled_sessions,"sr")),
+  tar_target(sr_id,get_ttt_effect_id(data_sem_sampled_sessions,"sr_out")),
   
   tar_target(sr_all_id,get_ttt_effect_id(data_sem_sampled_sessions,"sr_all")),
   
@@ -83,319 +83,14 @@ list(
   
   tar_target(flo_id,get_ttt_effect_id(data_sem_sampled_sessions,"nb_flower_visited")),
   
-  tar_target(data_parent_share,get_data_parent_share(data_genotypes)),
+  tar_target(data_from_genotypes,get_data_from_genotypes(data_genotypes, data_id, "data/data_ABPOLL_ID_level_detID.txt")),
   
-  tar_target(data_sem_sampled_sessions,get_data_sem_sampled_sessions(data_id_sampled_sessions, data_id, data_proxy$data_proxy, data_parent_share, data_q_by_female, cols="co10")),
+  tar_target(data_sem_sampled_sessions,get_data_sem_sampled_sessions(data_id, data_previous_study, data_from_genotypes, cols="co10")),
   
   tar_target(linear_models_oms_proxy,get_linear_models_oms_proxy(data_proxy$data_proxy_longer)),
   
   tar_target(predictions_oms_proxy,compute_predictions_oms_proxy(linear_models_oms_proxy,data_proxy$data_proxy_longer)),
   
-  # tar_target(brms_pooled_data,get_brms_pooled_data(data_sem_sampled_sessions)),
-  
-  # ## Piecewise general ----
-  # ## sr_all
-  # ## sr_all and combi1 c("F","H")
-  # tar_target(piecewise_low_fem_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-  #                                                   target_sr = "W", target_traits = c("F","H"),
-  #                                                   x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_medium_fem_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-  #                                                           target_sr = "W", target_traits = c("F","H"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_high_fem_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-  #                                                           target_sr = "W", target_traits = c("F","H"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_low_mal_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-  #                                                           target_sr = "W", target_traits = c("F","H"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_medium_mal_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
-  #                                                              target_sr = "W", target_traits = c("F","H"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_high_mal_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
-  #                                                            target_sr = "W", target_traits = c("F","H"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # ## sr_all and combi2 c("F","r_height_max")
-  # tar_target(piecewise_low_fem_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-  #                                                           target_sr = "W", target_traits = c("F","r_height_max"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_medium_fem_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-  #                                                              target_sr = "W", target_traits = c("F","r_height_max"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_high_fem_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-  #                                                            target_sr = "W", target_traits = c("F","r_height_max"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_low_mal_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-  #                                                           target_sr = "W", target_traits = c("F","r_height_max"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_medium_mal_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
-  #                                                              target_sr = "W", target_traits = c("F","r_height_max"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_high_mal_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
-  #                                                            target_sr = "W", target_traits = c("F","r_height_max"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # ## sr_all and combi3 c("r_nb_flo_all","H")
-  # tar_target(piecewise_low_fem_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-  #                                                           target_sr = "W", target_traits = c("r_nb_flo_all","H"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_medium_fem_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-  #                                                              target_sr = "W", target_traits = c("r_nb_flo_all","H"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_high_fem_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-  #                                                            target_sr = "W", target_traits = c("r_nb_flo_all","H"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_low_mal_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-  #                                                           target_sr = "W", target_traits = c("r_nb_flo_all","H"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_medium_mal_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
-  #                                                              target_sr = "W", target_traits = c("r_nb_flo_all","H"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_high_mal_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
-  #                                                            target_sr = "W", target_traits = c("r_nb_flo_all","H"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # ## sr_all and combi4 c("r_nb_flo_all","r_height_max")
-  # tar_target(piecewise_low_fem_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-  #                                                           target_sr = "W", target_traits = c("r_nb_flo_all","r_height_max"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_medium_fem_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-  #                                                              target_sr = "W", target_traits = c("r_nb_flo_all","r_height_max"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_high_fem_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-  #                                                            target_sr = "W", target_traits = c("r_nb_flo_all","r_height_max"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_low_mal_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-  #                                                           target_sr = "W", target_traits = c("r_nb_flo_all","r_height_max"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_medium_mal_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
-  #                                                              target_sr = "W", target_traits = c("r_nb_flo_all","r_height_max"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_high_mal_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
-  #                                                            target_sr = "W", target_traits = c("r_nb_flo_all","r_height_max"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # ## sr_all and combi5 c("r_nb_stem","H")
-  # tar_target(piecewise_low_fem_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-  #                                                           target_sr = "W", target_traits = c("r_nb_stem","H"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_medium_fem_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-  #                                                              target_sr = "W", target_traits = c("r_nb_stem","H"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_high_fem_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-  #                                                            target_sr = "W", target_traits = c("r_nb_stem","H"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_low_mal_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-  #                                                           target_sr = "W", target_traits = c("r_nb_stem","H"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_medium_mal_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
-  #                                                              target_sr = "W", target_traits = c("r_nb_stem","H"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_high_mal_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
-  #                                                            target_sr = "W", target_traits = c("r_nb_stem","H"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # ## sr_all and combi6 c("r_nb_stem","r_height_max")
-  # tar_target(piecewise_low_fem_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-  #                                                           target_sr = "W", target_traits = c("r_nb_stem","r_height_max"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_medium_fem_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-  #                                                              target_sr = "W", target_traits = c("r_nb_stem","r_height_max"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_high_fem_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-  #                                                            target_sr = "W", target_traits = c("r_nb_stem","r_height_max"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_low_mal_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-  #                                                           target_sr = "W", target_traits = c("r_nb_stem","r_height_max"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_medium_mal_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
-  #                                                              target_sr = "W", target_traits = c("r_nb_stem","r_height_max"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_high_mal_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
-  #                                                            target_sr = "W", target_traits = c("r_nb_stem","r_height_max"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # ## sr (outcross)
-  # ## sr and combi1 c("F","H")
-  # tar_target(piecewise_sr_low_fem_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-  #                                                           target_sr = "Wout", target_traits = c("F","H"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_medium_fem_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-  #                                                              target_sr = "Wout", target_traits = c("F","H"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_high_fem_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-  #                                                            target_sr = "Wout", target_traits = c("F","H"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_low_mal_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-  #                                                           target_sr = "Wout", target_traits = c("F","H"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_medium_mal_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
-  #                                                              target_sr = "Wout", target_traits = c("F","H"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_high_mal_combi1,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
-  #                                                            target_sr = "Wout", target_traits = c("F","H"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # ## sr and combi2 c("F","r_height_max")
-  # tar_target(piecewise_sr_low_fem_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-  #                                                           target_sr = "Wout", target_traits = c("F","r_height_max"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_medium_fem_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-  #                                                              target_sr = "Wout", target_traits = c("F","r_height_max"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_high_fem_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-  #                                                            target_sr = "Wout", target_traits = c("F","r_height_max"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_low_mal_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-  #                                                           target_sr = "Wout", target_traits = c("F","r_height_max"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_medium_mal_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
-  #                                                              target_sr = "Wout", target_traits = c("F","r_height_max"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_high_mal_combi2,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
-  #                                                            target_sr = "Wout", target_traits = c("F","r_height_max"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # ## sr and combi3 c("r_nb_flo_all","H")
-  # tar_target(piecewise_sr_low_fem_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-  #                                                           target_sr = "Wout", target_traits = c("r_nb_flo_all","H"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_medium_fem_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-  #                                                              target_sr = "Wout", target_traits = c("r_nb_flo_all","H"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_high_fem_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-  #                                                            target_sr = "Wout", target_traits = c("r_nb_flo_all","H"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_low_mal_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-  #                                                           target_sr = "Wout", target_traits = c("r_nb_flo_all","H"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_medium_mal_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
-  #                                                              target_sr = "Wout", target_traits = c("r_nb_flo_all","H"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_high_mal_combi3,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
-  #                                                            target_sr = "Wout", target_traits = c("r_nb_flo_all","H"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # ## sr and combi4 c("r_nb_flo_all","r_height_max")
-  # tar_target(piecewise_sr_low_fem_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-  #                                                           target_sr = "Wout", target_traits = c("r_nb_flo_all","r_height_max"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_medium_fem_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-  #                                                              target_sr = "Wout", target_traits = c("r_nb_flo_all","r_height_max"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_high_fem_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-  #                                                            target_sr = "Wout", target_traits = c("r_nb_flo_all","r_height_max"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_low_mal_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-  #                                                           target_sr = "Wout", target_traits = c("r_nb_flo_all","r_height_max"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_medium_mal_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
-  #                                                              target_sr = "Wout", target_traits = c("r_nb_flo_all","r_height_max"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_high_mal_combi4,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
-  #                                                            target_sr = "Wout", target_traits = c("r_nb_flo_all","r_height_max"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # ## sr and combi5 c("r_nb_stem","H")
-  # tar_target(piecewise_sr_low_fem_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-  #                                                           target_sr = "Wout", target_traits = c("r_nb_stem","H"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_medium_fem_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-  #                                                              target_sr = "Wout", target_traits = c("r_nb_stem","H"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_high_fem_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-  #                                                            target_sr = "Wout", target_traits = c("r_nb_stem","H"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_low_mal_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-  #                                                           target_sr = "Wout", target_traits = c("r_nb_stem","H"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_medium_mal_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
-  #                                                              target_sr = "Wout", target_traits = c("r_nb_stem","H"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_high_mal_combi5,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
-  #                                                            target_sr = "Wout", target_traits = c("r_nb_stem","H"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # ## sr and combi6 c("r_nb_stem","r_height_max")
-  # tar_target(piecewise_sr_low_fem_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-  #                                                           target_sr = "Wout", target_traits = c("r_nb_stem","r_height_max"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_medium_fem_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-  #                                                              target_sr = "Wout", target_traits = c("r_nb_stem","r_height_max"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_high_fem_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-  #                                                            target_sr = "Wout", target_traits = c("r_nb_stem","r_height_max"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_low_mal_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-  #                                                           target_sr = "Wout", target_traits = c("r_nb_stem","r_height_max"),
-  #                                                           x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_medium_mal_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
-  #                                                              target_sr = "Wout", target_traits = c("r_nb_stem","r_height_max"),
-  #                                                              x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
-  # tar_target(piecewise_sr_high_mal_combi6,get_piecewise_general(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
-  #                                                            target_sr = Wout, target_traits = c("r_nb_stem","r_height_max"),
-  #                                                            x_coord = c(2,2,1,3), y_coord = c(2,3,1,1))),
-  # 
   ## Piecewise males ----
   
   ## sr_all and combi1 c("F","H")
@@ -413,6 +108,19 @@ list(
                                                            target_sr = "W", target_ps = "PS",
                                                            target_traits = c("F","H"),
                                                            x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1))),
+  
+  ## sr_all and combi1 c("F","H") + flower number
+  tar_target(piecewisemales_low_combi1_flower,get_piecewise_males_flower(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                                           target_sr = "W", target_ps = "PS",
+                                                           target_traits = c("F","H"))),
+  
+  tar_target(piecewisemales_medium_combi1_flower,get_piecewise_males_flower(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                                              target_sr = "W", target_ps = "PS",
+                                                              target_traits = c("F","H"))),
+  
+  tar_target(piecewisemales_high_combi1_flower,get_piecewise_males_flower(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                                            target_sr = "W", target_ps = "PS",
+                                                            target_traits = c("F","H"))),
   
   ## sr_all and combi3 c("r_nb_flo_all","H")
   tar_target(piecewisemales_low_combi3,get_piecewise_males(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
@@ -466,75 +174,109 @@ list(
   
   ## sr_all and combi1 c("F","H")
   tar_target(piecewisefemales_low_combi1,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-                                                           target_sr = "W", target_ps = "MF",
+                                                           target_sr = "W", target_ps = "ME",
                                                            target_traits = c("F","H"),
                                                            x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1))),
   
   tar_target(piecewisefemales_medium_combi1,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-                                                              target_sr = "W", target_ps = "MF",
+                                                              target_sr = "W", target_ps = "ME",
                                                               target_traits = c("F","H"),
                                                               x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1))),
   
   tar_target(piecewisefemales_high_combi1,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-                                                            target_sr = "W", target_ps = "MF",
+                                                            target_sr = "W", target_ps = "ME",
                                                             target_traits = c("F","H"),
                                                             x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1))),
   
   ## sr_all and combi3 c("r_nb_flo_all","H")
   tar_target(piecewisefemales_low_combi3,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-                                                           target_sr = "W", target_ps = "MF",
+                                                           target_sr = "W", target_ps = "ME",
                                                            target_traits = c("r_nb_flo_all","H"),
                                                            x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1))),
   
   tar_target(piecewisefemales_medium_combi3,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-                                                              target_sr = "W", target_ps = "MF",
+                                                              target_sr = "W", target_ps = "ME",
                                                               target_traits = c("r_nb_flo_all","H"),
                                                               x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1))),
   
   tar_target(piecewisefemales_high_combi3,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-                                                            target_sr = "W", target_ps = "MF",
+                                                            target_sr = "W", target_ps = "ME",
                                                             target_traits = c("r_nb_flo_all","H"),
                                                             x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1))),
   
   ## sr_all and combi7 c("r_nb_flo","H")
   tar_target(piecewisefemales_low_combi7,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-                                                               target_sr = "W", target_ps = "MF",
+                                                               target_sr = "W", target_ps = "ME",
                                                                target_traits = c("r_nb_flo","H"),
                                                                x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1))),
   
   tar_target(piecewisefemales_medium_combi7,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-                                                                  target_sr = "W", target_ps = "MF",
+                                                                  target_sr = "W", target_ps = "ME",
                                                                   target_traits = c("r_nb_flo","H"),
                                                                   x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1))),
   
   tar_target(piecewisefemales_high_combi7,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-                                                                target_sr = "W", target_ps = "MF",
+                                                                target_sr = "W", target_ps = "ME",
                                                                 target_traits = c("r_nb_flo","H"),
                                                                 x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1))),
   
   ## sr and combi1 c("F","H")
   tar_target(piecewisefemales_sr_low_combi1,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-                                                               target_sr = "Wout", target_ps = "MF",
+                                                               target_sr = "Wout", target_ps = "ME",
                                                                target_traits = c("F","H"),
                                                                x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1))),
   
   tar_target(piecewisefemales_sr_medium_combi1,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
-                                                                  target_sr = "Wout", target_ps = "MF",
+                                                                  target_sr = "Wout", target_ps = "ME",
                                                                   target_traits = c("F","H"),
                                                                   x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1))),
   
   tar_target(piecewisefemales_sr_high_combi1,get_piecewise_females(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
-                                                                target_sr = "Wout", target_ps = "MF",
+                                                                target_sr = "Wout", target_ps = "ME",
                                                                 target_traits = c("F","H"),
                                                                 x_coord = c(1.5,2,2.5,1,3), y_coord = c(2,4,2,1,1))),
   
   ## Piecewise males complete with visits ----
   
-  # tar_target(piecewisemales_low_combi1_visits,get_piecewise_males_visits(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-  #                                                                 target_sr = "W", target_ps = "PS",
-  #                                                                 target_traits = c("F","H"),
-  #                                                                 x_coord = c(3,1,2,1.5,2,2.5,1,3), y_coord = c(2,2,2,3,4,3,1,1))),
+  tar_target(piecewisemales_low_combi1_visits,get_piecewise_males_visits(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                                                  target_sr = "W", target_ps = "PS",
+                                                                  target_traits = c("F","H"))),
   
+  tar_target(piecewisemales_medium_combi1_visits,get_piecewise_males_visits(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                                                         target_sr = "W", target_ps = "PS",
+                                                                         target_traits = c("F","H"))),
+  
+  tar_target(piecewisemales_high_combi1_visits,get_piecewise_males_visits(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                                                         target_sr = "W", target_ps = "PS",
+                                                                         target_traits = c("F","H"))),
+  
+  ## Piecewise males complete with visits and flowers ----
+  
+  tar_target(piecewisemales_low_combi1_visits_flower,get_piecewise_males_visits_flower(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                                                         target_sr = "W", target_ps = "PS",
+                                                                         target_traits = c("F","H"))),
+  
+  tar_target(piecewisemales_medium_combi1_visits_flower,get_piecewise_males_visits_flower(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                                                            target_sr = "W", target_ps = "PS",
+                                                                            target_traits = c("F","H"))),
+  
+  tar_target(piecewisemales_high_combi1_visits_flower,get_piecewise_males_visits_flower(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                                                          target_sr = "W", target_ps = "PS",
+                                                                          target_traits = c("F","H"))),
+  
+  ## Piecewise females complete with visits ----
+  
+  tar_target(piecewisefemales_low_combi1_visits,get_piecewise_females_visits(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                                                         target_sr = "W", target_ps = "ME",
+                                                                         target_traits = c("F","H"))),
+  
+  tar_target(piecewisefemales_medium_combi1_visits,get_piecewise_females_visits(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
+                                                                            target_sr = "W", target_ps = "ME",
+                                                                            target_traits = c("F","H"))),
+  
+  tar_target(piecewisefemales_high_combi1_visits,get_piecewise_females_visits(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
+                                                                          target_sr = "W", target_ps = "ME",
+                                                                          target_traits = c("F","H"))),
   
   ## Linear models for visits ----
   
@@ -572,10 +314,17 @@ list(
   tar_target(piecewise_flower_high,get_piecewise_flower(data_flower, target_ttt = "3_high",
                                                        x_coord = c(3,2,2,1), y_coord = c(2,1.5,2.5,2))),
   
+  ## Final SEM models ----
+  
+  ## Z-tests for SEM comparison ----
+  
+  tar_target(z_tests,get_z_tests(piecewisemales_low_combi1_visits,piecewisemales_medium_combi1_visits,piecewisemales_high_combi1_visits,
+                                 piecewisefemales_low_combi1_visits,piecewisefemales_medium_combi1_visits,piecewisefemales_high_combi1_visits)),
+  
   
   ## Quarto ----
   
-  tarchetypes::tar_quarto(index, "index.qmd")
+  tarchetypes::tar_quarto(index, "index.qmd", quiet = FALSE)
   
 )
 

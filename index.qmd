@@ -182,7 +182,7 @@ data_id |>
             sd_dlower = sd(nb_flo_open, na.rm = T))
 ```
 
-# Path analysis with oms and post-poll process
+# SEM with pre- and post-poll process
 
 We measured:
 
@@ -620,4 +620,104 @@ targets::tar_load(piecewise_flower_high)
 piecewise_flower_high$plot
 piecewise_flower_high$summary
 
+```
+
+
+# SEM for males with flower
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisemales_low_combi1_flower)
+piecewisemales_low_combi1_flower$plot
+piecewisemales_low_combi1_flower$summary
+```
+
+**For the medium treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisemales_medium_combi1_flower)
+piecewisemales_medium_combi1_flower$plot
+piecewisemales_medium_combi1_flower$summary
+```
+
+**For the high treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(piecewisemales_high_combi1_flower)
+piecewisemales_high_combi1_flower$plot
+piecewisemales_high_combi1_flower$summary
+```
+# SEM including visit proxies
+
+## Males
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewisemales_low_combi1_visits)
+piecewisemales_low_combi1_visits$plot
+piecewisemales_low_combi1_visits$summary
+piecewisemales_low_combi1_visits$dsep
+```
+
+**For the medium treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewisemales_medium_combi1_visits)
+piecewisemales_medium_combi1_visits$plot
+piecewisemales_medium_combi1_visits$summary
+piecewisemales_medium_combi1_visits$dsep
+```
+
+**For the high treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewisemales_high_combi1_visits)
+piecewisemales_high_combi1_visits$plot
+piecewisemales_high_combi1_visits$summary
+piecewisemales_high_combi1_visits$dsep
+```
+
+## Females
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewisefemales_low_combi1_visits)
+piecewisefemales_low_combi1_visits$plot
+piecewisefemales_low_combi1_visits$summary
+piecewisefemales_low_combi1_visits$dsep
+```
+
+**For the medium treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewisefemales_medium_combi1_visits)
+piecewisefemales_medium_combi1_visits$plot
+piecewisefemales_medium_combi1_visits$summary
+piecewisefemales_medium_combi1_visits$dsep
+```
+
+**For the high treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewisefemales_high_combi1_visits)
+piecewisefemales_high_combi1_visits$plot
+piecewisefemales_high_combi1_visits$summary
+piecewisefemales_high_combi1_visits$dsep
+```
+
+# Z-tests for comparison between SEM
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+targets::tar_load(z_tests)
+knitr::kable(z_tests$intra_sex)
+knitr::kable(z_tests$inter_sex)
 ```

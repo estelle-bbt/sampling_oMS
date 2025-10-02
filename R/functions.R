@@ -34,7 +34,7 @@ get_resume_visits <- function(file_path) {
     pivot_wider(values_from=name_id,names_from=name_id,names_prefix="newid_",values_fn = list(name_id = ~ 1), values_fill = list(name_id = 0)) |>
     mutate(across(starts_with("newid"),~ifelse(duplicated(cumsum(.)),NA,cumsum(.)))) |>
     rowwise() |>
-    mutate(no_arrival=sum(across(starts_with("newid")),na.rm=T)-1) |>
+    mutate(no_arrival=sum(across(starts_with("newid")),na.rm=T)) |>
     select(!starts_with("newid")) |>
     select(session,start,id,people,consecut,duration,no_arrival) |>
     arrange(session,start)
@@ -48,6 +48,18 @@ get_resume_visits <- function(file_path) {
     mutate(rel_mean_position_focal_bee = mean_position_focal_bee / max_boot) |>
     group_by(session,id) |>
     summarise(mean_position = mean(rel_mean_position_focal_bee))
+  
+  data_first_visit <- data_arrival_with_bee |>
+    group_by(session, people, id) |>
+    summarise(first_visit_focal_bee = min(consecut)) |>
+    # left_join(data_arrival_with_bee |>
+    #             group_by(session, people) |>
+    #             summarise(max_boot = max(consecut))) |>
+    # mutate(rel_mean_first_visit = first_visit_focal_bee / max_boot) |>
+    # group_by(session,id) |>
+    # summarise(mean_first_visit = mean(rel_mean_first_visit))
+    group_by(session,id) |>
+    summarise(mean_first_visit = mean(first_visit_focal_bee))
   
   data_nb_visits <- read.table(file_path,head=T) |>
     rename(id=ID_full) |> 
@@ -64,11 +76,12 @@ get_resume_visits <- function(file_path) {
     summarize(contact_id=sum(contact_id_bee),
               dur_tot=sum(dur_tot_bee,na.rm=T)) |>
     left_join(data_position) |>
+    left_join(data_first_visit) |>
     left_join(data_nb_visits) |> 
     mutate(dur_per_visit = dur_tot / nb_visits) |>
-    mutate(ttt=as.factor(case_when(grepl("FA",session)~"1_low",
-                                   grepl("MO",session)~"2_medium",
-                                   TRUE~"3_high"))) 
+    mutate(ttt=as.factor(case_when(grepl("FA",session)~"low",
+                                   grepl("MO",session)~"medium",
+                                   TRUE~"high"))) 
   
   return(data_resume_visits)
 }
@@ -133,13 +146,14 @@ load_data_id <- function(file_path, data_resume_visits, cols = c("co5", "co10", 
     rename(sr_fem_total=nbGr_SR_sum) |>
     rename_with(~ gsub("import_nb_part_ID_out_", "oms_fem_", .x), starts_with("import_")) |>
     rename_with(~ gsub("export_nb_part_ID_out_", "oms_mal_", .x), starts_with("export_")) |>
-      mutate(ttt=as.factor(case_when(grepl("FA",session)~"1_low",
-                                     grepl("MO",session)~"2_medium",
-                                     TRUE~"3_high")),.before = 2) |>
+      mutate(ttt=as.factor(case_when(grepl("FA",session)~"low",
+                                     grepl("MO",session)~"medium",
+                                     TRUE~"high")),.before = 2) |>
       left_join(data_resume_visits) |>
       # replace NA by 0 only for contact_id 
       # for nb_flower_visited, nb_visits, duration and mean position, not any sense if not visited
       mutate(contact_id = replace_na(contact_id, 0)) |>
+      # mutate(nb_flower_visited = replace_na(nb_flower_visited, 0)) |>
       group_by(session) |>
       mutate(across(where(is.numeric), ~ . / mean(., na.rm = TRUE), .names = "r_{.col}")) |>
       ungroup()
@@ -1362,32 +1376,194 @@ get_plot_gms <- function(data_sampling,data_id) {
 #'
 #' @export
 
-get_data_parent_share <- function(data_genotypes) {
+get_data_parent_share <- function(data_genotypes, data_id, file_path){
   
-  data_parent_share <- data_genotypes |>
+  # observation with observed visits only (carry-over 10)
+  all_obs <- read.table(file_path,head=T) %>%
+    filter(!session %in% c("5.FA1","5.MO1"))  %>%
+    select(session,ID_full,ID_full_part,import_nb_visit_co10) %>%
+    filter(!(is.na(import_nb_visit_co10)|import_nb_visit_co10==0)) %>%
+    mutate(couple_obs = paste0(ID_full,"_",ID_full_part))
+  
+  # filtering only observed contact
+  data_genotypes_filter <- data_genotypes |>
+    mutate(couple_gen = paste0(known_id,"_",candidate_id)) |>
+    filter(couple_gen %in% all_obs$couple_obs)
+  
+  # data_genotypes_filter <- data_genotypes
+  
+  data_parent_share <- data_genotypes_filter |>
     filter(candidate_id != known_id) |>
     group_by(candidate_id,known_id) |>
     summarise(genot_couple = n()) |>
     left_join(data_genotypes |>
                 group_by(known_id) |>
                 summarise(genot_mother = n())) |>
-    mutate(paternity_share = genot_couple / genot_mother) |>
+    left_join(data_id |>
+                 select(id, sr_fem_total), by = join_by(known_id == id)) |>
+    mutate(paternity_share = genot_couple / genot_mother,
+           total_couple = paternity_share * sr_fem_total) |>
     group_by(candidate_id) |>
-    summarise(mean_ps = mean(paternity_share)) |>
+    summarise(mean_ps = mean(paternity_share),
+              sr_mal_out_share = sum(total_couple)) |>
     rename(id = candidate_id) |>
-    left_join(data_genotypes |>
+    left_join(data_genotypes_filter |>
                 group_by(candidate_id,known_id) |>
                 summarise(genot_couple = n()) |>
                 left_join(data_genotypes |>
                             group_by(known_id) |>
                             summarise(genot_mother = n())) |>
-                mutate(paternity_share = genot_couple / genot_mother) |>
+                left_join(data_id |>
+                            select(id, sr_fem_total), by = join_by(known_id == id)) |>
+                mutate(paternity_share = genot_couple / genot_mother,
+                       total_couple = paternity_share * sr_fem_total) |>
                 group_by(candidate_id) |>
-                summarise(mean_ps_all = mean(paternity_share)) |>
+                summarise(mean_ps_all = mean(paternity_share),
+                          sr_mal_all_share = sum(total_couple)) |>
                 rename(id = candidate_id)) |>
     mutate(sex = "mal",.before = 2) 
   
   return(data_parent_share)
+}
+
+#' Estimate q index
+#'
+#' @description 
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+q_index <- function(x) {
+  n <- length(x)
+  N <- sum(x)
+  if (N <= 1) return(NA)  # to avoid dividing by zero
+  sum_xi <- sum(x * (x - 1))
+  I_d <- (sum_xi) / (N * (N - 1))
+  return(I_d)
+}
+
+#' Get data of paternity share for sem analyses
+#'
+#' @description Function to get paternity share data
+#'
+#' @param data table with genotypes
+#'
+#' @return table paternity share data
+#'
+#' @import dplyr
+#'
+#' @export
+
+get_data_from_genotypes <- function(data_genotypes, data_id, file_path){
+  
+  # observation with observed visits only (carry-over 10)
+  obs_only <- read.table(file_path,head=T) %>%
+    filter(!session %in% c("5.FA1","5.MO1"))  %>%
+    select(session,ID_full_foc,ID_full_part,import_nb_visit_co10) %>%
+    filter(!(is.na(import_nb_visit_co10)|import_nb_visit_co10==0)) %>%
+    mutate(couple_obs = paste0(ID_full_foc,"_",ID_full_part))
+  
+  # filtering only observed contact
+  data_genotypes_filter <- data_genotypes |>
+    mutate(couple_gen = paste0(known_id,"_",candidate_id)) |>
+    filter(couple_gen %in% obs_only$couple_obs)
+  
+  # data_genotypes_filter <- data_genotypes
+  
+  data_male <- data_genotypes_filter |>
+    filter(candidate_id != known_id) |>
+    group_by(candidate_id,known_id) |>
+    summarise(genot_couple = n()) |>
+    left_join(data_genotypes |>
+                group_by(known_id) |>
+                summarise(genot_mother = n())) |>
+    left_join(data_id |>
+                select(id, sr_fem_total), by = join_by(known_id == id)) |>
+    mutate(paternity_share = genot_couple / genot_mother,
+           total_couple = paternity_share * sr_fem_total) |>
+    group_by(candidate_id) |>
+    summarise(mean_ps = mean(paternity_share),
+              sr_out = sum(total_couple)) |>
+    rename(id = candidate_id) |>
+    left_join(data_genotypes_filter |>
+                group_by(candidate_id,known_id) |>
+                summarise(genot_couple = n()) |>
+                left_join(data_genotypes |>
+                            group_by(known_id) |>
+                            summarise(genot_mother = n())) |>
+                left_join(data_id |>
+                            select(id, sr_fem_total), by = join_by(known_id == id)) |>
+                mutate(paternity_share = genot_couple / genot_mother,
+                       total_couple = paternity_share * sr_fem_total) |>
+                group_by(candidate_id) |>
+                summarise(mean_ps_all = mean(paternity_share),
+                          sr_all = sum(total_couple)) |>
+                rename(id = candidate_id)) |>
+    mutate(sex = "mal",.before = 2) 
+  
+  q_obs_female <- obs_only |>
+    group_by(ID_full_foc) %>%
+    summarise(
+      q_obs_all = q_index(import_nb_visit_co10),
+      .groups = "drop"
+    ) |> left_join(obs_only |>
+                     filter(ID_full_foc != ID_full_part) |>
+                     group_by(ID_full_foc) %>%
+                     summarise(
+                       q_obs_out = q_index(import_nb_visit_co10),
+                       .groups = "drop"
+                     )) |>
+    rename(known_id = ID_full_foc)
+  
+  q_gen_female <- data_genotypes_filter |>
+    group_by(known_id,candidate_id) |>
+    summarise(genot_couple = n()) |>
+    group_by(known_id) |>
+    summarise(
+      q_gen_all = q_index(genot_couple),
+      .groups = "drop"
+    ) |> left_join(data_genotypes_filter |>
+                     filter(known_id != candidate_id) |>
+                     group_by(known_id,candidate_id) |>
+                     summarise(genot_couple = n()) |>
+                     group_by(known_id) |>
+                     summarise(
+                       q_gen_out = q_index(genot_couple),
+                       .groups = "drop"
+                     ))
+  
+  data_female <- data_id |>
+    select(id, sr_fem_total) |>
+    rename(known_id = id) |>
+    left_join(q_obs_female) |>
+    left_join(q_gen_female) |>
+    left_join(data_genotypes_filter |>
+                filter(known_id != candidate_id) |>
+                group_by(known_id) |>
+                summarise(sr_fem_out = n()) |>
+                left_join(data_genotypes_filter |>
+                            group_by(known_id) |>
+                            summarise(n_genot = n())) |>
+                mutate(prop_out = sr_fem_out / n_genot)) |>
+    mutate(sr_out = sr_fem_total * prop_out) |>
+    mutate(ratio_q = q_gen_out / q_obs_out,
+           diff_q = q_gen_out - q_obs_out,
+           abs_diff_q = abs(diff_q)) |>
+    select(-c(sr_fem_out, n_genot, prop_out, q_gen_out, q_gen_all, q_obs_out, q_obs_all)) |>
+    rename(id = known_id,
+           sr_all = sr_fem_total) |>
+    mutate(sex = "fem",.before = 2) 
+  
+  data_from_genotypes <- data_male |>
+    bind_rows(data_female) |>
+    mutate(session = substr(id, 1, 5))
+  
+  return(data_from_genotypes)
 }
 
 #' Get data for sem analyses - sessions with all genotypes
@@ -1433,7 +1609,9 @@ get_data_sem_complete_sessions <- function(data_true_rs_ms, data_proxy, cols="co
   return(data_sem)
 }
 
-#' Get data for sem analyses - all sessions with sampled genotypes
+
+
+#' Get data for sem analyses - all sessions with sampled genotypes OLD VERSION
 #'
 #' @description Function to gett data for sem analyses
 #'
@@ -1445,7 +1623,7 @@ get_data_sem_complete_sessions <- function(data_true_rs_ms, data_proxy, cols="co
 #' 
 #' @export
 
-get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_id, data_proxy, data_parent_share, data_q_by_female, cols="co10") {
+get_data_sem_sampled_sessions_old <- function(data_id_sampled_sessions, data_id, data_proxy, data_parent_share, data_q_by_female, cols="co10") {
   
   data_sem <- data_id_sampled_sessions |>
     select(session, ID_full, type, SR_out, SR_all, r_SR_out, r_SR_all, poll_treat_factor,
@@ -1462,7 +1640,7 @@ get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_id, dat
     mutate(r_mean_ps = mean_ps / mean(mean_ps,na.rm = T),
            r_mean_ps_all = mean_ps_all / mean(mean_ps_all,na.rm = T)) |>
     ungroup() |>
-        left_join(data_id %>% select(id, contact_id, dur_tot, mean_position, nb_visits, nb_flower_visited, dur_per_visit, nb_visits_per_flower, r_contact_id, r_dur_tot, r_mean_position, r_nb_visits, r_nb_flower_visited, r_dur_per_visit, r_nb_visits_per_flower)) |>
+        left_join(data_id %>% select(id, contact_id, dur_tot, mean_position, mean_first_visit, nb_visits, nb_flower_visited, dur_per_visit, nb_visits_per_flower, r_contact_id, r_dur_tot, r_mean_position, r_mean_first_visit, r_nb_visits, r_nb_flower_visited, r_dur_per_visit, r_nb_visits_per_flower)) |>
     left_join(
       data_proxy |>
         select(id, session,
@@ -1498,7 +1676,8 @@ get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_id, dat
     rename(Wout = r_sr,
            W = r_sr_all,
            PS = r_mean_ps,
-           MF = r_diff_q,
+           FL = r_mean_nb_dist_flo_out_co10,
+           ME = r_diff_q,
            MS = r_oms,
            F = r_nb_flo_open,
            H = r_height_mean,
@@ -1511,6 +1690,74 @@ get_data_sem_sampled_sessions <- function(data_id_sampled_sessions, data_id, dat
   return(data_sem)
 }
 
+#' Get data for sem analyses - all sessions with sampled genotypes OLD VERSION
+#'
+#' @description Function to gett data for sem analyses
+#'
+#' @param data table with true rs ms and data on id
+#'
+#' @return table data for sem analyses
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+get_data_sem_sampled_sessions <- function(data_id, data_previous_study, data_from_genotypes, cols="co10") {
+  
+  data_sem <- data_id |>
+    select(id, ttt, contact_id, dur_tot, mean_position, mean_first_visit, 
+           nb_visits, nb_flower_visited, dur_per_visit, 
+           nb_visits_per_flower, r_contact_id, r_dur_tot, r_mean_position, 
+           r_mean_first_visit, r_nb_visits, r_nb_flower_visited, r_dur_per_visit, r_nb_visits_per_flower) |>
+    left_join(
+      data_id |>
+        select(id, session,
+               nb_flo,nb_flo_open,nb_flo_all,height_max,height_mean,nb_stem,
+               !!sym(paste0("oms_fem_", cols)),
+               !!sym(paste0("oms_mal_", cols))) |>
+        group_by(session) |>
+        mutate(across(where(is.numeric), ~ . / mean(., na.rm = TRUE), .names = "r_{.col}")) |>
+        ungroup()) |>
+    pivot_longer(
+      cols = starts_with(c("r_oms","oms")),
+      names_to = c(".value", "sex"),
+      names_pattern = "(r_oms|oms)_(fem|mal)_co10"
+    ) |>
+    relocate(session, id, sex) |>
+    left_join(data_previous_study |> # just to get the nb of flower touched per mate from a previous study
+                select(ID_full, type, !!sym(paste0("r_mean_nb_dist_flo_out_", cols))) |>
+                rename(id = ID_full,
+                       sex = type)) |>
+    left_join(data_from_genotypes |>
+      group_by(session,sex) |>
+      mutate(r_mean_ps = mean_ps / mean(mean_ps,na.rm = T),
+             r_mean_ps_all = mean_ps_all / mean(mean_ps_all,na.rm = T),
+             r_diff_q = diff_q / mean(diff_q, na.rm = T),
+             r_sr_out = sr_out / mean(sr_out, na.rm=T),
+             r_sr_all = sr_all / mean(sr_all, na.rm=T)) |>
+      ungroup()) |>
+    mutate(ttt_plot=as.factor(case_when(grepl("FA",session)~"Low",
+                                        grepl("MO",session)~"Medium",
+                                        TRUE~"High")),
+           ttt_plot=forcats::fct_relevel(ttt_plot, c("Low","Medium","High")),
+           .before = 2) |>
+    rename(Wout = r_sr_out,
+           W = r_sr_all,
+           PS = r_mean_ps,
+           FL = r_mean_nb_dist_flo_out_co10,
+           ME = r_diff_q,
+           MS = r_oms,
+           F = r_nb_flo_open,
+           H = r_height_mean,
+           POS = r_mean_position,
+           POSf = r_mean_first_visit,
+           PLA = r_contact_id,
+           DUR = r_dur_per_visit,
+           VIS = r_nb_visits_per_flower,
+           FLO = r_nb_flower_visited)
+  
+  return(data_sem)
+}
 
 #' Get linear models for correlation oms vs proxy
 #'
@@ -1905,6 +2152,66 @@ get_piecewise_males <- function(data_sem_sampled_sessions, target_ttt = "low", t
               plot = plot))
 }
 
+#' SEM analyses with piecewise - males with flower number as well
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_males_flower <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                target_sr = "W", target_ps = "PS",
+                                target_traits = c("F","H"),
+                                x_coord = c(1.5,2,2,2.5,1,3), y_coord = c(2,2,4,2,1,1)) {
+  
+  color <- case_when(target_ttt == "low" ~ "#43C59E",
+                     target_ttt == "medium" ~ "#3D7068",
+                     target_ttt == "high" ~ "#14453D")
+  
+  data_target <- data_sem_sampled_sessions |> 
+    filter(ttt == target_ttt & sex == target_sex) 
+  
+  cor.test(data_target$MS,data_target$PS)
+  
+  formula1 <- reformulate(target_traits, response = "MS")
+  formula1 <- update(formula1, . ~ . + (1|session))
+  
+  formula1b <- reformulate(target_traits, response = "FL")
+  formula1b <- update(formula1b, . ~ . + (1|session))
+  
+  formula2 <- reformulate(c("MS", "FL", target_ps), response = target_sr)
+  formula2 <- update(formula2, . ~ . + (1|session))
+  
+  formula3 <- reformulate(target_traits, response = target_ps)
+  formula3 <- update(formula3, . ~ . + (1|session))
+  
+  psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_target,formula1),
+                                   
+                                   lme4::lmer(data=data_target,formula1b),
+                                   
+                                   lme4::lmer(data=data_target,formula2),
+                                   
+                                   lme4::lmer(data=data_target,formula3))
+  
+  plot <- plot(psem_proxy,
+               
+               node_attrs = data.frame(fillcolor = color,
+                                       
+                                       x = x_coord, y = y_coord,
+                                       
+                                       fontsize=6))
+  
+  summary <- summary(psem_proxy)
+  
+  return(list(summary = summary,
+              plot = plot))
+}
+
 #' SEM analyses with piecewise - females with ability fertilize
 #'
 #' @description piecewise adapted only to females
@@ -1918,7 +2225,7 @@ get_piecewise_males <- function(data_sem_sampled_sessions, target_ttt = "low", t
 #' @export
 
 get_piecewise_females <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
-                                      target_sr = "W", target_ps = "r_diff_q",
+                                      target_sr = "W", target_ps = "ME",
                                       target_traits = c("F","H"),
                                       x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1)) {
   
@@ -2027,7 +2334,7 @@ get_multigroup_females <- function(data_sem_sampled_sessions, target_sex = "fem"
 #' @export
 
 get_multigroup_males <- function(data_sem_sampled_sessions, target_sex = "mal",
-                                   target_sr = "r_sr_all",
+                                   target_sr = "W",
                                    x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1)) {
   
   color <- case_when(target_ttt == "low" ~ "#43C59E",
@@ -2038,23 +2345,57 @@ get_multigroup_males <- function(data_sem_sampled_sessions, target_sex = "mal",
     filter(sex == target_sex) |>
     mutate(ttt = as.factor(ttt)) |>
     mutate(
-      r_nb_flo_open_ttt = r_nb_flo_open * as.numeric(ttt),
-      r_height_mean_ttt = r_height_mean * as.numeric(ttt),
-      r_oms_ttt = r_oms * as.numeric(ttt),
-      r_mean_ps_ttt = r_mean_ps * as.numeric(ttt)
+      F_ttt = F * as.numeric(ttt),
+      H_ttt = H * as.numeric(ttt),
+      MS_ttt = MS * as.numeric(ttt),
+      PS_ttt = PS * as.numeric(ttt),
+      POS_ttt = POS * as.numeric(ttt),
+      PLA_ttt = PLA * as.numeric(ttt),
+      FLO_ttt = FLO * as.numeric(ttt),
+      VIS_ttt = VIS * as.numeric(ttt)
     )
   
-  formula1 <- as.formula("r_oms ~ r_nb_flo_open + r_height_mean + r_nb_flo_open_ttt + r_height_mean_ttt + (1|session)")
+  formula1 <- as.formula("MS ~ POS + PLA + FLO + VIS + POS_ttt + PLA_ttt + FLO_ttt + VIS_ttt + (1|session)")
+
+  formula2 <- as.formula("PS ~ POS + PLA + FLO + VIS + POS_ttt + PLA_ttt + FLO_ttt + VIS_ttt + (1|session)")
+
+  formula3 <- as.formula(paste(target_sr, "~ MS + PS + MS_ttt + PS_ttt + (1|session)"))
+
+  formula4 <- as.formula("POS ~ F + H + F_ttt + H_ttt + (1|session)")
+
+  formula5 <- as.formula("PLA ~ F + H + F_ttt + H_ttt + (1|session)")
+
+  formula6 <- as.formula("FLO ~ F + H + F_ttt + H_ttt + (1|session)")
+
+  formula7 <- as.formula("VIS ~ F + H + F_ttt + H_ttt + (1|session)")
   
-  formula2 <- as.formula(paste(target_sr, "~ r_oms + r_mean_ps + r_oms_ttt + r_mean_ps_ttt + (1|session)"))
-  
-  formula3 <- as.formula("r_mean_ps ~ r_nb_flo_open + r_height_mean + r_nb_flo_open_ttt + r_height_mean_ttt + (1|session)")
+  # formula1 <- as.formula("MS ~ POS * ttt + PLA *ttt + FLO * ttt + VIS * ttt + (1|session)")
+  # 
+  # formula2 <- as.formula("PS ~ POS * ttt + PLA *ttt + FLO * ttt + VIS * ttt  + (1|session)")
+  # 
+  # formula3 <- as.formula(paste(target_sr, "~ MS * ttt + PS * ttt + (1|session)"))
+  # 
+  # formula4 <- as.formula("POS ~ F * ttt + H * ttt + (1|session)")
+  # 
+  # formula5 <- as.formula("PLA ~ F * ttt + H * ttt + (1|session)")
+  # 
+  # formula6 <- as.formula("FLO ~ F * ttt + H * ttt + (1|session)")
+  # 
+  # formula7 <- as.formula("VIS ~ F * ttt + H * ttt + (1|session)")
   
   psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_target,formula1),
                                    
                                    lme4::lmer(data=data_target,formula2),
                                    
-                                   lme4::lmer(data=data_target,formula3))
+                                   lme4::lmer(data=data_target,formula3),
+                                   
+                                   lme4::lmer(data=data_target,formula4),
+                                   
+                                   lme4::lmer(data=data_target,formula5),
+                                   
+                                   lme4::lmer(data=data_target,formula6),
+                                   
+                                   lme4::lmer(data=data_target,formula7))
   
   plot <- plot(psem_proxy,
                
@@ -2167,7 +2508,7 @@ get_analyses_visits <- function(data_id) {
   mod_nb_visits_tot_summary <- summary(mod_nb_visits_tot)
   
   data_id_low <- data_id |>
-    filter(ttt == "1_low")
+    filter(ttt == "low")
   
   mod_pos_low <- lme4::lmer(data=data_id_low,r_mean_position~r_nb_flo_open+r_height_mean+(1|session))
   mod_pos_low_anova <- car::Anova(mod_pos_low)
@@ -2186,7 +2527,7 @@ get_analyses_visits <- function(data_id) {
   mod_nb_visits_low_summary <- summary(mod_nb_visits_low)
   
   data_id_medium <- data_id |>
-    filter(ttt == "2_medium")
+    filter(ttt == "medium")
   
   mod_pos_medium <- lme4::lmer(data=data_id_medium,r_mean_position~r_nb_flo_open+r_height_mean+(1|session))
   mod_pos_medium_anova <- car::Anova(mod_pos_medium)
@@ -2205,7 +2546,7 @@ get_analyses_visits <- function(data_id) {
   mod_nb_visits_medium_summary <- summary(mod_nb_visits_medium)
   
   data_id_high <- data_id |>
-    filter(ttt == "3_high")
+    filter(ttt == "high")
   
   mod_pos_high <- lme4::lmer(data=data_id_high,r_mean_position~r_nb_flo_open+r_height_mean+(1|session))
   mod_pos_high_anova <- car::Anova(mod_pos_high)
@@ -2270,61 +2611,247 @@ get_analyses_visits <- function(data_id) {
 #' 
 #' @export
 
-get_piecewise_males_visits <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
-                                       target_sr = "r_sr_all", target_ps = "r_mean_ps",
-                                       target_traits = c("r_nb_flo_open","r_height_mean"),
-                                       # x_coord = c(1.5,2.5,2,1,3), y_coord = c(2,2,4,1,1), 
-                                       x_coord = c(1.5,2.5,1.25,1.5,1.75,2,1,3), y_coord = c(2,2,4,1.5,1.5,1.5,1,1)){
+get_piecewise_males_visits_old <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                       target_sr = "W", target_ps = "PS",
+                                       target_traits = c("F","H"),
+                                       x_coord = c(-1,5,0.5,1.5,2.5,3.5,1.5,2.5,2),
+                                       y_coord = c(1,1,2,2,2,2,3,3,4)) {
   
-  color <- case_when(target_ttt == "low" ~ "#43C59E",
-                     target_ttt == "medium" ~ "#3D7068",
-                     target_ttt == "high" ~ "#14453D")
+  # Couleur des labels de noeuds selon ttt
+  color <- dplyr::case_when(target_ttt == "low" ~ "#43C59E",
+                            target_ttt == "medium" ~ "#3D7068",
+                            target_ttt == "high" ~ "#14453D")
   
-  data_target <- data_sem_sampled_sessions |> 
-    filter(ttt == target_ttt & sex == target_sex)
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
   
-  formula1a <- reformulate(target_traits, response = "r_mean_position")
-  formula1a <- update(formula1a, . ~ . + (1|session))
+  # Créer les formules
+  formula1a <- stats::reformulate(target_traits, response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(target_traits, response = "FLO") |> stats::update(. ~ . + (1|session))
+  formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("POS","PLA","FLO","VIS"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("POS","PLA","FLO","VIS"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c("MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
   
-  formula1b <- reformulate(target_traits, response = "contact_id")
-  formula1b <- update(formula1b, . ~ . + (1|session))
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    lme4::lmer(formula1d, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+  )
   
-  formula1c <- reformulate(target_traits, response = "dur_tot")
-  formula1c <- update(formula1c, . ~ . + (1|session))
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
   
-  formula1d <- reformulate(c("r_mean_position","contact_id","dur_tot"), response = "r_oms")
-  formula1d <- update(formula1d, . ~ . + (1|session))
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
   
-  formula2 <- reformulate(c("r_oms", target_ps), response = target_sr)
-  formula2 <- update(formula2, . ~ . + (1|session))
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
   
-  formula3 <- reformulate(target_traits, response = target_ps)
-  formula3 <- update(formula3, . ~ . + (1|session))
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
   
-  psem_proxy <- piecewiseSEM::psem(lme4::lmer(data=data_target,formula1a),
-                                   
-                                   lme4::lmer(data=data_target,formula1b),
-                                   
-                                   lme4::lmer(data=data_target,formula1c),
-                                   
-                                   lme4::lmer(data=data_target,formula1d),
-                                   
-                                   lme4::lmer(data=data_target,formula2),
-                                   
-                                   lme4::lmer(data=data_target,formula3))
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
   
-  plot <- plot(psem_proxy,
-               
-               node_attrs = data.frame(fillcolor = color,
-                                       
-                                       x = x_coord, y = y_coord,
-                                       
-                                       fontsize=6))
-  
+  # Retourner résumé et plot
   summary <- summary(psem_proxy)
   
   return(list(summary = summary,
-              plot = plot))
+              coefs = cf,
+              plot = p))
+}
+
+#' SEM analyses with piecewise - males with paternity share and visits
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_males_visits_flower <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                       target_sr = "W", target_ps = "PS",
+                                       target_traits = c("F","H"),
+                                       x_coord = c(0,4,0.5,1.5,2.5,3.5,1.5,2,2.5,2),
+                                       y_coord = c(1,1,2,2,2,2,3,3,3,4)) {
+  
+  # Couleur des labels de noeuds selon ttt
+  color <- dplyr::case_when(target_ttt == "low" ~ "#43C59E",
+                            target_ttt == "medium" ~ "#3D7068",
+                            target_ttt == "high" ~ "#14453D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  formula1a <- stats::reformulate(target_traits, response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(target_traits, response = "FLO") |> stats::update(. ~ . + (1|session))
+  formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("POS","PLA","FLO","VIS"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("POS","PLA","FLO","VIS"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula3b <- stats::reformulate(c("POS","PLA","FLO","VIS"), response = "FL") |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c("MS", target_ps,"FL"), response = target_sr) |> stats::update(. ~ . + (1|session))
+  
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    lme4::lmer(formula1d, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula3b,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  return(list(summary = summary,
+              plot = p))
+}
+
+#' SEM analyses with piecewise - females with diff_q and visits
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_females_visits_old <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                       target_sr = "W", target_ps = "ME",
+                                       target_traits = c("F","H"),
+                                       x_coord = c(-1,5,0.5,1.5,2.5,3.5,1.5,2.5,2),
+                                       y_coord = c(1,1,2,2,2,2,3,3,4)) {
+  
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  formula1a <- stats::reformulate(target_traits, response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(target_traits, response = "FLO") |> stats::update(. ~ . + (1|session))
+  formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("POS","PLA","FLO","VIS"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("POS","PLA","FLO","VIS"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c(target_traits,"MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    lme4::lmer(formula1d, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  return(list(summary = summary,
+              plot = p, 
+              coefs = cf))
 }
 
 #' SEM analyses with piecewise - visits and oms (old)
@@ -2834,7 +3361,7 @@ get_ttt_effect_flower <- function(data_flower, variable, filter_pl = T){
                           variable == "nb_visit" ~ "Number of visits")
   
   model_flower <- lme4::glmer(data = data_flower, get(variable) ~ ttt + (1|session) + (1|session:id), family = "poisson")
-  anova_flower <- car::Anova(model_flower)
+  lrt_flower <- anova(model_flower, update(model_flower, . ~ . - ttt))
   summary_flower <- summary(model_flower)
   tukey_flower <- emmeans::contrast(emmeans::emmeans(model_flower, "ttt"), "pairwise", adjust = "Tukey")
   
@@ -2857,7 +3384,7 @@ get_ttt_effect_flower <- function(data_flower, variable, filter_pl = T){
     )
   
   return(list(model_flower = model_flower,
-              anova_flower = anova_flower,
+              lrt_flower = lrt_flower,
               summary_flower = summary_flower,
               tukey_flower = tukey_flower,
               plot_flower = plot_flower))
@@ -2878,7 +3405,7 @@ get_ttt_effect_flower <- function(data_flower, variable, filter_pl = T){
 get_ttt_effect_id <- function(data_sem_sampled_sessions, variable){
   
   clean_name <- case_when(variable == "sr_all" ~ "Total reproductive success",
-                          variable == "sr" ~ "Outcrossed reproductive success",
+                          variable == "sr_out" ~ "Outcrossed reproductive success",
                           variable == "oms" ~ "Observational number of mates", # Poisson
                           variable == "mean_ps" ~ "Fertilization post-pollination",
                           variable == "diff_q" ~ "Filtering post-pollination",
@@ -2889,10 +3416,10 @@ get_ttt_effect_id <- function(data_sem_sampled_sessions, variable){
                           variable == "nb_flower_visited" ~ "Number of distinct flowers visited on the plant", # Poisson
                           )
   
-  if(variable %in% c("sr","sr_all")){
+  if(variable %in% c("sr_out","sr_all")){
     
     model_id <- lme4::lmer(data = data_sem_sampled_sessions, get(variable) ~ ttt * sex + (1|session) + (1|session:id))
-    anova_id <- car::Anova(model_id)
+    lrt_id <- anova(model_id, update(model_id, . ~ . - ttt))
     summary_id <- summary(model_id)
     tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
     
@@ -2921,7 +3448,7 @@ get_ttt_effect_id <- function(data_sem_sampled_sessions, variable){
   }else if(variable == "oms"){
     
     model_id <- lme4::glmer(data = data_sem_sampled_sessions, get(variable) ~ ttt * sex + (1|session) + (1|session:id), family = "poisson")
-    anova_id <- car::Anova(model_id)
+    lrt_id <- anova(model_id, update(model_id, . ~ . - ttt))
     summary_id <- summary(model_id)
     tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
     
@@ -2953,7 +3480,7 @@ get_ttt_effect_id <- function(data_sem_sampled_sessions, variable){
       filter(sex == "mal")
     
     model_id <- lme4::lmer(data = data_sem_sampled_sessions, get(variable) ~ ttt + (1|session))
-    anova_id <- car::Anova(model_id)
+    lrt_id <- anova(model_id, update(model_id, . ~ . - ttt))
     summary_id <- summary(model_id)
     tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
     
@@ -2980,7 +3507,7 @@ get_ttt_effect_id <- function(data_sem_sampled_sessions, variable){
       filter(sex == "fem")
     
     model_id <- lme4::glmer(data = data_sem_sampled_sessions, get(variable) ~ ttt + (1|session), family = "poisson")
-    anova_id <- car::Anova(model_id)
+    lrt_id <- anova(model_id, update(model_id, . ~ . - ttt))
     summary_id <- summary(model_id)
     tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
     
@@ -3001,13 +3528,40 @@ get_ttt_effect_id <- function(data_sem_sampled_sessions, variable){
         color = "black",       
         fill = "white"        
       )
+  }else if(variable == "diff_q"){
+    
+    data_sem_sampled_sessions <- data_sem_sampled_sessions |>
+      filter(sex == "fem")
+    
+    model_id <- lme4::lmer(data = data_sem_sampled_sessions, get(variable) ~ ttt + (1|session))
+    lrt_id <- anova(model_id, update(model_id, . ~ . - ttt))
+    summary_id <- summary(model_id)
+    tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
+    
+    plot_id <- ggplot(data = data_sem_sampled_sessions, aes(x = ttt_plot, y = get(variable), fill = ttt_plot)) +
+      theme_classic() +
+      geom_violin() + 
+      # geom_jitter(shape = 16, height = 0, width = 0.3, alpha = 0.05) +
+      scale_fill_manual(values=c("#E6AA68","#D36135","#9A4D1D")) +
+      theme(legend.position = "none") +
+      xlab("Pollinator abundance treatment") +
+      ylab(clean_name) +
+      stat_summary(
+        fun.data = data_summary_plot,
+        geom = "pointrange",
+        shape = 21,            
+        size = 1,             
+        stroke = 1,           
+        color = "black",       
+        fill = "white"        
+      )
   }else{
     
     data_sem_sampled_sessions <- data_sem_sampled_sessions |>
       filter(sex == "fem")
     
     model_id <- lme4::lmer(data = data_sem_sampled_sessions, get(variable) ~ ttt + (1|session))
-    anova_id <- car::Anova(model_id)
+    lrt_id <- anova(model_id, update(model_id, . ~ . - ttt))
     summary_id <- summary(model_id)
     tukey_id <- emmeans::contrast(emmeans::emmeans(model_id, "ttt"), "pairwise", adjust = "Tukey")
     
@@ -3031,8 +3585,1706 @@ get_ttt_effect_id <- function(data_sem_sampled_sessions, variable){
   }
   
   return(list(model_id = model_id,
-              anova_id = anova_id,
+              lrt_id = lrt_id,
               summary_id = summary_id,
               tukey_id = tukey_id,
               plot_id = plot_id))
+}
+
+#' Get z tests to compare SEM
+#'
+#' @description 
+#'
+#' @param file 
+#'
+#' @return Results
+#' 
+#' @import dplyr
+#' 
+#' @export
+
+get_z_tests <- function(piecewisemales_low_combi1_visits,piecewisemales_medium_combi1_visits,piecewisemales_high_combi1_visits,
+                        piecewisefemales_low_combi1_visits,piecewisefemales_medium_combi1_visits,piecewisefemales_high_combi1_visits){
+  
+  cf_males_low <- piecewisemales_low_combi1_visits$coefs
+  cf_males_medium <- piecewisemales_medium_combi1_visits$coefs
+  cf_males_high <- piecewisemales_high_combi1_visits$coefs
+  cf_females_low <- piecewisefemales_low_combi1_visits$coefs
+  cf_females_medium <- piecewisefemales_medium_combi1_visits$coefs
+  cf_females_high <- piecewisefemales_high_combi1_visits$coefs
+
+  # On met tous les tableaux ensemble avec des infos
+  clean_cf <- function(df, sex, treatment) {
+    df <- df[, colnames(df) != ""]  # enlève la colonne vide
+    df <- df |>
+      dplyr::mutate(Sex = sex, Treatment = treatment)
+    return(df)
+  }
+  
+  all_data <- bind_rows(
+    clean_cf(cf_males_low, "Male", "Low"),
+    clean_cf(cf_males_medium, "Male", "Medium"),
+    clean_cf(cf_males_high, "Male", "High"),
+    clean_cf(cf_females_low, "Female", "Low"),
+    clean_cf(cf_females_medium, "Female", "Medium"),
+    clean_cf(cf_females_high, "Female", "High")
+  )
+   
+  # Comparaison générique
+  comp_fun <- function(est1, se1, est2, se2) {
+    z <- (est1 - est2) / sqrt(se1^2 + se2^2)
+    p <- 2 * pnorm(-abs(z))
+    tibble(z = z, p = p)
+  }
+  
+  # --- Comparaisons intra-sexe (Low vs Medium vs High) ---
+  wide_intra <- all_data %>%
+    select(Sex, Response, Predictor, Treatment, Estimate, Std.Error) %>%
+    pivot_wider(
+      names_from = Treatment,
+      values_from = c(Estimate, Std.Error)
+    )
+  
+  intra_sex <- wide_intra %>%
+    mutate(
+      Low_vs_Medium_z = round((Estimate_Low - Estimate_Medium) /
+        sqrt(Std.Error_Low^2 + Std.Error_Medium^2),3),
+      Low_vs_Medium_p = round(2 * pnorm(-abs(Low_vs_Medium_z)),3),
+      
+      Low_vs_High_z = round((Estimate_Low - Estimate_High) /
+        sqrt(Std.Error_Low^2 + Std.Error_High^2),3),
+      Low_vs_High_p = round(2 * pnorm(-abs(Low_vs_High_z)),3),
+      
+      Medium_vs_High_z = round((Estimate_Medium - Estimate_High) /
+        sqrt(Std.Error_Medium^2 + Std.Error_High^2),3),
+      Medium_vs_High_p = round(2 * pnorm(-abs(Medium_vs_High_z)),3)
+    ) %>%
+    select(Sex, Response, Predictor,
+           Low_vs_Medium_z, Low_vs_Medium_p,
+           Low_vs_High_z, Low_vs_High_p,
+           Medium_vs_High_z, Medium_vs_High_p)
+  
+  # --- Comparaisons inter-sexe (Male vs Female dans chaque traitement) ---
+  wide_inter <- all_data %>%
+    select(Sex, Response, Predictor, Treatment, Estimate, Std.Error) %>%
+    pivot_wider(
+      names_from = Sex,
+      values_from = c(Estimate, Std.Error)
+    )
+  
+  inter_sex <- wide_inter %>%
+    mutate(
+      Male_vs_Female_z = round((Estimate_Male - Estimate_Female) /
+        sqrt(Std.Error_Male^2 + Std.Error_Female^2),3),
+      Male_vs_Female_p = round(2 * pnorm(-abs(Male_vs_Female_z)),3)
+    ) %>%
+    select(Treatment, Response, Predictor,
+           Male_vs_Female_z, Male_vs_Female_p)
+  
+  list(intra_sex = intra_sex, inter_sex = inter_sex)
+}
+
+#' SEM analyses with piecewise - males with paternity share and visits
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr, piecewiseSEM
+#' 
+#' @export
+
+get_piecewise_males_visits_1 <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                       target_sr = "W", target_ps = "PS",
+                                       target_traits = c("F","H"),
+                                       x_coord = c(-1,5,2,1,3,1.75,2.25,2),
+                                       y_coord = c(1,1,2,2,2,3,3,4)) {
+  
+  # Couleur des labels de noeuds selon ttt
+  color <- dplyr::case_when(target_ttt == "low" ~ "#43C59E",
+                            target_ttt == "medium" ~ "#3D7068",
+                            target_ttt == "high" ~ "#14453D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  # formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("POS","PLA","FLO"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("POS","PLA","FLO"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c("MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    # lme4::lmer(formula1d, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              coefs = cf,
+              plot = p))
+}
+
+# get_piecewise_males_visits(data_sem_sampled_sessions, target_sex = "mal", target_ttt = "low")
+
+#' SEM analyses with piecewise - females with diff_q and visits
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_females_visits_1 <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                         target_sr = "W", target_ps = "ME",
+                                         target_traits = c("F","H"),
+                                         x_coord = c(-1,5,2,1,3,1.75,2.25,2),
+                                         y_coord = c(1,1,2,2,2,3,3,4)) {
+  
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  # formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("POS","PLA","FLO"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("POS","PLA","FLO"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c(target_traits,"MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              plot = p, 
+              coefs = cf))
+}
+
+#' SEM analyses with piecewise - females with diff_q and visits
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_females_visits_without_direct_1 <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                         target_sr = "W", target_ps = "ME",
+                                         target_traits = c("F","H"),
+                                         x_coord = c(-1,5,2,1,3,1.75,2.25,2),
+                                         y_coord = c(1,1,2,2,2,3,3,4)) {
+  
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  # formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("POS","PLA","FLO"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("POS","PLA","FLO"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c("MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              plot = p, 
+              coefs = cf))
+}
+
+#' SEM analyses with piecewise - males with paternity share and visits
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr, piecewiseSEM
+#' 
+#' @export
+
+get_piecewise_males_visits_low_1 <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                       target_sr = "W", target_ps = "PS",
+                                       target_traits = c("F","H"),
+                                       x_coord = c(-1,5,2,1,3,1.75,2.25,2),
+                                       y_coord = c(1,1,2,2,2,3,3,4)) {
+  
+  # Couleur des labels de noeuds selon ttt
+  color <- dplyr::case_when(target_ttt == "low" ~ "#43C59E",
+                            target_ttt == "medium" ~ "#3D7068",
+                            target_ttt == "high" ~ "#14453D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex) 
+  
+  # Créer les formules
+  formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  # formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("POS","PLA","FLO","H"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("POS","PLA","FLO"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c("MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    # lme4::lmer(formula1d, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+    
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              coefs = cf,
+              plot = p))
+}
+
+# get_piecewise_males_visits_low(data_sem_sampled_sessions, target_ttt = "low")
+
+#' SEM analyses with piecewise - males with paternity share and visits
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr, piecewiseSEM
+#' 
+#' @export
+
+get_piecewise_males_visits_high_1 <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                           target_sr = "W", target_ps = "PS",
+                                           target_traits = c("F","H"),
+                                           x_coord = c(-1,5,2,1,3,1.75,2.25,2),
+                                           y_coord = c(1,1,2,2,2,3,3,4)) {
+  
+  # Couleur des labels de noeuds selon ttt
+  color <- dplyr::case_when(target_ttt == "low" ~ "#43C59E",
+                            target_ttt == "medium" ~ "#3D7068",
+                            target_ttt == "high" ~ "#14453D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("POS","PLA","FLO"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("POS","PLA","FLO","F"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c("MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    lme4::lmer(formula1d, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+    
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              coefs = cf,
+              plot = p))
+}
+
+# get_piecewise_males_visits_high(data_sem_sampled_sessions, target_ttt = "high")
+
+#' SEM analyses with piecewise - females with diff_q and visits
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_females_visits_low_1 <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                         target_sr = "W", target_ps = "ME",
+                                         target_traits = c("F","H"),
+                                         x_coord = c(-1,5,2,1,3,1.75,2.25,2),
+                                         y_coord = c(1,1,2,2,2,3,3,4)) {
+  
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  # formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("POS","PLA","FLO"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("POS","PLA","FLO","F"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c(target_traits,"MS", target_ps,"FLO"), response = target_sr) |> stats::update(. ~ . + (1|session))
+  
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              plot = p, 
+              coefs = cf))
+}
+
+# get_piecewise_females_visits_low(data_sem_sampled_sessions, target_ttt = "low")
+
+#' SEM analyses with piecewise - females with diff_q and visits
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_females_visits_medium_1 <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                             target_sr = "W", target_ps = "ME",
+                                             target_traits = c("F","H"),
+                                             x_coord = c(-1,5,2,1,3,1.75,2.25,2),
+                                             y_coord = c(1,1,2,2,2,3,3,4)) {
+  
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  # formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("POS","PLA","FLO","H"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("POS","PLA","FLO","F","H"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c(target_traits,"MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              plot = p, 
+              coefs = cf))
+}
+
+# get_piecewise_females_visits_medium(data_sem_sampled_sessions, target_ttt = "medium",target_sr = "W")
+# get_piecewise_females_visits_low(data_sem_sampled_sessions, target_ttt = "low",target_sr = "W")
+
+#' SEM analyses with piecewise - males basic model
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr, piecewiseSEM
+#' 
+#' @export
+
+get_piecewise_males_visits <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                       target_sr = "W", target_ps = "PS",
+                                       target_traits = c("F","H"),
+                                       x_coord = c(1,3,1.25,2.75,1.75,2.25,2),
+                                       y_coord = c(1,1,2,2,3,3,4)) {
+  
+  # Couleur des labels de noeuds selon ttt
+  color <- dplyr::case_when(target_ttt == "low" ~ "#43C59E",
+                            target_ttt == "medium" ~ "#3D7068",
+                            target_ttt == "high" ~ "#14453D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  # formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  # formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("PLA","FLO"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("PLA","FLO"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c("MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  
+  model1b <- lme4::lmer(formula1b, data = data_target)
+  model1c <- lme4::lmer(formula1c, data = data_target)
+  model2 <- lme4::lmer(formula2,  data = data_target)
+  model3 <-lme4::lmer(formula3,  data = data_target)
+  model4 <-lme4::lmer(formula4,  data = data_target)
+  
+  plot(resid(model1b) ~ fitted(model1b)) # homogeneity
+  qqnorm(resid(model1b)); qqline(resid(model1b)) # normality
+  
+  plot(resid(model1c) ~ fitted(model1c)) # homogeneity
+  qqnorm(resid(model1c)); qqline(resid(model1c)) # normality
+  
+  plot(resid(model2) ~ fitted(model2)) # homogeneity
+  qqnorm(resid(model2)); qqline(resid(model2)) # normality
+  
+  plot(resid(model3) ~ fitted(model3)) # homogeneity
+  qqnorm(resid(model3)); qqline(resid(model3)) # normality
+  
+  plot(resid(model4) ~ fitted(model4)) # homogeneity
+  qqnorm(resid(model4)); qqline(resid(model4)) # normality
+  
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    model1b,
+    model1c,
+    model2,
+    model3,
+    model4
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              coefs = cf,
+              plot = p))
+}
+
+#' SEM analyses with piecewise - males basic model
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr, piecewiseSEM
+#' 
+#' @export
+
+get_piecewise_males_visits_low <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                       target_sr = "W", target_ps = "PS",
+                                       target_traits = c("F","H"),
+                                       x_coord = c(1,3,1.25,2.75,1.75,2.25,2),
+                                       y_coord = c(1,1,2,2,3,3,4)) {
+  
+  # Couleur des labels de noeuds selon ttt
+  color <- dplyr::case_when(target_ttt == "low" ~ "#43C59E",
+                            target_ttt == "medium" ~ "#3D7068",
+                            target_ttt == "high" ~ "#14453D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex) 
+  
+  # Créer les formules
+  # formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  # formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("PLA","FLO","H"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("PLA","FLO"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c("MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    # lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    # lme4::lmer(formula1d, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+    
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              coefs = cf,
+              plot = p))
+}
+
+# get_piecewise_males_visits_low(data_sem_sampled_sessions)
+
+#' SEM analyses with piecewise - males basic model
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr, piecewiseSEM
+#' 
+#' @export
+
+get_piecewise_males_visits_medium <- function(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "mal",
+                                       target_sr = "W", target_ps = "PS",
+                                       target_traits = c("F","H"),
+                                       x_coord = c(1,3,1.25,2.75,1.75,2.25,2),
+                                       y_coord = c(1,1,2,2,3,3,4)) {
+  
+  # Couleur des labels de noeuds selon ttt
+  color <- dplyr::case_when(target_ttt == "low" ~ "#43C59E",
+                            target_ttt == "medium" ~ "#3D7068",
+                            target_ttt == "high" ~ "#14453D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  # formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  # formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("PLA","FLO"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("PLA","FLO"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c("MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  
+  model1b <- lme4::lmer(formula1b, data = data_target)
+  model1c <- lme4::lmer(formula1c, data = data_target)
+  model2 <- lme4::lmer(formula2,  data = data_target)
+  model3 <-lme4::lmer(formula3,  data = data_target)
+  model4 <-lme4::lmer(formula4,  data = data_target)
+  
+  plot(resid(model1b) ~ fitted(model1b)) # homogeneity
+  qqnorm(resid(model1b)); qqline(resid(model1b)) # normality
+  
+  plot(resid(model1c) ~ fitted(model1c)) # homogeneity
+  qqnorm(resid(model1c)); qqline(resid(model1c)) # normality
+  
+  plot(resid(model2) ~ fitted(model2)) # homogeneity
+  qqnorm(resid(model2)); qqline(resid(model2)) # normality
+  
+  plot(resid(model3) ~ fitted(model3)) # homogeneity
+  qqnorm(resid(model3)); qqline(resid(model3)) # normality
+  
+  plot(resid(model4) ~ fitted(model4)) # homogeneity
+  qqnorm(resid(model4)); qqline(resid(model4)) # normality
+  
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    model1b,
+    model1c,
+    model2,
+    model3,
+    model4
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              coefs = cf,
+              plot = p))
+}
+
+# get_piecewise_males_visits_medium(data_sem_sampled_sessions)
+
+#' SEM analyses with piecewise - males basic model
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr, piecewiseSEM
+#' 
+#' @export
+
+get_piecewise_males_visits_high <- function(data_sem_sampled_sessions, target_ttt = "high", target_sex = "mal",
+                                           target_sr = "W", target_ps = "PS",
+                                           target_traits = c("F","H"),
+                                           x_coord = c(1,3,1.25,2.75,1.75,2.25,2),
+                                           y_coord = c(1,1,2,2,3,3,4)) {
+  
+  # Couleur des labels de noeuds selon ttt
+  color <- dplyr::case_when(target_ttt == "low" ~ "#43C59E",
+                            target_ttt == "medium" ~ "#3D7068",
+                            target_ttt == "high" ~ "#14453D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex) 
+  
+  # Créer les formules
+  # formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  # formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("PLA","FLO"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("PLA","FLO","F"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c("MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    # lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    # lme4::lmer(formula1d, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+    
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              coefs = cf,
+              plot = p))
+}
+
+# get_piecewise_males_visits_high(data_sem_sampled_sessions)
+
+#' SEM analyses with piecewise - females basic model
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_females_visits <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                         target_sr = "W", target_ps = "ME",
+                                         target_traits = c("F","H"),
+                                         x_coord = c(1,3,1.25,2.75,1.75,2.25,2),
+                                         y_coord = c(1,1,2,2,3,3,4)) {
+  
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  # formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  # formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("PLA","FLO"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("PLA","FLO"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c(target_traits,"MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  
+  model1b <- lme4::lmer(formula1b, data = data_target)
+  model1c <- lme4::lmer(formula1c, data = data_target)
+  model2 <- lme4::lmer(formula2,  data = data_target)
+  model3 <-lme4::lmer(formula3,  data = data_target)
+  model4 <-lme4::lmer(formula4,  data = data_target)
+  
+  plot(resid(model1b) ~ fitted(model1b)) # homogeneity
+  qqnorm(resid(model1b)); qqline(resid(model1b)) # normality
+  
+  plot(resid(model1c) ~ fitted(model1c)) # homogeneity
+  qqnorm(resid(model1c)); qqline(resid(model1c)) # normality
+  
+  plot(resid(model2) ~ fitted(model2)) # homogeneity
+  qqnorm(resid(model2)); qqline(resid(model2)) # normality
+  
+  plot(resid(model3) ~ fitted(model3)) # homogeneity
+  qqnorm(resid(model3)); qqline(resid(model3)) # normality
+  
+  plot(resid(model4) ~ fitted(model4)) # homogeneity
+  qqnorm(resid(model4)); qqline(resid(model4)) # normality
+  
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    # lme4::lmer(formula1a, data = data_target),
+      model1b,
+      model1c,
+      model2,
+      model3,
+      model4
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              plot = p, 
+              coefs = cf))
+}
+
+#' SEM analyses with piecewise - females basic model
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_females_visits_low <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                         target_sr = "W", target_ps = "ME",
+                                         target_traits = c("F","H"),
+                                         x_coord = c(1,3,1.25,2.75,1.75,2.25,2),
+                                         y_coord = c(1,1,2,2,3,3,4)) {
+  
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  # formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  # formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("PLA","FLO"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("PLA","FLO","F"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c(target_traits,"MS", target_ps, "FLO"), response = target_sr) |> stats::update(. ~ . + (1|session))
+  
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    # lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1,vjust =0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              plot = p, 
+              coefs = cf))
+}
+# get_piecewise_females_visits_low(data_sem_sampled_sessions, target_sr = "W")
+ 
+#' SEM analyses with piecewise - females basic model
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_females_visits_medium <- function(data_sem_sampled_sessions, target_ttt = "medium", target_sex = "fem",
+                                             target_sr = "W", target_ps = "ME",
+                                             target_traits = c("F","H"),
+                                             x_coord = c(1,3,1.25,2.75,1.75,2.25,2),
+                                             y_coord = c(1,1,2,2,3,3,4)) {
+  
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  # formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  # formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("PLA","FLO","H"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("PLA","FLO","F","H"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c(target_traits,"MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    # lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.2,vjust = 0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              plot = p, 
+              coefs = cf))
+}
+# get_piecewise_females_visits_medium(data_sem_sampled_sessions, target_sr = "W")
+
+#' SEM analyses with piecewise - females basic model
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_females_visits_high <- function(data_sem_sampled_sessions, target_ttt = "high", target_sex = "fem",
+                                         target_sr = "W", target_ps = "ME",
+                                         target_traits = c("F","H"),
+                                         x_coord = c(1,3,1.25,2.75,1.75,2.25,2),
+                                         y_coord = c(1,1,2,2,3,3,4)) {
+  
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  # formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  # formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("PLA","FLO"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("PLA","FLO"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c(target_traits,"MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  
+  model1b <- lme4::lmer(formula1b, data = data_target)
+  model1c <- lme4::lmer(formula1c, data = data_target)
+  model2 <- lme4::lmer(formula2,  data = data_target)
+  model3 <-lme4::lmer(formula3,  data = data_target)
+  model4 <-lme4::lmer(formula4,  data = data_target)
+  
+  plot(resid(model1b) ~ fitted(model1b)) # homogeneity
+  qqnorm(resid(model1b)); qqline(resid(model1b)) # normality
+  
+  plot(resid(model1c) ~ fitted(model1c)) # homogeneity
+  qqnorm(resid(model1c)); qqline(resid(model1c)) # normality
+  
+  plot(resid(model2) ~ fitted(model2)) # homogeneity
+  qqnorm(resid(model2)); qqline(resid(model2)) # normality
+  
+  plot(resid(model3) ~ fitted(model3)) # homogeneity
+  qqnorm(resid(model3)); qqline(resid(model3)) # normality
+  
+  plot(resid(model4) ~ fitted(model4)) # homogeneity
+  qqnorm(resid(model4)); qqline(resid(model4)) # normality
+  
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    # lme4::lmer(formula1a, data = data_target),
+    model1b,
+    model1c,
+    model2,
+    model3,
+    model4
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              plot = p, 
+              coefs = cf))
+}
+
+# get_piecewise_females_visits_high(data_sem_sampled_sessions, target_sr = "W")
+
+#' SEM analyses with piecewise - males basic model
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr, piecewiseSEM
+#' 
+#' @export
+
+get_piecewise_males_visits_complete <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "mal",
+                                         target_sr = "W", target_ps = "PS",
+                                         target_traits = c("F","H"),
+                                         x_coord = c(1,3,1.25,1.6,1.9,2.3,1.75,2.25,2),
+                                         y_coord = c(1,1,2,2,2,2,3,3,4)) {
+  
+  # Couleur des labels de noeuds selon ttt
+  color <- dplyr::case_when(target_ttt == "low" ~ "#43C59E",
+                            target_ttt == "medium" ~ "#3D7068",
+                            target_ttt == "high" ~ "#14453D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex) 
+  
+  # Créer les formules
+  formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("PLA","FLO","POS","VIS"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("PLA","FLO","POS","VIS"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c("MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    lme4::lmer(formula1d, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+    
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              coefs = cf,
+              plot = p))
+}
+
+#' SEM analyses with piecewise - females basic model
+#'
+#' @description piecewise adapted only to males
+#'
+#' @param data 
+#'
+#' @return 
+#' 
+#' @import dplyr 
+#' 
+#' @export
+
+get_piecewise_females_visits_complete <- function(data_sem_sampled_sessions, target_ttt = "low", target_sex = "fem",
+                                         target_sr = "W", target_ps = "ME",
+                                         target_traits = c("F","H"),
+                                         x_coord = c(1,3,1.25,1.6,1.9,2.3,1.75,2.25,2),
+                                         y_coord = c(1,1,2,2,2,2,3,3,4)) {
+  
+  color <- case_when(target_ttt == "low" ~ "#E6AA68",
+                     target_ttt == "medium" ~ "#D36135",
+                     target_ttt == "high" ~ "#9A4D1D")
+  
+  # Filtrer les données
+  data_target <- data_sem_sampled_sessions %>%
+    dplyr::filter(ttt == target_ttt & sex == target_sex)
+  
+  # Créer les formules
+  formula1a <- stats::reformulate(c(target_traits,"PLA"), response = "POS") |> stats::update(. ~ . + (1|session))
+  formula1b <- stats::reformulate(target_traits, response = "PLA") |> stats::update(. ~ . + (1|session))
+  formula1c <- stats::reformulate(c(target_traits,"PLA"), response = "FLO") |> stats::update(. ~ . + (1|session))
+  formula1d <- stats::reformulate(target_traits, response = "VIS") |> stats::update(. ~ . + (1|session))
+  formula2 <- stats::reformulate(c("PLA","FLO","POS","VIS"), response = "MS") |> stats::update(. ~ . + (1|session))
+  formula3 <- stats::reformulate(c("PLA","FLO","POS","VIS"), response = target_ps) |> stats::update(. ~ . + (1|session))
+  formula4 <- stats::reformulate(c(target_traits,"MS", target_ps), response = target_sr) |> stats::update(. ~ . + (1|session))
+  
+  # Construire le psem
+  psem_proxy <- piecewiseSEM::psem(
+    lme4::lmer(formula1a, data = data_target),
+    lme4::lmer(formula1b, data = data_target),
+    lme4::lmer(formula1c, data = data_target),
+    lme4::lmer(formula1d, data = data_target),
+    lme4::lmer(formula2,  data = data_target),
+    lme4::lmer(formula3,  data = data_target),
+    lme4::lmer(formula4,  data = data_target)
+  )
+  
+  # Extraire coefficients
+  cf <- piecewiseSEM::coefs(psem_proxy)
+  
+  # Créer le graphe
+  g <- igraph::graph_from_data_frame(
+    d = data.frame(from = cf$Predictor, to = cf$Response),
+    directed = TRUE
+  )
+  
+  # Ajouter couleur des arêtes et estimates
+  edge_cols <- ifelse(cf$P.Value < 0.05, "black", "lightgrey")
+  ggraph_edges <- data.frame(from = cf$Predictor, to = cf$Response,
+                             estimate = round(cf$Std.Estimate, 2),
+                             color = edge_cols) |>
+    mutate(estimate = ifelse(color == "lightgrey","",estimate))
+  
+  # Coordonnées des noeuds
+  coords <- data.frame(name = igraph::V(g)$name,
+                       x = x_coord[1:length(igraph::V(g))],
+                       y = y_coord[1:length(igraph::V(g))])
+  
+  # Plot avec ggraph
+  p <- ggraph::ggraph(g, layout = 'manual', x = coords$x, y = coords$y) +
+    # Arêtes avec couleur selon significativité
+    ggraph::geom_edge_link(aes(color = I(ggraph_edges$color), label = ggraph_edges$estimate),hjust=-0.1) +
+    # Noeuds
+    ggraph::geom_node_point(color = color, size = 15, shape = 21, stroke = 1.5, fill = "white") +
+    ggraph::geom_node_text(aes(label = name), color = color, size = 4) +
+    ggplot2::theme_void()
+  
+  # Retourner résumé et plot
+  summary <- summary(psem_proxy)
+  
+  # dSep
+  dsep <- piecewiseSEM::dSep(psem_proxy)
+  
+  return(list(summary = summary,
+              dsep = dsep,
+              plot = p, 
+              coefs = cf))
 }
