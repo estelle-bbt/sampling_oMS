@@ -38,138 +38,123 @@ targets::tar_visnetwork()
 
 WARNING !!!!!!!!! oms (both at the flower or the id scale) is encoded as following: if it has not been visited at all (i.e. oms including itself = 0), then oms = NA. Otherwise, oms is a true zero because it can reproduce through selfing. BUT this is valuable only when reproductive success include selfing (as in the first manuscript, to keep consistancy); if we focus on outcrossed reproductive success, then null oms should not exist.
 
-# Treatment effect on variables at the flower level
-
-## oms
-
-```{r,echo=FALSE,message=FALSE,warning=FALSE}
-targets::tar_load(oms_flower)
-
-oms_flower$anova_flower
-oms_flower$tukey_flower
-oms_flower$plot_flower
-```
-
-## nb_visit
-
-```{r,echo=FALSE,message=FALSE,warning=FALSE}
-targets::tar_load(visit_flower)
-
-visit_flower$anova_flower
-visit_flower$tukey_flower
-visit_flower$plot_flower
-```
-
-## pl 
-
-```{r,echo=FALSE,message=FALSE,warning=FALSE}
-targets::tar_load(pl_flower)
-
-pl_flower$anova_flower
-pl_flower$tukey_flower
-pl_flower$plot_flower
-```
-
-## seeds
-
-```{r,echo=FALSE,message=FALSE,warning=FALSE}
-targets::tar_load(seeds_flower)
-
-seeds_flower$anova_flower
-seeds_flower$tukey_flower
-seeds_flower$plot_flower
-```
-
 # Treatment effect on variables at the id level
 
-## oms
+## sr_all mal
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
-targets::tar_load(oms_id)
+targets::tar_load(sr_all_mal)
 
-oms_id$anova_id
-oms_id$tukey_id
-oms_id$plot_id
+sr_all_mal$summary
+sr_all_mal$lrt
+sr_all_mal$tukey
 ```
 
-## sr
+## sr_all fem
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
-targets::tar_load(sr_id)
+targets::tar_load(sr_all_fem)
 
-sr_id$anova_id
-sr_id$tukey_id
-sr_id$plot_id
+sr_all_fem$summary
+sr_all_fem$lrt
+sr_all_fem$tukey
+sr_all_fem$plot
 ```
 
-## sr_all
+## sr_out mal
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
-targets::tar_load(sr_all_id)
+targets::tar_load(sr_out_mal)
 
-sr_all_id$anova_id
-sr_all_id$tukey_id
-sr_all_id$plot_id
+sr_out_mal$summary
+sr_out_mal$lrt
+sr_out_mal$tukey
 ```
 
-## mean_ps
+## sr_out fem
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
-targets::tar_load(mean_ps_id)
+targets::tar_load(sr_out_fem)
 
-mean_ps_id$anova_id
-mean_ps_id$tukey_id
-mean_ps_id$plot_id
+sr_out_fem$summary
+sr_out_fem$lrt
+sr_out_fem$tukey
+sr_out_fem$plot
 ```
 
-## diff_q
+## oms mal
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
-targets::tar_load(diff_q_id)
+targets::tar_load(oms_mal)
 
-diff_q_id$anova_id
-diff_q_id$tukey_id
-diff_q_id$plot_id
+oms_mal$summary
+oms_mal$lrt
+oms_mal$tukey
 ```
 
-## contact_id
+## oms fem
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(oms_fem)
+
+oms_fem$summary
+oms_fem$lrt
+oms_fem$tukey
+oms_fem$plot
+```
+
+## mean_ps mal
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(mean_ps_mal)
+
+mean_ps_mal$summary
+mean_ps_mal$lrt
+mean_ps_mal$tukey
+mean_ps_mal$plot
+```
+
+## diff_q fem
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+targets::tar_load(diff_q_fem)
+
+diff_q_fem$summary
+diff_q_fem$lrt
+diff_q_fem$tukey
+diff_q_fem$plot
+```
+
+## contid (pla)
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
 targets::tar_load(contid_id)
 
-contid_id$anova_id
-contid_id$tukey_id
-contid_id$plot_id
+contid_id$summary
+contid_id$lrt
+contid_id$tukey
+contid_id$plot
 ```
 
-## mean_position
+## meanpos
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
 targets::tar_load(meanpos_id)
 
-meanpos_id$anova_id
-meanpos_id$tukey_id
-meanpos_id$plot_id
+meanpos_id$summary
+meanpos_id$lrt
+meanpos_id$tukey
+meanpos_id$plot
 ```
 
-## nb flower visited
-```{r,echo=FALSE,message=FALSE,warning=FALSE}
-targets::tar_load(flo_id)
-
-flo_id$anova_id
-flo_id$tukey_id
-flo_id$plot_id
-```
-
-## nb visit per flower
+## visflo
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
 targets::tar_load(visflo_id)
 
-visflo_id$anova_id
-visflo_id$tukey_id
-visflo_id$plot_id
+visflo_id$summary
+visflo_id$lrt
+visflo_id$tukey
+visflo_id$plot
 ```
 
-## dur visit
+## flo
 ```{r,echo=FALSE,message=FALSE,warning=FALSE}
-targets::tar_load(durvis_id)
+targets::tar_load(flo_id)
 
-durvis_id$anova_id
-durvis_id$tukey_id
-durvis_id$plot_id
+flo_id$summary
+flo_id$lrt
+flo_id$tukey
+flo_id$plot
 ```
 # MANOVA
 
@@ -182,473 +167,7 @@ data_id |>
             sd_dlower = sd(nb_flo_open, na.rm = T))
 ```
 
-# SEM with pre- and post-poll process
-
-We measured:
-
--   **nb_flo:** the number of "receptive" flowers
-
--   **nb_flo_open:** the number of opened flowers (including very new ones)
-
--   **nb_flo_all:** the total number of flowers (including very new and old ones)
-
--   **height_max:** the height of the highest flower
-
--   **height_mean:** the mean height of the highest flowers on each stem
-
--   **nb_stem:** the number of stems
-
-Best way to do this analysis: SEM for the direct and indirect effect on oms and rs?
-
-We proceed per sex and per treatment, as we saw that (i) there is an effect of ttt at least on oms and (ii) rs is different (contrary to oms) between sexual function, and there are biological hypotheses on a different effect of floral traits between sexual function.
-
-For males, we estimate the paternity share by excluding selfing in order to be consistant with oms. Paternity share is the proportion of genotyped seeds sired by a focal father. We can also do the analysis by integrating selfing events in the estimation of paternity share (mean_ps_all).
-
-For females, post-poll process are more difficult to define: the diversity of sexual partners that had reached ovules matter (?) but here we define post-poll as the partner ability to fertilize ovules ("from the female point of view, to which point she has gathered a good team which score a lot of points") but note that we did not categorize this as as post-poll process in the abundance paper )
-
-### With nb_flo_open and height_mean (sr all)
-
-**For the low treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisefemales_low_combi1)
-piecewisefemales_low_combi1$plot
-piecewisefemales_low_combi1$summary
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_low_combi1)
-piecewisemales_low_combi1$plot
-piecewisemales_low_combi1$summary
-
-```
-:::
-:::::
-
-**For the medium treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisefemales_medium_combi1)
-piecewisefemales_medium_combi1$plot
-piecewisefemales_medium_combi1$summary
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_medium_combi1)
-piecewisemales_medium_combi1$plot
-piecewisemales_medium_combi1$summary
-
-```
-:::
-:::::
-
-**For the high treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisefemales_high_combi1)
-piecewisefemales_high_combi1$plot
-piecewisefemales_high_combi1$summary
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_high_combi1)
-piecewisemales_high_combi1$plot
-piecewisemales_high_combi1$summary
-
-```
-:::
-:::::
-
-### With nb_flo_all and height_mean (sr all)
-
-**For the low treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisefemales_low_combi3)
-piecewisefemales_low_combi3$plot
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_low_combi3)
-piecewisemales_low_combi3$plot
-
-```
-:::
-:::::
-
-**For the medium treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisefemales_medium_combi3)
-piecewisefemales_medium_combi3$plot
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_medium_combi3)
-piecewisemales_medium_combi3$plot
-
-```
-:::
-:::::
-
-**For the high treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisefemales_high_combi3)
-piecewisefemales_high_combi3$plot
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_high_combi3)
-piecewisemales_high_combi3$plot
-
-```
-:::
-:::::
-
-### With nb_flo and height_mean (sr all)
-
-**For the low treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisefemales_low_combi7)
-piecewisefemales_low_combi7$plot
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_low_combi7)
-piecewisemales_low_combi7$plot
-
-```
-:::
-:::::
-
-**For the medium treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisefemales_medium_combi7)
-piecewisefemales_medium_combi7$plot
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_medium_combi7)
-piecewisemales_medium_combi7$plot
-piecewisemales_medium_combi7$summary
-```
-:::
-:::::
-
-**For the high treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisefemales_high_combi7)
-piecewisefemales_high_combi7$plot
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_high_combi7)
-piecewisemales_high_combi7$plot
-
-```
-:::
-:::::
-
-### With nb_flo_open and height_mean (sr outcrossed)
-
-**For the low treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisefemales_sr_low_combi1)
-piecewisefemales_sr_low_combi1$plot
-piecewisefemales_sr_low_combi1$summary
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_sr_low_combi1)
-piecewisemales_sr_low_combi1$plot
-
-```
-:::
-:::::
-
-**For the medium treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisefemales_sr_medium_combi1)
-piecewisefemales_sr_medium_combi1$plot
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_sr_medium_combi1)
-piecewisemales_sr_medium_combi1$plot
-
-```
-:::
-:::::
-
-**For the high treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisefemales_sr_high_combi1)
-piecewisefemales_sr_high_combi1$plot
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_sr_high_combi1)
-piecewisemales_sr_high_combi1$plot
-
-```
-:::
-:::::
-
-<!-- ## Test with brms: pool everything -->
-
-<!-- With total rs and nb_flo_all and height_mean -->
-
-<!-- **All sex and ttt :** -->
-
-<!-- ```{r,echo=FALSE,warning=FALSE,message=FALSE} -->
-
-<!-- targets::tar_load(brms_pooled_data) -->
-
-<!-- brms_pooled_data$summary -->
-
-<!-- ``` -->
-
-<!-- > The only thing that we can conclude is that flower number increase reproductive success in the high treatment for the female function, and that this effect is less strong for the male function -->
-
-# SEM with pollinator visit proxies
-
-With nb_flo_open and height_mean 
-
-**For the low treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewise_visits_female_low)
-piecewise_visits_female_low$plot
-piecewise_visits_female_low$summary
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewise_visits_male_low)
-piecewise_visits_male_low$plot
-piecewise_visits_male_low$summary
-```
-:::
-:::::
-
-**For the medium treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewise_visits_female_medium)
-piecewise_visits_female_medium$plot
-piecewise_visits_female_medium$summary
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewise_visits_male_medium)
-piecewise_visits_male_medium$plot
-piecewise_visits_male_medium$summary
-
-```
-:::
-:::::
-
-**For the high treatment :**
-
-::::: grid
-::: g-col-6
-Females:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewise_visits_female_high)
-piecewise_visits_female_high$plot
-piecewise_visits_female_high$summary
-```
-:::
-
-::: g-col-6
-Males:
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewise_visits_male_high)
-piecewise_visits_male_high$plot
-piecewise_visits_male_high$summary
-```
-:::
-:::::
-
-# SEM at the flower scale
-
-**For the low treatment :**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-targets::tar_load(piecewise_flower_low)
-piecewise_flower_low$plot
-piecewise_flower_low$summary
-
-```
-
-**For the medium treatment :**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-targets::tar_load(piecewise_flower_medium)
-piecewise_flower_medium$plot
-piecewise_flower_medium$summary
-
-```
-
-**For the high treatment :**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-
-targets::tar_load(piecewise_flower_high)
-piecewise_flower_high$plot
-piecewise_flower_high$summary
-
-```
-
-
-# SEM for males with flower
-
-**For the low treatment :**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_low_combi1_flower)
-piecewisemales_low_combi1_flower$plot
-piecewisemales_low_combi1_flower$summary
-```
-
-**For the medium treatment :**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_medium_combi1_flower)
-piecewisemales_medium_combi1_flower$plot
-piecewisemales_medium_combi1_flower$summary
-```
-
-**For the high treatment :**
-
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
-targets::tar_load(piecewisemales_high_combi1_flower)
-piecewisemales_high_combi1_flower$plot
-piecewisemales_high_combi1_flower$summary
-```
-# SEM including visit proxies
+# Basic SEMs
 
 ## Males
 
@@ -656,30 +175,30 @@ piecewisemales_high_combi1_flower$summary
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 
-targets::tar_load(piecewisemales_low_combi1_visits)
-piecewisemales_low_combi1_visits$plot
-piecewisemales_low_combi1_visits$summary
-piecewisemales_low_combi1_visits$dsep
+targets::tar_load(piecewise_males_low_combi1_wtot_basic)
+piecewise_males_low_combi1_wtot_basic$plot
+piecewise_males_low_combi1_wtot_basic$summary
+piecewise_males_low_combi1_wtot_basic$dsep
 ```
 
 **For the medium treatment :**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 
-targets::tar_load(piecewisemales_medium_combi1_visits)
-piecewisemales_medium_combi1_visits$plot
-piecewisemales_medium_combi1_visits$summary
-piecewisemales_medium_combi1_visits$dsep
+targets::tar_load(piecewise_males_medium_combi1_wtot_basic)
+piecewise_males_medium_combi1_wtot_basic$plot
+piecewise_males_medium_combi1_wtot_basic$summary
+piecewise_males_medium_combi1_wtot_basic$dsep
 ```
 
 **For the high treatment :**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 
-targets::tar_load(piecewisemales_high_combi1_visits)
-piecewisemales_high_combi1_visits$plot
-piecewisemales_high_combi1_visits$summary
-piecewisemales_high_combi1_visits$dsep
+targets::tar_load(piecewise_males_high_combi1_wtot_basic)
+piecewise_males_high_combi1_wtot_basic$plot
+piecewise_males_high_combi1_wtot_basic$summary
+piecewise_males_high_combi1_wtot_basic$dsep
 ```
 
 ## Females
@@ -688,30 +207,102 @@ piecewisemales_high_combi1_visits$dsep
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 
-targets::tar_load(piecewisefemales_low_combi1_visits)
-piecewisefemales_low_combi1_visits$plot
-piecewisefemales_low_combi1_visits$summary
-piecewisefemales_low_combi1_visits$dsep
+targets::tar_load(piecewise_females_low_combi1_wtot_basic)
+piecewise_females_low_combi1_wtot_basic$plot
+piecewise_females_low_combi1_wtot_basic$summary
+piecewise_females_low_combi1_wtot_basic$dsep
 ```
 
 **For the medium treatment :**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 
-targets::tar_load(piecewisefemales_medium_combi1_visits)
-piecewisefemales_medium_combi1_visits$plot
-piecewisefemales_medium_combi1_visits$summary
-piecewisefemales_medium_combi1_visits$dsep
+targets::tar_load(piecewise_females_medium_combi1_wtot_basic)
+piecewise_females_medium_combi1_wtot_basic$plot
+piecewise_females_medium_combi1_wtot_basic$summary
+piecewise_females_medium_combi1_wtot_basic$dsep
 ```
 
 **For the high treatment :**
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 
-targets::tar_load(piecewisefemales_high_combi1_visits)
-piecewisefemales_high_combi1_visits$plot
-piecewisefemales_high_combi1_visits$summary
-piecewisefemales_high_combi1_visits$dsep
+targets::tar_load(piecewise_females_high_combi1_wtot_basic)
+piecewise_females_high_combi1_wtot_basic$plot
+piecewise_females_high_combi1_wtot_basic$summary
+piecewise_females_high_combi1_wtot_basic$dsep
+```
+
+# Final SEMs
+
+## Males
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_males_low_combi1_wtot_final)
+piecewise_males_low_combi1_wtot_final$plot
+piecewise_males_low_combi1_wtot_final$summary
+piecewise_males_low_combi1_wtot_final$dsep
+knitr::kable(piecewise_males_low_combi1_wtot_final$coefs)
+```
+
+**For the medium treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_males_medium_combi1_wtot_final)
+piecewise_males_medium_combi1_wtot_final$plot
+piecewise_males_medium_combi1_wtot_final$summary
+piecewise_males_medium_combi1_wtot_final$dsep
+knitr::kable(piecewise_males_medium_combi1_wtot_final$coefs)
+```
+
+**For the high treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_males_high_combi1_wtot_final)
+piecewise_males_high_combi1_wtot_final$plot
+piecewise_males_high_combi1_wtot_final$summary
+piecewise_males_high_combi1_wtot_final$dsep
+knitr::kable(piecewise_males_high_combi1_wtot_final$coefs)
+```
+
+## Females
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_females_low_combi1_wtot_final)
+piecewise_females_low_combi1_wtot_final$plot
+piecewise_females_low_combi1_wtot_final$summary
+piecewise_females_low_combi1_wtot_final$dsep
+knitr::kable(piecewise_females_low_combi1_wtot_final$coefs)
+```
+
+**For the medium treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_females_medium_combi1_wtot_final)
+piecewise_females_medium_combi1_wtot_final$plot
+piecewise_females_medium_combi1_wtot_final$summary
+piecewise_females_medium_combi1_wtot_final$dsep
+knitr::kable(piecewise_females_medium_combi1_wtot_final$coefs)
+```
+
+**For the high treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_females_high_combi1_wtot_final)
+piecewise_females_high_combi1_wtot_final$plot
+piecewise_females_high_combi1_wtot_final$summary
+piecewise_females_high_combi1_wtot_final$dsep
+knitr::kable(piecewise_females_high_combi1_wtot_final$coefs)
 ```
 
 # Z-tests for comparison between SEM
@@ -720,4 +311,76 @@ piecewisefemales_high_combi1_visits$dsep
 targets::tar_load(z_tests)
 knitr::kable(z_tests$intra_sex)
 knitr::kable(z_tests$inter_sex)
+```
+
+# Final SEMs with outcrossed
+
+## Males
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_males_low_combi1_wout_final)
+piecewise_males_low_combi1_wout_final$plot
+piecewise_males_low_combi1_wout_final$summary
+piecewise_males_low_combi1_wout_final$dsep
+knitr::kable(piecewise_males_low_combi1_wout_final$coefs)
+```
+
+**For the medium treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_males_medium_combi1_wout_final)
+piecewise_males_medium_combi1_wout_final$plot
+piecewise_males_medium_combi1_wout_final$summary
+piecewise_males_medium_combi1_wout_final$dsep
+knitr::kable(piecewise_males_medium_combi1_wout_final$coefs)
+```
+
+**For the high treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_males_high_combi1_wout_final)
+piecewise_males_high_combi1_wout_final$plot
+piecewise_males_high_combi1_wout_final$summary
+piecewise_males_high_combi1_wout_final$dsep
+knitr::kable(piecewise_males_high_combi1_wout_final$coefs)
+```
+
+## Females
+
+**For the low treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_females_low_combi1_wout_final)
+piecewise_females_low_combi1_wout_final$plot
+piecewise_females_low_combi1_wout_final$summary
+piecewise_females_low_combi1_wout_final$dsep
+knitr::kable(piecewise_females_low_combi1_wout_final$coefs)
+```
+
+**For the medium treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_females_medium_combi1_wout_final)
+piecewise_females_medium_combi1_wout_final$plot
+piecewise_females_medium_combi1_wout_final$summary
+piecewise_females_medium_combi1_wout_final$dsep
+knitr::kable(piecewise_females_medium_combi1_wout_final$coefs)
+```
+
+**For the high treatment :**
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+targets::tar_load(piecewise_females_high_combi1_wout_final)
+piecewise_females_high_combi1_wout_final$plot
+piecewise_females_high_combi1_wout_final$summary
+piecewise_females_high_combi1_wout_final$dsep
+knitr::kable(piecewise_females_high_combi1_wout_final$coefs)
 ```

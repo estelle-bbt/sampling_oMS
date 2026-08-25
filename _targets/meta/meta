@@ -118,7 +118,6 @@ piecewise_flower_high|stem|73cfe458c3e42fd3|419846b5881c9478|32834f1994f0e469|13
 piecewise_flower_low|stem|6812b1987251840b|b849a433a2658c5e|32834f1994f0e469|-243929258||t20299.540409379s|s1627b|1627|rds|local|vector|||0.56|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
 piecewise_flower_medium|stem|8cc6b6ba088ae901|a1b72fce6d24b0bb|32834f1994f0e469|-546570820||t20299.540416161s|s1641b|1641|rds|local|vector|||0.584|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
 oms_flower|stem|83acb208f89e9a0e|6bbcc6b2325ea6cd|bb706daed72c8aa6|1050369329||t20353.6361270413s|s335101b|335101|rds|local|vector|||0.729||
-pl_flower|stem|bcacf67f9c719fd1|748d793d62c9db19|bb706daed72c8aa6|984547219||t20353.6361297612s|s348741b|348741|rds|local|vector|||0.145||
 seeds_flower|stem|3229153bf4ecd4fb|648910f232d25fc3|bb706daed72c8aa6|-2146745233||t20353.6361321454s|s341230b|341230|rds|local|vector|||0.123||
 visit_flower|stem|966d336367bde04a|c6feaf07dd80e4c4|bb706daed72c8aa6|-1034562317||t20353.6361347843s|s340048b|340048|rds|local|vector|||0.146||
 data_parent_share|stem|6d3055a71e3ad9fb|9525c1e6ab877666|aa17350581ead630|448364208||t20354.4667348965s|s1711b|1711|rds|local|vector|||0.378||
@@ -145,12 +144,9 @@ piecewisefemales_sr_medium_combi1|stem|4a14a62db9dac29c|dbf1ccec33e30d08|3269b4f
 sr_all_id|stem|fe03b5f0056e1d90|6db3fa26c6944471|cb00f51537bec544|2042673991||t20362.4200924555s|s495821b|495821|rds|local|vector|||0.149||
 piecewisefemales_medium_combi7|stem|d809d62596b7f123|137d9b201b2ef00b|3269b4f2ccfd5c80|-1835169266||t20362.4200979068s|s1796b|1796|rds|local|vector|||0.461|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
 piecewisemales_sr_high_combi1|stem|82b5e40ccb2527b5|e4b209e2df08ad57|6ddda06dab12ab75|-630555205||t20362.4201047585s|s1759b|1759|rds|local|vector|||0.59|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
-contid_id|stem|61607ca3dfd3650d|5843610f896640ac|cb00f51537bec544|-2016424120||t20362.4201066335s|s408465b|408465|rds|local|vector|||0.09||
 diff_q_id|stem|689bd6c9db4bc7a2|1e154ef495f6eddc|cb00f51537bec544|-1309342214||t20362.4201082654s|s405226b|405226|rds|local|vector|||0.07||
 durvis_id|stem|e1c512effaa27394|cd8608e093bb5a33|cb00f51537bec544|-1899052063||t20362.4201100477s|s407544b|407544|rds|local|vector|||0.071||
-flo_id|stem|1c0a4e7423b5f938|b93eb5951a245411|cb00f51537bec544|2121946702||t20362.4201119111s|s409100b|409100|rds|local|vector|||0.088||
 mean_ps_id|stem|7eed81f811df6894|4bc61c49b3fa900b|cb00f51537bec544|-961003731||t20362.4201136241s|s402381b|402381|rds|local|vector|||0.075||
-meanpos_id|stem|f1fe7bc98780860c|b9eb62d50a288190|cb00f51537bec544|-1652993452||t20362.4201152328s|s405625b|405625|rds|local|vector|||0.066||
 oms_id|stem|b793ccab2e9f2ba2|d401f7ea75cd3f16|cb00f51537bec544|-1344531451||t20362.4201195383s|s488227b|488227|rds|local|vector|||0.288||
 piecewise_visits_female_high|stem|59afc2cd1955789a|2f540eb4e7925367|7598483f8dae064c|-1759442637||t20362.4201392948s|s2379b|2379|rds|local|vector|||1.704|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
 piecewise_visits_female_low|stem|3a719458b04207f3|be2d723dc7d37438|7598483f8dae064c|-1972686947||t20362.4201591208s|s2465b|2465|rds|local|vector|||1.711|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
@@ -181,79 +177,154 @@ piecewisemales_medium_combi7|stem|3af74d63e96efb8d|9b61341a4037d229|6ddda06dab12
 piecewisemales_sr_low_combi1|stem|c4cb40f42c8afffd|e6c655b0f056ac14|6ddda06dab12ab75|1944268197||t20362.4205742855s|s1762b|1762|rds|local|vector|||0.6|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data. Check model convergence loglikelihood estimates lead to negative Chisquared|
 piecewisemales_sr_medium_combi1|stem|e1c9b024707c875f|dc6bfb4922141801|6ddda06dab12ab75|-911884854||t20362.4205812761s|s1753b|1753|rds|local|vector|||0.602|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
 sr_id|stem|925e696f61c2ddfb|5cfcfcd037e9ca95|cb00f51537bec544|671762021||t20362.4205832668s|s486731b|486731|rds|local|vector|||0.081||
-visflo_id|stem|e908d9a2c3c6cbb2|485963cc4677d5b6|cb00f51537bec544|887516381||t20362.4205850145s|s405967b|405967|rds|local|vector|||0.073||
 piecewisemales_high_combi1_visits_flower|stem|cae158f867ea189a|566826b7d1f12990|cb8553c4c64c97b2|1942597983||t20362.42062256s|s389397b|389397|rds|local|vector|||3.162|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
 piecewisemales_medium_combi1_visits_flower|stem|cdc65f12694e7876|91312f5506474301|cb8553c4c64c97b2|-1247651268||t20362.4206579296s|s398819b|398819|rds|local|vector|||2.973|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
 get_piecewise_females_visits_without_direct|function|124e7c72c42c91f2|||||||||||||||
 get_piecewise_males_visits_2|function|d9bb154297f37c64|||||||||||||||
-get_brms_pooled_data|function|152be36c08688b0c
-get_piecewise_males_visits_1|function|787cfefea1a38968
-get_piecewise_flower|function|6f02cf74cf6c6a90
-get_piecewise_males|function|0c51a38efe59ead3
-get_resume_visits|function|ff15ff223e270392
-get_analyses_visits|function|50ad5d5857d9131e
-get_piecewise_males_visits_low_1|function|46f41a5213911d52
-get_piecewise_females_visits_without_direct_1|function|124e7c72c42c91f2
-get_piecewise_males_visits|function|10fdc85964248bf2
-get_piecewise_visits_old1|function|7055f47fe61714c5
-get_true_bateman|function|c130b5c4b7a019d1
-data_summary_plot|function|275c43bbb578eb9e
-get_piecewise_visits_old2|function|b336bce581b5bbde
-load_data_id|function|36fa8c0aceba4506
-get_piecewise_males_visits_high|function|6ddc80f0288e43ca
-.Random.seed|object|73d96ef0a5a7f473
-bootstrap_mean_ci|function|24bcb2d5741eeff5
-get_data_parent_share|function|0c051c26dedbd7f7
-get_linear_models_oms_proxy|function|df37f5916929d015
-get_piecewise_females_visits_low_1|function|0519049082cdd949
-get_sampling_rs_ms|function|e8222dcd66c01279
-get_piecewise_females|function|e8907ab371daeebf
-get_piecewise_visits|function|e9e0c638681eff12
-get_piecewise_females_visits_1|function|e80620042c800489
-get_sampling_bateman|function|07f63ac17f5160c0
-get_data_session|function|e321b336a804dbab
-get_plot_gms|function|2a5779ab56c84fce
-get_multigroup_males|function|3c66cfe623382a83
-get_piecewise_females_visits|function|151285acab5840b6
-get_piecewise_selfing|function|45a08e9ae6c7438e
-get_data_sem_complete_sessions|function|c473e46a0e0e1bb6
-get_piecewise_males_visits_old|function|2863dfb4354fdfcb
-get_piecewise_females_visits_complete|function|677cc36c75f29945
-get_piecewise_males_visits_complete|function|19cf7f8b886cc9f4
-get_piecewise_males_flower|function|bf9cf158a9c6c8ea
-get_var_gms|function|2a5779ab56c84fce
-load_data_obs|function|896643c2508b20cc
-get_data_sem_sampled_sessions|function|ae6d450c590d8c9e
-get_piecewise_females_visits_old|function|194529083d5dbfdb
-get_piecewise_males_visits_flower|function|546bcbd4fbb4557f
-get_piecewise_females_visits_low|function|c1eb44c9284d90f4
-q_index|function|5e64afe42d76eaba
-get_piecewise_general|function|024abcddea7f8f07
-compute_oms_and_proxy|function|7122c508ec45e096
-get_manova_and_correlation|function|ea51d516fea31f75
-get_selfing|function|f9ce297c0a0e00da
-get_data_sem_sampled_sessions_old|function|432616af78b88360
-compute_predictions_oms_proxy|function|2036dab86ea0cc8d
-get_piecewise_males_visits_high_1|function|c1abbfd126c75ceb
-get_piecewise_females_visits_medium|function|cc949fe515667db1
-get_piecewise_females_visits_medium_1|function|eb931c7a87ced1d3
-get_multigroup_females|function|4f504b99246ca759
-get_data_contact|function|21c3b1ac8023387b
-load_data_flower|function|cfdcf54e227c84ba
-get_z_tests|function|1890c282dd744277
-get_piecewise_males_visits_low|function|9d11c0fffd09b63d
-get_pca|function|57f6e541d1bea373
-load_data|function|61dd1713ca7e555e
-get_hedges|function|405713f1dadee2bd
-get_true_rs_ms|function|29d13c16b1136b70
-get_ttt_effect_flower|function|af4cad492a7a35ee
-get_ttt_effect_id|function|da9c1c8c1210091b
-get_data_from_genotypes|function|924a0b5883c980e0
 piecewisefemales_high_combi1_visits|stem|d9cd9e564f0d208b|d509fe8c3f9f02ca|da2c4f3e12b8d049|1179338387||t20363.5372032537s|s368888b|368888|rds|local|vector|||2.007|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
 piecewisefemales_low_combi1_visits|stem|4209cc133b26b430|9bff37fff1761c95|da2c4f3e12b8d049|1921103840||t20363.5372269338s|s373170b|373170|rds|local|vector|||1.961|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
 piecewisefemales_medium_combi1_visits|stem|8c78c1b99a40c260|1bbf49ec3f90be9e|da2c4f3e12b8d049|-556283600||t20363.5372477551s|s377781b|377781|rds|local|vector|||1.719|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
 piecewisemales_high_combi1_visits|stem|a59c623a913baca8|e7304c4eccbfbf15|602e07c12f5d1501|557957339||t20363.5372711574s|s367091b|367091|rds|local|vector|||1.939|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
 piecewisemales_low_combi1_visits|stem|82fb7d1fca2d79b2|ed375b2554555bcc|602e07c12f5d1501|-311982623||t20363.5372945134s|s370211b|370211|rds|local|vector|||1.928|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
 piecewisemales_medium_combi1_visits|stem|c9aea6a3bd31bbe4|7e613b3eeaf8d3b5|602e07c12f5d1501|745122760||t20363.5373180083s|s376372b|376372|rds|local|vector|||1.951|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
-z_tests|stem|aa95883aac1cb38a|ce70386872ad6a40|1654792b6ca0426c|-1769691034||t20363.537318425s|s1197b|1197|rds|local|vector|||0.029||
-index|stem|f6f90bd73ebfdb31|98fc41c739fcfb60|54a653df25ac0895|554519753|index_files*index.html*index.qmd|t20363.5374457371s|s16993756b|16993756|file|local|vector|||10.486||
+piecewise_males_medium_combi1_wtot_final|stem|b400a09fc4c1a94e|e87883d7bef033e0|8c141cc841a41068|456333319||t20368.3881023923s|s377595b|377595|rds|local|vector|||1.932|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_medium_combi1_wout_final|stem|25aa8a06560efb52|6c1d3925d1709786|8c141cc841a41068|-1274430954||t20370.4399039514s|s377586b|377586|rds|local|vector|||1.918|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+get_ttt_effect_flower|function|af4cad492a7a35ee|||||||||||||||
+pl_flower|stem|bcacf67f9c719fd1|748d793d62c9db19|f1e5c80d8107e54e|984547219||t20353.6361297612s||348741|rds|local|vector|||0.005||impossible de trouver la fonction get_ttt_effect_flower
+mean_ps_mal|stem|11e9c5677a875197|ad5cc9dfaf5e2027|01fcb225d282b7bd|-1941993587||t20412.4315996595s|s680147b|680147|rds|local|vector|||0.215||
+sr_out_mal|stem|9df3f9c1773ef92b|68dbc6513e40aab6|01fcb225d282b7bd|714507325||t20412.4316033747s|s730156b|730156|rds|local|vector|||0.139||
+contid_id|stem|a60ec09091785158|e6b42a5de83bb531|01fcb225d282b7bd|-2016424120||t20412.4316073445s|s686362b|686362|rds|local|vector|||0.183||
+oms_mal|stem|027342f788a579d3|e4e123e3c0ae84d6|01fcb225d282b7bd|-37285074||t20412.4316115921s|s733497b|733497|rds|local|vector|||0.173||
+visflo_id|stem|edc8ba1779ef1863|cad127a62c50fff2|01fcb225d282b7bd|887516381||t20412.4316143698s|s689317b|689317|rds|local|vector|||0.082||
+diff_q_fem|stem|ccfeeb1f6b9a6071|ba2ecfc5f8e86026|01fcb225d282b7bd|2114118244||t20412.4316179809s|s681596b|681596|rds|local|vector|||0.147||
+flo_id|stem|e24474639b6c98d9|971a6516f5c9e372|01fcb225d282b7bd|2121946702||t20412.4316225178s|s686885b|686885|rds|local|vector|||0.219||
+meanpos_id|stem|16318a2d24adb0c4|a3bfac33489babab|01fcb225d282b7bd|-1652993452||t20412.4316261636s|s690452b|690452|rds|local|vector|||0.143||
+oms_fem|stem|c80157687370037a|a9a0b8ff06749f24|01fcb225d282b7bd|-2122345927||t20412.4316300524s|s733946b|733946|rds|local|vector|||0.159||
+sr_all_fem|stem|9ec5f5968941de0b|f9c31dcc6d6d98e1|01fcb225d282b7bd|-735420282||t20412.431635006s|s730719b|730719|rds|local|vector|||0.151||
+sr_all_mal|stem|a3e4c644dc3eb87f|bd1c61bbb6c071fc|01fcb225d282b7bd|-2033152392||t20412.4316426447s|s730238b|730238|rds|local|vector|||0.45||
+sr_out_fem|stem|d17961949b2b3365|cf69339c4f04a959|01fcb225d282b7bd|-1726990588||t20412.4316459896s|s730371b|730371|rds|local|vector|||0.122||
+get_piecewise_males_visits_low_tt|function|35372a87a0c32d43|||||||||||||||
+piecewise_males_medium_combi2_wtot_final|stem|775e2ddcf02fa490|530dffd9f6bb68bb|8c141cc841a41068|-215152263||t20412.5664198575s|s505971b|505971|rds|local|vector|||2.246|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_medium_combi4_wtot_final|stem|53161eb47eef59b4|7861f12a6a04982c|8c141cc841a41068|1142963173||t20412.5667324776s|s506026b|506026|rds|local|vector|||1.968|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_medium_combi5_wtot_final|stem|e276dcfbe25b5596|4e0bd63d473ba956|8c141cc841a41068|1087781171||t20412.5667633102s|s505753b|505753|rds|local|vector|||2.548|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_medium_combi6_wtot_final|stem|48f28051910edbb7|15941aca206e089a|8c141cc841a41068|-1782509807||t20412.5667926151s|s505752b|505752|rds|local|vector|||2.408|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_medium_combi3_wtot_final|stem|4b26eafcd2baf512|566371282d68c02d|8c141cc841a41068|-1185035420||t20412.5669668588s|s506010b|506010|rds|local|vector|||1.994|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_low_combi2_wtot_final|stem|e92245851e70e41b|d7d70552047fb504|d1900e422522e0a7|-131324216||t20412.5678111333s|s489846b|489846|rds|local|vector|||2.584|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data. Check model convergence loglikelihood estimates lead to negative Chisquared|
+piecewise_males_low_combi1_wtot_final|stem|b36389e8ccd33ce2|eb7c68f49acd9459|d1900e422522e0a7|-486405881||t20412.5678433548s|s490005b|490005|rds|local|vector|||2.577|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data. Check model convergence loglikelihood estimates lead to negative Chisquared|
+piecewise_males_low_combi1_wout_final|stem|dfdb61321c6f22ba|a6305156e6f7e133|d1900e422522e0a7|1119257105||t20412.5678794535s|s489977b|489977|rds|local|vector|||2.979|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data. Check model convergence loglikelihood estimates lead to negative Chisquared|
+piecewise_males_low_combi4_wtot_final|stem|35d1d74ad5bdaa57|382afdaa2c881d92|d1900e422522e0a7|-208571809||t20412.5679146263s|s490136b|490136|rds|local|vector|||2.91|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_low_combi3_wtot_final|stem|b4cc56313b08251d|ce6dc87023518e6d|d1900e422522e0a7|-1089249417||t20412.5679387577s|s490263b|490263|rds|local|vector|||1.972|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_low_combi6_wtot_final|stem|f3e201dd29f13f87|cbc851f9b049f598|d1900e422522e0a7|-310384458||t20412.5679633289s|s489629b|489629|rds|local|vector|||2.005|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data. Check model convergence loglikelihood estimates lead to negative Chisquared|
+piecewise_males_low_combi5_wtot_final|stem|7dbcad4e5302a1b7|6ba9a4456122a85a|d1900e422522e0a7|298551262||t20412.5679895552s|s489774b|489774|rds|local|vector|||2.153|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data. Check model convergence loglikelihood estimates lead to negative Chisquared|
+piecewise_males_high_combi1_wout_final|stem|42cd1b1fdef1b6ca|7356bdbd7df33945|1187befd0d4d376b|598802919||t20412.5699352974s|s487609b|487609|rds|local|vector|||2.186|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data. Check model convergence loglikelihood estimates lead to negative Chisquared|
+piecewise_males_high_combi1_wtot_final|stem|2c7fe6abf2e2fdea|ef2b7b77239f7b70|1187befd0d4d376b|-1555467656||t20412.5699673916s|s487583b|487583|rds|local|vector|||2.555|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data. Check model convergence loglikelihood estimates lead to negative Chisquared|
+piecewise_males_high_combi5_wtot_final|stem|d655057b0852cf6e|637196b153356637|1187befd0d4d376b|-79489133||t20412.5700159437s|s487271b|487271|rds|local|vector|||2.014|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data. Check model convergence loglikelihood estimates lead to negative Chisquared|
+piecewise_males_high_combi6_wtot_final|stem|c601da6077f3bb6e|19376ad6722df017|1187befd0d4d376b|-1780550926||t20412.5700391839s|s487327b|487327|rds|local|vector|||1.893|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data. Check model convergence loglikelihood estimates lead to negative Chisquared|
+piecewise_males_high_combi2_wtot_final|stem|8077ed037848cc11|8ad5689aa1ee183e|1187befd0d4d376b|2116535592||t20412.5700842061s|s487657b|487657|rds|local|vector|||2.16|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data. Check model convergence loglikelihood estimates lead to negative Chisquared|
+piecewise_males_high_combi3_wtot_final|stem|239decf509c423ee|d6662fbf681ba245|1187befd0d4d376b|737218079||t20412.5701549452s|s487814b|487814|rds|local|vector|||2.108|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_high_combi4_wtot_final|stem|047cc6325fbf2f7d|357c377d90ad74c2|1187befd0d4d376b|-165720382||t20412.5702198974s|s487658b|487658|rds|local|vector|||2.031|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_medium_combi5_wtot_final|stem|9ecaca39c801474c|231766ee001090ce|33b1af9d1b5a09b5|649635446||t20413.4937497169s|s496143b|496143|rds|local|vector|||1.635|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_low_combi2_wtot_final|stem|39aec356ba18b42a|7ec7a801e4db99b3|22a7e999fbc853cd|-207259229||t20413.4937692649s|s491278b|491278|rds|local|vector|||1.567|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_medium_combi1_wout_final|stem|76d42f5b4ca8cc85|20ddb30b38457ae9|33b1af9d1b5a09b5|1102124272||t20413.4937920535s|s496779b|496779|rds|local|vector|||1.852|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_complete_low_combi1_wtot_final|stem|6118cd23da2bb380|01cd5a155897bca7|e4c9b994bbd3a00a|-456060939||t20413.49384726s|s514701b|514701|rds|local|vector|||4.644|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data. Check model convergence loglikelihood estimates lead to negative Chisquared|
+piecewise_females_high_combi1_wout_final|stem|e622298fed3b1ca1|36c4c33dfddd4c9c|082fed481e4fb887|1650334713||t20413.4938746317s|s497948b|497948|rds|local|vector|||2.247|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_high_combi1_wtot_final|stem|0f82f4023213204a|a7341da01f49042e|082fed481e4fb887|615661369||t20413.4939109384s|s497929b|497929|rds|local|vector|||3.016|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_low_combi1_wout_final|stem|ec299c565e94ac98|aec8e488693d9540|22a7e999fbc853cd|-2112517096||t20413.4939303128s|s491335b|491335|rds|local|vector|||1.543|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_low_combi1_wtot_final|stem|34716ab3cb990d80|eafbc1f07dd44bb9|22a7e999fbc853cd|761610682||t20413.4939510181s|s491309b|491309|rds|local|vector|||1.551|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_medium_combi1_wtot_final|stem|62e0fd29c258c628|62392bf797f22a3c|33b1af9d1b5a09b5|1965177389||t20413.4939718392s|s496690b|496690|rds|local|vector|||1.673|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_complete_medium_combi1_wtot_final|stem|b671069f2493d88d|7ba13cfd3f324789|e1a140d7849f34b6|-1316687454||t20413.4940179719s|s518393b|518393|rds|local|vector|||3.866|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_low_combi3_wtot_final|stem|210ff67a5414ad3e|dc28da74e1c16b07|22a7e999fbc853cd|245915691||t20413.4940395337s|s491717b|491717|rds|local|vector|||1.75|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_high_combi6_wtot_final|stem|f4ed07ee4bf064dd|bc43ca1a29d8f936|082fed481e4fb887|1584202557||t20413.4940629241s|s497652b|497652|rds|local|vector|||1.899|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_complete_medium_combi1_wtot_final|stem|80bff54f5ba1146a|41b3022a05a6af40|ef35a7ceb29a9e47|2027026739||t20413.4940992539s|s520721b|520721|rds|local|vector|||3.01|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_high_combi3_wtot_final|stem|9a0cce8b0f0a1330|23b7fac3ca0a2918|082fed481e4fb887|1965276352||t20413.4941270424s|s498084b|498084|rds|local|vector|||2.183|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_high_combi2_wtot_final|stem|03ddd373d664ee6a|8d010b201713a21a|082fed481e4fb887|-613263084||t20413.4941531873s|s497943b|497943|rds|local|vector|||2.141|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_medium_combi6_wtot_final|stem|67ed76f5684811c6|4af8e97ccad2309f|33b1af9d1b5a09b5|1762362687||t20413.4941723071s|s496152b|496152|rds|local|vector|||1.53|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_complete_high_combi1_wtot_final|stem|c6b40455308cac65|8faee6afa0d5c7f4|542f9677a662ad1c|1369510422||t20413.4942160556s|s512328b|512328|rds|local|vector|||3.652|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_complete_high_combi1_wtot_final|stem|659c99b6a5f9b262|af7207aac6386019|4d1e31ac90a08028|-1058225314||t20413.494258751s|s511792b|511792|rds|local|vector|||3.57|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data. Check model convergence loglikelihood estimates lead to negative Chisquared|
+piecewise_females_low_combi4_wtot_final|stem|1c607771c5849e6b|2a16125f1e8d95f8|22a7e999fbc853cd|-1455203257||t20413.4942791091s|s491556b|491556|rds|local|vector|||1.565|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_medium_combi2_wtot_final|stem|2f4b8a8120b50260|aa25e617987d9651|33b1af9d1b5a09b5|-2121636823||t20413.494301319s|s496599b|496599|rds|local|vector|||1.804|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_medium_combi3_wtot_final|stem|e83b4d741c5f8263|0a1ed2f01ada1bc7|33b1af9d1b5a09b5|-37589624||t20413.4943199064s|s497000b|497000|rds|local|vector|||1.492|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_low_combi5_wtot_final|stem|1729d96b5049dad7|1c59b250a067ebf1|22a7e999fbc853cd|-1742396494||t20413.4943394196s|s490895b|490895|rds|local|vector|||1.568|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_high_combi5_wtot_final|stem|42f5ff4a5ef1c988|38e5bfdac5cbece9|082fed481e4fb887|1319155782||t20413.4943623124s|s497588b|497588|rds|local|vector|||1.854|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_medium_combi4_wtot_final|stem|34bb92b3df78b402|e104201b2b921337|33b1af9d1b5a09b5|59605811||t20413.4943838742s|s496735b|496735|rds|local|vector|||1.736|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_high_combi4_wtot_final|stem|b4fc6d334195572c|6b6d5362c61a8908|082fed481e4fb887|-1406396833||t20413.4944150769s|s497980b|497980|rds|local|vector|||2.479|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_low_combi6_wtot_final|stem|3d82608d7a304ba9|90e35338b1216936|22a7e999fbc853cd|-1881017805||t20413.4944507585s|s490771b|490771|rds|local|vector|||2.842|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+z_tests|stem|f890837a1747b0fc|2ac0b421286c3657|74b236767d9cdc76|-1769691034||t20413.4944522516s|s1295b|1295|rds|local|vector|||0.026||
+piecewise_females_complete_low_combi1_wtot_final|stem|57519e70525d8de0|237b4ea8945e1147|f98fa3a1d2037cc9|69371960||t20413.6126159977s|s515899b|515899|rds|local|vector|||3.636|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+.Random.seed|object|94d04d13c3d79b34
+get_true_rs_ms|function|29d13c16b1136b70
+get_hedges|function|405713f1dadee2bd
+get_piecewise_males_visits_flower|function|546bcbd4fbb4557f
+get_piecewise_selfing|function|45a08e9ae6c7438e
+get_data_sem_sampled_sessions_old|function|432616af78b88360
+compute_oms_and_proxy|function|7122c508ec45e096
+get_sampling_rs_ms|function|e8222dcd66c01279
+get_var_gms|function|2a5779ab56c84fce
+get_piecewise_females_visits_complete_low|function|6315a6c7e98f1d61
+get_piecewise_males_visits_old|function|2863dfb4354fdfcb
+get_piecewise_males_visits_low_1|function|46f41a5213911d52
+get_piecewise_males|function|0c51a38efe59ead3
+q_index|function|5e64afe42d76eaba
+get_plot_gms|function|2a5779ab56c84fce
+get_piecewise_females|function|e8907ab371daeebf
+get_piecewise_males_visits|function|32409db47eaae8e9
+get_piecewise_males_flower|function|bf9cf158a9c6c8ea
+get_piecewise_females_visits_medium_1|function|eb931c7a87ced1d3
+get_piecewise_females_visits_1|function|e80620042c800489
+get_data_parent_share|function|0c051c26dedbd7f7
+bootstrap_mean_ci|function|24bcb2d5741eeff5
+get_manova_and_correlation|function|8b22163d9f68f1d4
+load_data_id|function|36fa8c0aceba4506
+get_data_contact|function|21c3b1ac8023387b
+get_piecewise_males_visits_complete_medium|function|67dd2b11fe726cba
+get_piecewise_females_visits_medium|function|1f607c7131bcc63c
+get_piecewise_males_visits_complete|function|15f923acb61978e5
+get_multigroup_males|function|3c66cfe623382a83
+get_linear_models_oms_proxy|function|df37f5916929d015
+get_piecewise_females_visits_high|function|5f5edd1e81527a28
+get_data_sem_sampled_sessions|function|ae6d450c590d8c9e
+get_piecewise_females_visits_complete_high|function|85010eeeffd33a85
+get_piecewise_males_visits_1|function|787cfefea1a38968
+get_piecewise_males_visits_high_1|function|c1abbfd126c75ceb
+get_true_bateman|function|c130b5c4b7a019d1
+get_piecewise_males_visits_low|function|c220981d3c846b79
+get_brms_pooled_data|function|152be36c08688b0c
+get_piecewise_males_visits_high|function|a374b12138b51588
+get_piecewise_males_visits_complete_high|function|3f32855fe496bcc9
+get_piecewise_females_visits_low_1|function|0519049082cdd949
+get_piecewise_visits|function|e9e0c638681eff12
+get_resume_visits|function|ff15ff223e270392
+get_piecewise_flower|function|6f02cf74cf6c6a90
+get_data_sem_complete_sessions|function|c473e46a0e0e1bb6
+get_data_session|function|e321b336a804dbab
+get_piecewise_females_visits_complete_medium|function|fb55be3e6c1c0e5d
+get_piecewise_general|function|024abcddea7f8f07
+get_piecewise_males_visits_complete_low|function|4569a1871777e647
+data_summary_plot|function|275c43bbb578eb9e
+get_piecewise_visits_old1|function|7055f47fe61714c5
+load_data|function|61dd1713ca7e555e
+get_piecewise_females_visits_complete|function|0d5a1d3efece79f1
+get_piecewise_visits_old2|function|b336bce581b5bbde
+get_piecewise_females_visits_low|function|9d8fd1c1fae62f32
+get_pca|function|57f6e541d1bea373
+compute_predictions_oms_proxy|function|2036dab86ea0cc8d
+get_selfing|function|f9ce297c0a0e00da
+get_piecewise_females_visits|function|d2987cbfaf4a87ac
+load_data_flower|function|cfdcf54e227c84ba
+get_z_tests|function|1890c282dd744277
+get_multigroup_females|function|4f504b99246ca759
+get_analyses_visits|function|50ad5d5857d9131e
+get_sampling_bateman|function|07f63ac17f5160c0
+load_data_obs|function|896643c2508b20cc
+get_piecewise_females_visits_old|function|194529083d5dbfdb
+get_piecewise_males_visits_medium|function|8766cdb1fc519aa8
+get_piecewise_females_visits_without_direct_1|function|124e7c72c42c91f2
+get_data_from_genotypes|function|924a0b5883c980e0
+get_ttt_effect_id|function|d96ed2d5aca0c57e
+piecewise_females_high_combi1_wtot_basic|stem|343db563d6b9d985|d509fe8c3f9f02ca|887cae7a55d3bf79|-1288902348||t20690.426377077s|s501642b|501642|rds|local|vector|||2.077|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data. the ‘nobars’ function has moved to the reformulas package. Please update your imports, or ask an upstream package maintainter to do so. This warning is displayed once per session.|
+piecewise_females_low_combi1_wtot_basic|stem|5a84f10fddabae62|9bff37fff1761c95|887cae7a55d3bf79|122207399||t20690.4264031414s|s505768b|505768|rds|local|vector|||2.096|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_females_medium_combi1_wtot_basic|stem|325336efd72f98bb|1bbf49ec3f90be9e|887cae7a55d3bf79|-1982601541||t20690.4264261966s|s510332b|510332|rds|local|vector|||1.836|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_high_combi1_wtot_basic|stem|c8f8708b89097516|e7304c4eccbfbf15|6ffc07d9db9e8b1f|1901256001||t20690.4264535109s|s499631b|499631|rds|local|vector|||2.22|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_low_combi1_wtot_basic|stem|0146c8c2ff71bb4b|ed375b2554555bcc|6ffc07d9db9e8b1f|-1667777454||t20690.42647961s|s502862b|502862|rds|local|vector|||2.116|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+piecewise_males_medium_combi1_wtot_basic|stem|16fbdbed052b55ed|7e613b3eeaf8d3b5|6ffc07d9db9e8b1f|161012574||t20690.4265061258s|s508814b|508814|rds|local|vector|||2.149|NAs detected in the dataset. Consider removing all rows with NAs to prevent fitting to different subsets of data|
+index|stem|ef92fe9bf8487260|665f79d57bb58a6e|78c0b062a38037a5|554519753|index_files*index.html*index.qmd|t20690.4267561796s|s18970653b|18970653|file|local|vector|||18.693||
